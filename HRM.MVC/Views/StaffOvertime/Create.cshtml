@@ -1,0 +1,93 @@
+@model CreateOvertimeRequestDto
+@{
+    ViewData["Title"] = "Register Overtime";
+}
+
+<h2>Register Overtime</h2>
+
+<form asp-action="Create" method="post" onsubmit="return validateAndCalculate()">
+    @Html.AntiForgeryToken()
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <p>@error.ErrorMessage</p>
+            }
+        </div>
+    }
+
+    <div class="mb-3">
+        <label class="form-label">OT Date</label>
+        <input asp-for="Otdate" type="date" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Start Time</label>
+        <input asp-for="StartTime" type="datetime-local" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">End Time</label>
+        <input asp-for="EndTime" type="datetime-local" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Total Hours</label>
+        <input name="totalHours" id="TotalHours" type="number" class="form-control" readonly step="0.01" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Reason</label>
+        <textarea asp-for="Reason" class="form-control" rows="3" required></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <script>
+        function validateAndCalculate() {
+            var otdate = document.getElementById('Otdate');
+            var startTime = document.getElementById('StartTime');
+            var endTime = document.getElementById('EndTime');
+            var totalHours = document.getElementById('TotalHours');
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (otdate.value) {
+                var otDate = new Date(otdate.value);
+                if (otDate < today) {
+                    alert('OT date cannot be in the past.');
+                    return false;
+                }
+            }
+
+            if (startTime.value) {
+                var start = new Date(startTime.value);
+                if (start < new Date()) {
+                    alert('Start time cannot be in the past.');
+                    return false;
+                }
+            }
+
+            if (startTime.value && endTime.value) {
+                var start = new Date(startTime.value);
+                var end = new Date(endTime.value);
+                if (end <= start) {
+                    alert('End time must be greater than start time.');
+                    return false;
+                }
+                var hours = (end - start) / (1000 * 60 * 60);
+                totalHours.value = hours.toFixed(2);
+                if (hours > 3) {
+                    alert('Overtime cannot exceed 3 hours.');
+                    return false;
+                }
+            }
+            return true;
+        }
+    </script>
+}

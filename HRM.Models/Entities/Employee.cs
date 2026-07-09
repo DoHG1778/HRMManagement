@@ -11,7 +11,7 @@ public partial class Employee
 
     public string FullName { get; set; } = null!;
 
-    public bool Gender { get; set; }
+    public string Gender { get; set; } = null!;
 
     public DateOnly? DateOfBirth { get; set; }
 

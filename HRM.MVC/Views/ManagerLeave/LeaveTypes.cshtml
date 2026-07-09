@@ -1,0 +1,69 @@
+@model List<LeaveTypeResponseDto>
+@{
+    ViewData["Title"] = "Leave Types";
+}
+
+<h2>Leave Types</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<p>
+    <a asp-action="CreateLeaveType" class="btn btn-primary">Create New Leave Type</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Max Days/Year</th>
+            <th>Description</th>
+            <th>Active</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.LeaveTypeId</td>
+                <td>@item.LeaveTypeName</td>
+                <td>@item.MaxDaysPerYear</td>
+                <td>@item.Description</td>
+                <td>
+                    <span class="badge bg-@(item.IsActive ? "success" : "secondary")">@(item.IsActive ? "Yes" : "No")</span>
+                </td>
+                <td>
+                    <a asp-action="EditLeaveType" asp-route-id="@item.LeaveTypeId" class="btn btn-sm btn-warning">Edit</a>
+                    @if (item.IsActive)
+                    {
+                        <form asp-action="DeactivateLeaveType" method="post" style="display:inline" onsubmit="return confirm('Deactivate this leave type?')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.LeaveTypeId" />
+                            <button type="submit" class="btn btn-sm btn-danger">Deactivate</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-action="ActivateLeaveType" method="post" style="display:inline" onsubmit="return confirm('Activate this leave type?')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.LeaveTypeId" />
+                            <button type="submit" class="btn btn-sm btn-success">Activate</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+        @if (!Model.Any())
+        {
+            <tr><td colspan="6" class="text-center">No leave types found.</td></tr>
+        }
+    </tbody>
+</table>

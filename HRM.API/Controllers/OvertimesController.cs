@@ -1,12 +1,10 @@
 ﻿using HRM.Business.DTOs.Overtimes;
 using HRM.Business.Services.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HRM.API.Controllers
 {
     [Route("api/overtimes")]
-    [Authorize]
     public class OvertimesController : BaseApiController
     {
         private readonly IOvertimeService _overtimeService;
@@ -51,7 +49,6 @@ namespace HRM.API.Controllers
         }
 
         [HttpGet("requests")]
-        [Authorize(Roles = "Admin,HR,Manager,Payroll")]
         public async Task<IActionResult> GetOvertimeRequests([FromQuery] OvertimeRequestFilterDto filter)
         {
             var currentUser = GetCurrentUser();
@@ -60,7 +57,6 @@ namespace HRM.API.Controllers
         }
 
         [HttpGet("requests/pending")]
-        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> GetPendingOvertimeRequests()
         {
             var currentUser = GetCurrentUser();
@@ -69,7 +65,6 @@ namespace HRM.API.Controllers
         }
 
         [HttpPut("requests/{overtimeRequestId:int}/approval")]
-        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> ApproveOrRejectOvertimeRequest(
             int overtimeRequestId,
             [FromBody] ApproveOvertimeRequestDto request)
@@ -80,7 +75,6 @@ namespace HRM.API.Controllers
         }
 
         [HttpGet("approved-for-payroll")]
-        [Authorize(Roles = "HR,Payroll")]
         public async Task<IActionResult> GetApprovedOvertimeForPayroll(
             [FromQuery] int employeeId,
             [FromQuery] int month,

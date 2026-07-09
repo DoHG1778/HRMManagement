@@ -1,0 +1,88 @@
+@model List<LeaveRequestResponseDto>
+@{
+    ViewData["Title"] = "My Leave Requests";
+}
+
+<h2>My Leave Requests</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Leave Request</a>
+</p>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <select name="status" class="form-select">
+            <option value="">All Status</option>
+            <option value="PENDING" selected="@(ViewBag.CurrentStatus == "PENDING")">Pending</option>
+            <option value="APPROVED" selected="@(ViewBag.CurrentStatus == "APPROVED")">Approved</option>
+            <option value="REJECTED" selected="@(ViewBag.CurrentStatus == "REJECTED")">Rejected</option>
+            <option value="CANCELLED" selected="@(ViewBag.CurrentStatus == "CANCELLED")">Cancelled</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <input type="number" name="month" class="form-control" placeholder="Month" value="@ViewBag.CurrentMonth" style="width:90px" />
+    </div>
+    <div class="col-auto">
+        <input type="number" name="year" class="form-control" placeholder="Year" value="@ViewBag.CurrentYear" style="width:90px" />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-secondary">Filter</button>
+    </div>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Leave Type</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Days</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.LeaveRequestId</td>
+                <td>@item.LeaveTypeName</td>
+                <td>@item.StartDate.ToString("dd/MM/yyyy")</td>
+                <td>@item.EndDate.ToString("dd/MM/yyyy")</td>
+                <td>@item.TotalDays</td>
+                <td>@item.Reason</td>
+                <td>
+                    <span class="badge bg-@(item.Status == "PENDING" ? "warning" : item.Status == "APPROVED" ? "success" : item.Status == "REJECTED" ? "danger" : "secondary")">
+                        @item.Status
+                    </span>
+                </td>
+                <td>
+                    @if (item.Status == "PENDING")
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.LeaveRequestId" class="btn btn-sm btn-warning">Edit</a>
+                        <form asp-action="Cancel" method="post" style="display:inline" onsubmit="return confirm('Cancel this request?')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.LeaveRequestId" />
+                            <button type="submit" class="btn btn-sm btn-danger">Cancel</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+        @if (!Model.Any())
+        {
+            <tr><td colspan="8" class="text-center">No leave requests found.</td></tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,74 @@
+@model List<LeaveRequestResponseDto>
+@{
+    ViewData["Title"] = "Pending Leave Requests";
+}
+
+<h2>Pending Leave Requests</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Employee</th>
+            <th>Leave Type</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Days</th>
+            <th>Reason</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.LeaveRequestId</td>
+                <td>@item.EmployeeName (@item.EmployeeCode)</td>
+                <td>@item.LeaveTypeName</td>
+                <td>@item.StartDate.ToString("dd/MM/yyyy")</td>
+                <td>@item.EndDate.ToString("dd/MM/yyyy")</td>
+                <td>@item.TotalDays</td>
+                <td>@item.Reason</td>
+                <td>
+                    <form asp-action="Approve" method="post" style="display:inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@item.LeaveRequestId" />
+                        <input type="hidden" name="isApproved" value="true" />
+                        <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                    </form>
+                    <button type="button" class="btn btn-sm btn-danger" onclick="showRejectForm(@item.LeaveRequestId)">Reject</button>
+
+                    <form asp-action="Approve" method="post" id="rejectForm-@item.LeaveRequestId" style="display:none; margin-top:5px">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@item.LeaveRequestId" />
+                        <input type="hidden" name="isApproved" value="false" />
+                        <div class="input-group">
+                            <input type="text" name="rejectionReason" class="form-control form-control-sm" placeholder="Reason" required />
+                            <button type="submit" class="btn btn-sm btn-danger">Confirm Reject</button>
+                        </div>
+                    </form>
+                </td>
+            </tr>
+        }
+        @if (!Model.Any())
+        {
+            <tr><td colspan="8" class="text-center">No pending leave requests.</td></tr>
+        }
+    </tbody>
+</table>
+
+<script>
+    function showRejectForm(id) {
+        var form = document.getElementById('rejectForm-' + id);
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+</script>
