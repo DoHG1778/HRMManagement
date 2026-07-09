@@ -1,0 +1,46 @@
+@model AssignEmployeeRequestDto
+
+@{
+    ViewData["Title"] = "Assign Employee";
+    var employeeId = ViewBag.EmployeeId;
+    var departments = ViewBag.Departments as List<DepartmentResponseDto> ?? new();
+    var positions = ViewBag.Positions as List<PositionResponseDto> ?? new();
+}
+
+<h2>Assign Employee</h2>
+
+<form asp-action="Assign" asp-route-id="@employeeId" method="post" style="max-width: 520px;">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="DepartmentId" class="form-label"></label>
+        <select asp-for="DepartmentId" class="form-select">
+            <option value="">Select department</option>
+            @foreach (var item in departments)
+            {
+                <option value="@item.DepartmentId">@item.DepartmentName</option>
+            }
+        </select>
+    </div>
+    <div class="mb-3">
+        <label asp-for="PositionId" class="form-label"></label>
+        <select asp-for="PositionId" class="form-select">
+            <option value="">Select position</option>
+            @foreach (var item in positions)
+            {
+                <option value="@item.PositionId">@item.PositionName</option>
+            }
+        </select>
+    </div>
+    <div class="mb-3">
+        <label asp-for="StartDate" class="form-label"></label>
+        <input asp-for="StartDate" type="date" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Note" class="form-label"></label>
+        <textarea asp-for="Note" class="form-control"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Assign</button>
+    <a asp-action="Details" asp-route-id="@employeeId" class="btn btn-secondary">Back</a>
+</form>

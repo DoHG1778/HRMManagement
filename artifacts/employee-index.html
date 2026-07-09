@@ -1,0 +1,311 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Employees - HRM</title>
+    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/css/site.css?v=pAGv4ietcJNk_EwsQZ5BN9-K4MuNYS2a9wl4Jw-q9D0" />
+    <link rel="stylesheet" href="/HRM.MVC.styles.css?v=rSSqQCZdiR9yIN4PueFD6InnNQ0xRG3CAmawM7Zh0HQ" />
+</head>
+<body>
+    <header b-gz96bmj1ng>
+        <nav b-gz96bmj1ng class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div b-gz96bmj1ng class="container-fluid">
+                <a class="navbar-brand" href="/">HRM</a>
+                <button b-gz96bmj1ng class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span b-gz96bmj1ng class="navbar-toggler-icon"></span>
+                </button>
+                <div b-gz96bmj1ng class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul b-gz96bmj1ng class="navbar-nav flex-grow-1">
+                        <li b-gz96bmj1ng class="nav-item dropdown">
+                            <a b-gz96bmj1ng class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Authentication</a>
+                            <ul b-gz96bmj1ng class="dropdown-menu">
+                                <li b-gz96bmj1ng><h6 b-gz96bmj1ng class="dropdown-header">All Actors</h6></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item" href="/Auth/Login">Login</a></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item " href="/Auth/ChangePassword">Change Password</a></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item " href="/Auth/MyAccount">My Account</a></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item " href="/Auth/Logout">Logout</a></li>
+                            </ul>
+                        </li>
+
+                        <li b-gz96bmj1ng class="nav-item dropdown">
+                            <a b-gz96bmj1ng class="nav-link dropdown-toggle " href="#" role="button" data-bs-toggle="dropdown">Employee</a>
+                            <ul b-gz96bmj1ng class="dropdown-menu">
+                                <li b-gz96bmj1ng><h6 b-gz96bmj1ng class="dropdown-header">Self Service</h6></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item " href="/EmployeeManagement/MyProfile">My Profile</a></li>
+                                <li b-gz96bmj1ng><hr b-gz96bmj1ng class="dropdown-divider" /></li>
+                                <li b-gz96bmj1ng><h6 b-gz96bmj1ng class="dropdown-header">Leave</h6></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item " href="/StaffLeave">My Leave Requests</a></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item " href="/StaffLeave/Create">Create Leave Request</a></li>
+                                <li b-gz96bmj1ng><hr b-gz96bmj1ng class="dropdown-divider" /></li>
+                                <li b-gz96bmj1ng><h6 b-gz96bmj1ng class="dropdown-header">Overtime</h6></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item " href="/StaffOvertime">My OT Requests</a></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item " href="/StaffOvertime/Create">Register Overtime</a></li>
+                            </ul>
+                        </li>
+
+                        <li b-gz96bmj1ng class="nav-item dropdown">
+                            <a b-gz96bmj1ng class="nav-link dropdown-toggle " href="#" role="button" data-bs-toggle="dropdown">HR / Admin</a>
+                            <ul b-gz96bmj1ng class="dropdown-menu">
+                                <li b-gz96bmj1ng><h6 b-gz96bmj1ng class="dropdown-header">Employee Management</h6></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item " href="/EmployeeManagement">Employee List</a></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item " href="/EmployeeManagement/Create">Create Employee Profile</a></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item " href="/EmployeeManagement">Update Employee Profile / Status</a></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item " href="/EmployeeManagement">Assign Employee</a></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item " href="/EmployeeManagement">Transfer Employee</a></li>
+                                <li b-gz96bmj1ng><hr b-gz96bmj1ng class="dropdown-divider" /></li>
+                                <li b-gz96bmj1ng><h6 b-gz96bmj1ng class="dropdown-header">Organization</h6></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item " href="/DepartmentManagement">Departments</a></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item " href="/PositionManagement">Positions</a></li>
+                                <li b-gz96bmj1ng><hr b-gz96bmj1ng class="dropdown-divider" /></li>
+                                <li b-gz96bmj1ng><h6 b-gz96bmj1ng class="dropdown-header">Leave Administration</h6></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item " href="/ManagerLeave/LeaveTypes">Leave Types</a></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item " href="/ManagerLeave/Balances">Leave Balances</a></li>
+                            </ul>
+                        </li>
+
+                        <li b-gz96bmj1ng class="nav-item dropdown">
+                            <a b-gz96bmj1ng class="nav-link dropdown-toggle disabled" href="#" role="button" data-bs-toggle="dropdown">Manager</a>
+                            <ul b-gz96bmj1ng class="dropdown-menu">
+                                <li b-gz96bmj1ng><h6 b-gz96bmj1ng class="dropdown-header">Employees</h6></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item disabled" href="/EmployeeManagement">Department Employees</a></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item disabled" href="/EmployeeManagement">Employee Details</a></li>
+                                <li b-gz96bmj1ng><hr b-gz96bmj1ng class="dropdown-divider" /></li>
+                                <li b-gz96bmj1ng><h6 b-gz96bmj1ng class="dropdown-header">Approvals</h6></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item disabled" href="/ManagerLeave">Pending Leave Approvals</a></li>
+                                <li b-gz96bmj1ng><a class="dropdown-item disabled" href="/ManagerOvertime">Pending OT Approvals</a></li>
+                            </ul>
+                        </li>
+
+                        <li b-gz96bmj1ng class="nav-item dropdown">
+                            <a b-gz96bmj1ng class="nav-link dropdown-toggle disabled" href="#" role="button" data-bs-toggle="dropdown">Payroll</a>
+                            <ul b-gz96bmj1ng class="dropdown-menu">
+                                <li b-gz96bmj1ng><a b-gz96bmj1ng class="dropdown-item disabled" href="#">Payroll Management</a></li>
+                                <li b-gz96bmj1ng><a b-gz96bmj1ng class="dropdown-item disabled" href="#">My Payslip</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div b-gz96bmj1ng class="container">
+        <main b-gz96bmj1ng role="main" class="pb-3">
+            
+
+<h2>Employees</h2>
+
+ <div class="alert alert-success">Login successfully.</div> 
+<a class="btn btn-primary mb-3" href="/EmployeeManagement/Create">Create Employee</a>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-3">
+        <input name="keyword" class="form-control" placeholder="Keyword" />
+    </div>
+    <div class="col-md-2">
+        <select name="departmentId" class="form-select">
+            <option value="">All departments</option>
+                <option value="3">Finance</option>
+                <option value="1">Human Resources</option>
+                <option value="2">Information Technology</option>
+                <option value="4">Marketing</option>
+                <option value="5">Smoke Dept A Updated 20260710005834</option>
+                <option value="7">Smoke Dept A Updated 20260710010224</option>
+                <option value="6">Smoke Dept B 20260710005834</option>
+                <option value="8">Smoke Dept B 20260710010224</option>
+                <option value="9">Smoke Empty Dept 20260710010240</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="positionId" class="form-select">
+            <option value="">All positions</option>
+                <option value="7">Director</option>
+                <option value="1">Employee</option>
+                <option value="5">HR Staff</option>
+                <option value="4">Manager</option>
+                <option value="6">Payroll Officer</option>
+                <option value="2">Senior Employee</option>
+                <option value="8">Smoke Position A Updated 20260710005834</option>
+                <option value="10">Smoke Position A Updated 20260710010224</option>
+                <option value="9">Smoke Position B 20260710005834</option>
+                <option value="11">Smoke Position B 20260710010224</option>
+                <option value="3">Team Leader</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="employmentStatus" class="form-select">
+            <option value="">All statuses</option>
+            <option value="ACTIVE">ACTIVE</option>
+            <option value="ON_LEAVE">ON_LEAVE</option>
+            <option value="RESIGNED">RESIGNED</option>
+            <option value="TERMINATED">TERMINATED</option>
+        </select>
+    </div>
+    <div class="col-md-1">
+        <button class="btn btn-outline-secondary">Filter</button>
+    </div>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Manager</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+            <tr>
+                <td>EMP001</td>
+                <td>Nguyen HR Staff</td>
+                <td>hr01@company.com</td>
+                <td>ACTIVE</td>
+                <td></td>
+                <td>
+                    <a class="btn btn-sm btn-info" href="/EmployeeManagement/Details/1">Details</a>
+                    <a class="btn btn-sm btn-warning" href="/EmployeeManagement/Edit/1">Edit</a>
+                    <a class="btn btn-sm btn-secondary" href="/EmployeeManagement/Assign/1">Assign</a>
+                    <a class="btn btn-sm btn-dark" href="/EmployeeManagement/Transfer/1">Transfer</a>
+                </td>
+            </tr>
+            <tr>
+                <td>EMP002</td>
+                <td>Tran Payroll Officer</td>
+                <td>payroll01@company.com</td>
+                <td>ACTIVE</td>
+                <td></td>
+                <td>
+                    <a class="btn btn-sm btn-info" href="/EmployeeManagement/Details/2">Details</a>
+                    <a class="btn btn-sm btn-warning" href="/EmployeeManagement/Edit/2">Edit</a>
+                    <a class="btn btn-sm btn-secondary" href="/EmployeeManagement/Assign/2">Assign</a>
+                    <a class="btn btn-sm btn-dark" href="/EmployeeManagement/Transfer/2">Transfer</a>
+                </td>
+            </tr>
+            <tr>
+                <td>EMP003</td>
+                <td>Manager 1</td>
+                <td>manager01@company.com</td>
+                <td>ACTIVE</td>
+                <td></td>
+                <td>
+                    <a class="btn btn-sm btn-info" href="/EmployeeManagement/Details/3">Details</a>
+                    <a class="btn btn-sm btn-warning" href="/EmployeeManagement/Edit/3">Edit</a>
+                    <a class="btn btn-sm btn-secondary" href="/EmployeeManagement/Assign/3">Assign</a>
+                    <a class="btn btn-sm btn-dark" href="/EmployeeManagement/Transfer/3">Transfer</a>
+                </td>
+            </tr>
+            <tr>
+                <td>EMP004</td>
+                <td>Manager 2</td>
+                <td>manager02@company.com</td>
+                <td>ACTIVE</td>
+                <td></td>
+                <td>
+                    <a class="btn btn-sm btn-info" href="/EmployeeManagement/Details/4">Details</a>
+                    <a class="btn btn-sm btn-warning" href="/EmployeeManagement/Edit/4">Edit</a>
+                    <a class="btn btn-sm btn-secondary" href="/EmployeeManagement/Assign/4">Assign</a>
+                    <a class="btn btn-sm btn-dark" href="/EmployeeManagement/Transfer/4">Transfer</a>
+                </td>
+            </tr>
+            <tr>
+                <td>EMP005</td>
+                <td>Manager 3</td>
+                <td>manager03@company.com</td>
+                <td>ACTIVE</td>
+                <td></td>
+                <td>
+                    <a class="btn btn-sm btn-info" href="/EmployeeManagement/Details/5">Details</a>
+                    <a class="btn btn-sm btn-warning" href="/EmployeeManagement/Edit/5">Edit</a>
+                    <a class="btn btn-sm btn-secondary" href="/EmployeeManagement/Assign/5">Assign</a>
+                    <a class="btn btn-sm btn-dark" href="/EmployeeManagement/Transfer/5">Transfer</a>
+                </td>
+            </tr>
+            <tr>
+                <td>EMP006</td>
+                <td>Manager 4</td>
+                <td>manager04@company.com</td>
+                <td>ACTIVE</td>
+                <td></td>
+                <td>
+                    <a class="btn btn-sm btn-info" href="/EmployeeManagement/Details/6">Details</a>
+                    <a class="btn btn-sm btn-warning" href="/EmployeeManagement/Edit/6">Edit</a>
+                    <a class="btn btn-sm btn-secondary" href="/EmployeeManagement/Assign/6">Assign</a>
+                    <a class="btn btn-sm btn-dark" href="/EmployeeManagement/Transfer/6">Transfer</a>
+                </td>
+            </tr>
+            <tr>
+                <td>EMP007</td>
+                <td>Employee 1</td>
+                <td>employee01@company.com</td>
+                <td>ACTIVE</td>
+                <td>Manager 1</td>
+                <td>
+                    <a class="btn btn-sm btn-info" href="/EmployeeManagement/Details/7">Details</a>
+                    <a class="btn btn-sm btn-warning" href="/EmployeeManagement/Edit/7">Edit</a>
+                    <a class="btn btn-sm btn-secondary" href="/EmployeeManagement/Assign/7">Assign</a>
+                    <a class="btn btn-sm btn-dark" href="/EmployeeManagement/Transfer/7">Transfer</a>
+                </td>
+            </tr>
+            <tr>
+                <td>EMP008</td>
+                <td>Employee 2</td>
+                <td>employee02@company.com</td>
+                <td>ACTIVE</td>
+                <td>Manager 2</td>
+                <td>
+                    <a class="btn btn-sm btn-info" href="/EmployeeManagement/Details/8">Details</a>
+                    <a class="btn btn-sm btn-warning" href="/EmployeeManagement/Edit/8">Edit</a>
+                    <a class="btn btn-sm btn-secondary" href="/EmployeeManagement/Assign/8">Assign</a>
+                    <a class="btn btn-sm btn-dark" href="/EmployeeManagement/Transfer/8">Transfer</a>
+                </td>
+            </tr>
+            <tr>
+                <td>EMP009</td>
+                <td>Employee 3</td>
+                <td>employee03@company.com</td>
+                <td>ACTIVE</td>
+                <td>Manager 3</td>
+                <td>
+                    <a class="btn btn-sm btn-info" href="/EmployeeManagement/Details/9">Details</a>
+                    <a class="btn btn-sm btn-warning" href="/EmployeeManagement/Edit/9">Edit</a>
+                    <a class="btn btn-sm btn-secondary" href="/EmployeeManagement/Assign/9">Assign</a>
+                    <a class="btn btn-sm btn-dark" href="/EmployeeManagement/Transfer/9">Transfer</a>
+                </td>
+            </tr>
+            <tr>
+                <td>EMP010</td>
+                <td>Employee 4</td>
+                <td>employee04@company.com</td>
+                <td>ACTIVE</td>
+                <td>Manager 4</td>
+                <td>
+                    <a class="btn btn-sm btn-info" href="/EmployeeManagement/Details/10">Details</a>
+                    <a class="btn btn-sm btn-warning" href="/EmployeeManagement/Edit/10">Edit</a>
+                    <a class="btn btn-sm btn-secondary" href="/EmployeeManagement/Assign/10">Assign</a>
+                    <a class="btn btn-sm btn-dark" href="/EmployeeManagement/Transfer/10">Transfer</a>
+                </td>
+            </tr>
+    </tbody>
+</table>
+
+        </main>
+    </div>
+
+    <footer b-gz96bmj1ng class="border-top footer text-muted">
+        <div b-gz96bmj1ng class="container">
+            &copy; 2026 - HRM
+        </div>
+    </footer>
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+    <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/site.js?v=hRQyftXiu1lLX2P9Ly9xa4gHJgLeR1uGN5qegUobtGo"></script>
+    
+</body>
+</html>

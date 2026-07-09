@@ -1,4 +1,4 @@
-﻿using HRM.Business.DTOs.Employees;
+using HRM.Business.DTOs.Employees;
 using HRM.Business.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +17,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin,HR,Manager")]
+        [Authorize(Roles = "Admin,HR,HR Staff,Manager,Department Manager,System Administrator")]
         public async Task<IActionResult> GetEmployees([FromQuery] EmployeeFilterDto filter)
         {
             var currentUser = GetCurrentUser();
@@ -26,7 +26,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpGet("{employeeId:int}")]
-        [Authorize(Roles = "Admin,HR,Manager")]
+        [Authorize(Roles = "Admin,HR,HR Staff,Manager,Department Manager,System Administrator")]
         public async Task<IActionResult> GetEmployeeDetail(int employeeId)
         {
             var currentUser = GetCurrentUser();
@@ -35,7 +35,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin,HR")]
+        [Authorize(Roles = "Admin,HR,HR Staff,System Administrator")]
         public async Task<IActionResult> CreateEmployee([FromBody] CreateEmployeeRequestDto request)
         {
             var currentUser = GetCurrentUser();
@@ -44,7 +44,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpPut("{employeeId:int}")]
-        [Authorize(Roles = "Admin,HR")]
+        [Authorize(Roles = "Admin,HR,HR Staff,System Administrator")]
         public async Task<IActionResult> UpdateEmployee(int employeeId, [FromBody] UpdateEmployeeRequestDto request)
         {
             var currentUser = GetCurrentUser();
@@ -69,11 +69,29 @@ namespace HRM.API.Controllers
         }
 
         [HttpPatch("{employeeId:int}/status")]
-        [Authorize(Roles = "Admin,HR")]
+        [Authorize(Roles = "Admin,HR,HR Staff,System Administrator")]
         public async Task<IActionResult> ChangeEmployeeStatus(int employeeId, [FromQuery] string status)
         {
             var currentUser = GetCurrentUser();
             var result = await _employeeService.ChangeEmployeeStatusAsync(currentUser, employeeId, status);
+            return HandleResponse(result);
+        }
+
+        [HttpPost("{employeeId:int}/assignment")]
+        [Authorize(Roles = "Admin,HR,HR Staff,System Administrator")]
+        public async Task<IActionResult> AssignEmployee(int employeeId, [FromBody] AssignEmployeeRequestDto request)
+        {
+            var currentUser = GetCurrentUser();
+            var result = await _employeeService.AssignEmployeeAsync(currentUser, employeeId, request);
+            return HandleResponse(result);
+        }
+
+        [HttpPost("{employeeId:int}/transfer")]
+        [Authorize(Roles = "Admin,HR,HR Staff,System Administrator")]
+        public async Task<IActionResult> TransferEmployee(int employeeId, [FromBody] TransferEmployeeRequestDto request)
+        {
+            var currentUser = GetCurrentUser();
+            var result = await _employeeService.TransferEmployeeAsync(currentUser, employeeId, request);
             return HandleResponse(result);
         }
     }

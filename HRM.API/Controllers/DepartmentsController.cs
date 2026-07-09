@@ -1,4 +1,4 @@
-﻿using HRM.Business.DTOs.Departments;
+using HRM.Business.DTOs.Departments;
 using HRM.Business.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +17,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,HR,HR Staff,Manager,Department Manager,System Administrator,Payroll,Payroll Officer")]
         public async Task<IActionResult> GetDepartments([FromQuery] bool? isActive)
         {
             var result = await _departmentService.GetDepartmentsAsync(isActive);
@@ -24,6 +25,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpGet("{departmentId:int}")]
+        [Authorize(Roles = "Admin,HR,HR Staff,Manager,Department Manager,System Administrator,Payroll,Payroll Officer")]
         public async Task<IActionResult> GetDepartmentById(int departmentId)
         {
             var result = await _departmentService.GetDepartmentByIdAsync(departmentId);
@@ -31,7 +33,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin,HR")]
+        [Authorize(Roles = "Admin,HR,HR Staff,System Administrator")]
         public async Task<IActionResult> CreateDepartment([FromBody] CreateDepartmentRequestDto request)
         {
             var currentUser = GetCurrentUser();
@@ -40,7 +42,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpPut("{departmentId:int}")]
-        [Authorize(Roles = "Admin,HR")]
+        [Authorize(Roles = "Admin,HR,HR Staff,System Administrator")]
         public async Task<IActionResult> UpdateDepartment(int departmentId, [FromBody] UpdateDepartmentRequestDto request)
         {
             var currentUser = GetCurrentUser();
@@ -49,7 +51,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpPut("{departmentId:int}/deactivate")]
-        [Authorize(Roles = "Admin,HR")]
+        [Authorize(Roles = "Admin,HR,HR Staff,System Administrator")]
         public async Task<IActionResult> DeactivateDepartment(int departmentId)
         {
             var currentUser = GetCurrentUser();
@@ -58,7 +60,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpPut("{departmentId:int}/activate")]
-        [Authorize(Roles = "Admin,HR")]
+        [Authorize(Roles = "Admin,HR,HR Staff,System Administrator")]
         public async Task<IActionResult> ActivateDepartment(int departmentId)
         {
             var currentUser = GetCurrentUser();

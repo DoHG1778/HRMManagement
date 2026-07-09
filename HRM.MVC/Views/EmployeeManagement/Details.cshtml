@@ -1,0 +1,48 @@
+@model EmployeeDetailResponseDto
+
+@{
+    ViewData["Title"] = "Employee Details";
+}
+
+<h2>Employee Details</h2>
+
+@if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
+@if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
+
+<table class="table table-bordered">
+    <tbody>
+        <tr><th>Code</th><td>@Model.EmployeeCode</td></tr>
+        <tr><th>Name</th><td>@Model.FullName</td></tr>
+        <tr><th>Gender</th><td>@Model.Gender</td></tr>
+        <tr><th>Date of Birth</th><td>@Model.DateOfBirth</td></tr>
+        <tr><th>Phone</th><td>@Model.Phone</td></tr>
+        <tr><th>Email</th><td>@Model.Email</td></tr>
+        <tr><th>Address</th><td>@Model.Address</td></tr>
+        <tr><th>CCCD</th><td>@Model.Cccd</td></tr>
+        <tr><th>Hire Date</th><td>@Model.HireDate</td></tr>
+        <tr><th>Status</th><td>@Model.EmploymentStatus</td></tr>
+        <tr><th>User</th><td>@Model.Username</td></tr>
+        <tr><th>Manager</th><td>@Model.ManagerName</td></tr>
+        <tr><th>Department</th><td>@Model.DepartmentName</td></tr>
+        <tr><th>Position</th><td>@Model.PositionName</td></tr>
+        <tr><th>Current Salary</th><td>@Model.CurrentSalary</td></tr>
+    </tbody>
+</table>
+
+<div class="mb-3">
+    <a asp-action="Edit" asp-route-id="@Model.EmployeeId" class="btn btn-warning">Edit</a>
+    <a asp-action="Assign" asp-route-id="@Model.EmployeeId" class="btn btn-secondary">Assign</a>
+    <a asp-action="Transfer" asp-route-id="@Model.EmployeeId" class="btn btn-dark">Transfer</a>
+    <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+</div>
+
+<form asp-action="ChangeStatus" asp-route-id="@Model.EmployeeId" method="post" class="d-flex gap-2" style="max-width: 360px;">
+    @Html.AntiForgeryToken()
+    <select name="status" class="form-select">
+        <option value="ACTIVE">ACTIVE</option>
+        <option value="ON_LEAVE">ON_LEAVE</option>
+        <option value="RESIGNED">RESIGNED</option>
+        <option value="TERMINATED">TERMINATED</option>
+    </select>
+    <button type="submit" class="btn btn-primary">Change Status</button>
+</form>

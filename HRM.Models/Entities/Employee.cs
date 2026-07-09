@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HRM.Models.Entities;
 
@@ -47,7 +48,10 @@ public partial class Employee
 
     public virtual ICollection<Department> Departments { get; set; } = new List<Department>();
 
-    public virtual EmployeeAssignment? EmployeeAssignment { get; set; }
+    [NotMapped]
+    public virtual EmployeeAssignment? EmployeeAssignment => EmployeeAssignments.FirstOrDefault(ea => ea.EndDate == null);
+
+    public virtual ICollection<EmployeeAssignment> EmployeeAssignments { get; set; } = new List<EmployeeAssignment>();
 
     public virtual ICollection<EmployeeBankAccount> EmployeeBankAccounts { get; set; } = new List<EmployeeBankAccount>();
 

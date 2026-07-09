@@ -1,0 +1,75 @@
+@model UpdateEmployeeRequestDto
+
+@{
+    ViewData["Title"] = "Edit Employee";
+    var employeeId = ViewBag.EmployeeId;
+}
+
+<h2>Edit Employee</h2>
+
+<form asp-action="Edit" asp-route-id="@employeeId" method="post" class="row g-3">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="col-md-5">
+        <label asp-for="FullName" class="form-label"></label>
+        <input asp-for="FullName" class="form-control" />
+    </div>
+    <div class="col-md-2">
+        <label asp-for="Gender" class="form-label"></label>
+        <input asp-for="Gender" class="form-control" />
+    </div>
+    <div class="col-md-2">
+        <label asp-for="HireDate" class="form-label"></label>
+        <input asp-for="HireDate" type="date" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="EmploymentStatus" class="form-label"></label>
+        <select asp-for="EmploymentStatus" class="form-select">
+            <option value="ACTIVE">ACTIVE</option>
+            <option value="ON_LEAVE">ON_LEAVE</option>
+            <option value="RESIGNED">RESIGNED</option>
+            <option value="TERMINATED">TERMINATED</option>
+        </select>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="Phone" class="form-label"></label>
+        <input asp-for="Phone" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="Cccd" class="form-label"></label>
+        <input asp-for="Cccd" class="form-control" />
+    </div>
+    <div class="col-md-2">
+        <label asp-for="DateOfBirth" class="form-label"></label>
+        <input asp-for="DateOfBirth" type="date" class="form-control" />
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Address" class="form-label"></label>
+        <input asp-for="Address" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="UserId" class="form-label"></label>
+        <input asp-for="UserId" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="ManagerId" class="form-label"></label>
+        <input asp-for="ManagerId" class="form-control" />
+    </div>
+    <div class="col-md-6">
+        <label asp-for="AvatarUrl" class="form-label"></label>
+        <input asp-for="AvatarUrl" class="form-control" />
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a asp-action="Details" asp-route-id="@employeeId" class="btn btn-secondary">Back</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

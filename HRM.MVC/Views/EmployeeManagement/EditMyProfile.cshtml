@@ -1,0 +1,27 @@
+@model UpdateMyProfileRequestDto
+
+@{
+    ViewData["Title"] = "Edit My Profile";
+}
+
+<h2>Edit My Profile</h2>
+
+<form asp-action="EditMyProfile" method="post" style="max-width: 520px;">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Phone" class="form-label"></label>
+        <input asp-for="Phone" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Address" class="form-label"></label>
+        <input asp-for="Address" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="AvatarUrl" class="form-label"></label>
+        <input asp-for="AvatarUrl" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="MyProfile" class="btn btn-secondary">Back</a>
+</form>

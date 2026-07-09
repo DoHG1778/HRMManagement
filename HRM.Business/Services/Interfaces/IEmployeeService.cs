@@ -33,5 +33,15 @@ namespace HRM.Business.Services.Interfaces
             CurrentUser currentUser,
             int employeeId,
             string status);
+
+        Task<ApiResponse<EmployeeAssignmentResponseDto>> AssignEmployeeAsync(
+            CurrentUser currentUser,
+            int employeeId,
+            AssignEmployeeRequestDto request);
+
+        Task<ApiResponse<EmployeeAssignmentResponseDto>> TransferEmployeeAsync(
+            CurrentUser currentUser,
+            int employeeId,
+            TransferEmployeeRequestDto request);
     }
 }

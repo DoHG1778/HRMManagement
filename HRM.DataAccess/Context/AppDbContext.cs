@@ -224,6 +224,14 @@ public partial class AppDbContext : DbContext
                 .IsUnicode(false)
                 .HasDefaultValue("ACTIVE");
             entity.Property(e => e.FullName).HasMaxLength(150);
+            entity.Property(e => e.Gender)
+                .HasConversion(
+                    v => v == "1"
+                        || v.ToLower() == "true"
+                        || v.ToLower() == "male"
+                        || v.ToLower() == "m"
+                        || v.ToLower() == "nam",
+                    v => v ? "Male" : "Female");
             entity.Property(e => e.Phone)
                 .HasMaxLength(20)
                 .IsUnicode(false);
@@ -262,8 +270,8 @@ public partial class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_EmployeeAssignments_Department");
 
-            entity.HasOne(d => d.Employee).WithOne(p => p.EmployeeAssignment)
-                .HasForeignKey<EmployeeAssignment>(d => d.EmployeeId)
+            entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeAssignments)
+                .HasForeignKey(d => d.EmployeeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_EmployeeAssignments_Employee");
 

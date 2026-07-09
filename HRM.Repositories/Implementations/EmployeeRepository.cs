@@ -34,9 +34,9 @@ namespace HRM.Repositories.Implementations
             return await _context.Employees
                 .Include(e => e.User)
                 .Include(e => e.Manager)
-                .Include(e => e.EmployeeAssignment)
+                .Include(e => e.EmployeeAssignments.Where(ea => ea.EndDate == null))
                     .ThenInclude(ea => ea.Department)
-                .Include(e => e.EmployeeAssignment)
+                .Include(e => e.EmployeeAssignments.Where(ea => ea.EndDate == null))
                     .ThenInclude(ea => ea.Position)
                 .Include(e => e.Contract)
                 .FirstOrDefaultAsync(e => e.EmployeeId == employeeId);
@@ -81,6 +81,14 @@ namespace HRM.Repositories.Implementations
                 .AnyAsync(e => e.UserId == userId);
         }
 
+        public async Task<bool> IsUserLinkedToEmployeeAsync(int userId, int excludeEmployeeId)
+        {
+            return await _context.Employees
+                .AnyAsync(e =>
+                    e.UserId == userId &&
+                    e.EmployeeId != excludeEmployeeId);
+        }
+
         public async Task<bool> IsActiveEmployeeAsync(int employeeId)
         {
             return await _context.Employees
@@ -96,6 +104,35 @@ namespace HRM.Repositories.Implementations
                     ea.EmployeeId == employeeId &&
                     ea.EndDate == null &&
                     ea.Department.ManagerEmployeeId == managerEmployeeId);
+        }
+
+        public async Task<EmployeeAssignment?> GetCurrentAssignmentAsync(int employeeId)
+        {
+            return await _context.EmployeeAssignments
+                .Include(ea => ea.Employee)
+                .Include(ea => ea.Department)
+                .Include(ea => ea.Position)
+                .FirstOrDefaultAsync(ea =>
+                    ea.EmployeeId == employeeId &&
+                    ea.EndDate == null);
+        }
+
+        public async Task<bool> HasCurrentAssignmentAsync(int employeeId)
+        {
+            return await _context.EmployeeAssignments
+                .AnyAsync(ea =>
+                    ea.EmployeeId == employeeId &&
+                    ea.EndDate == null);
+        }
+
+        public async Task AddAssignmentAsync(EmployeeAssignment assignment)
+        {
+            await _context.EmployeeAssignments.AddAsync(assignment);
+        }
+
+        public void UpdateAssignment(EmployeeAssignment assignment)
+        {
+            _context.EmployeeAssignments.Update(assignment);
         }
     }
 }

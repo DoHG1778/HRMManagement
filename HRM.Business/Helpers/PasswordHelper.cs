@@ -21,7 +21,14 @@
 
             if (IsBCryptHash(storedPassword))
             {
-                return BCrypt.Net.BCrypt.Verify(inputPassword, storedPassword);
+                try
+                {
+                    return BCrypt.Net.BCrypt.Verify(inputPassword, storedPassword);
+                }
+                catch
+                {
+                    return false;
+                }
             }
 
             // Dùng cho seed data demo hiện tại: PasswordHash đang là plain text "Password@123"
