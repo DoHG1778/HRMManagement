@@ -1,0 +1,52 @@
+@model List<PositionResponseDto>
+
+@{
+    ViewData["Title"] = "Positions";
+}
+
+<h2>Positions</h2>
+
+@if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
+@if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
+
+<a asp-action="Create" class="btn btn-primary mb-3">Create Position</a>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Employees</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.PositionName</td>
+                <td>@item.Description</td>
+                <td>@item.EmployeeCount</td>
+                <td>@(item.IsActive ? "Active" : "Inactive")</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.PositionId" class="btn btn-sm btn-warning">Edit</a>
+                    @if (item.IsActive)
+                    {
+                        <form asp-action="Deactivate" asp-route-id="@item.PositionId" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button class="btn btn-sm btn-danger">Deactivate</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-action="Activate" asp-route-id="@item.PositionId" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button class="btn btn-sm btn-success">Activate</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

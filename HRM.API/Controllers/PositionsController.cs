@@ -1,4 +1,4 @@
-﻿using HRM.Business.DTOs.Positions;
+using HRM.Business.DTOs.Positions;
 using HRM.Business.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +17,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,HR,HR Staff,Manager,Department Manager,System Administrator,Payroll,Payroll Officer")]
         public async Task<IActionResult> GetPositions([FromQuery] bool? isActive)
         {
             var result = await _positionService.GetPositionsAsync(isActive);
@@ -24,6 +25,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpGet("{positionId:int}")]
+        [Authorize(Roles = "Admin,HR,HR Staff,Manager,Department Manager,System Administrator,Payroll,Payroll Officer")]
         public async Task<IActionResult> GetPositionById(int positionId)
         {
             var result = await _positionService.GetPositionByIdAsync(positionId);
@@ -31,7 +33,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin,HR")]
+        [Authorize(Roles = "Admin,HR,HR Staff,System Administrator")]
         public async Task<IActionResult> CreatePosition([FromBody] CreatePositionRequestDto request)
         {
             var currentUser = GetCurrentUser();
@@ -40,7 +42,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpPut("{positionId:int}")]
-        [Authorize(Roles = "Admin,HR")]
+        [Authorize(Roles = "Admin,HR,HR Staff,System Administrator")]
         public async Task<IActionResult> UpdatePosition(int positionId, [FromBody] UpdatePositionRequestDto request)
         {
             var currentUser = GetCurrentUser();
@@ -49,7 +51,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpPut("{positionId:int}/deactivate")]
-        [Authorize(Roles = "Admin,HR")]
+        [Authorize(Roles = "Admin,HR,HR Staff,System Administrator")]
         public async Task<IActionResult> DeactivatePosition(int positionId)
         {
             var currentUser = GetCurrentUser();
@@ -58,7 +60,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpPut("{positionId:int}/activate")]
-        [Authorize(Roles = "Admin,HR")]
+        [Authorize(Roles = "Admin,HR,HR Staff,System Administrator")]
         public async Task<IActionResult> ActivatePosition(int positionId)
         {
             var currentUser = GetCurrentUser();

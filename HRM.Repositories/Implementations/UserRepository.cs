@@ -26,6 +26,9 @@ namespace HRM.Repositories.Implementations
         public async Task<User?> GetByUsernameOrEmailAsync(string usernameOrEmail)
         {
             return await _context.Users
+                .Include(u => u.Employee)
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u =>
                     u.Username == usernameOrEmail ||
                     u.Email == usernameOrEmail);
@@ -34,6 +37,7 @@ namespace HRM.Repositories.Implementations
         public async Task<User?> GetUserWithRolesAsync(int userId)
         {
             return await _context.Users
+                .Include(u => u.Employee)
                 .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.UserId == userId);

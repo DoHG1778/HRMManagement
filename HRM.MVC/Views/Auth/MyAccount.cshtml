@@ -1,0 +1,57 @@
+@model UserResponseDto
+
+@{
+    ViewData["Title"] = "My Account";
+}
+
+<h2>My Account</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<table class="table table-bordered mt-3" style="max-width: 720px;">
+    <tbody>
+        <tr>
+            <th>User ID</th>
+            <td>@Model.UserId</td>
+        </tr>
+        <tr>
+            <th>Username</th>
+            <td>@Model.Username</td>
+        </tr>
+        <tr>
+            <th>Email</th>
+            <td>@Model.Email</td>
+        </tr>
+        <tr>
+            <th>Status</th>
+            <td>@(Model.IsActive ? "Active" : "Locked")</td>
+        </tr>
+        <tr>
+            <th>Roles</th>
+            <td>@string.Join(", ", Model.Roles)</td>
+        </tr>
+        <tr>
+            <th>Employee</th>
+            <td>
+                @if (Model.EmployeeId.HasValue)
+                {
+                    <span>@Model.EmployeeCode - @Model.FullName</span>
+                }
+                else
+                {
+                    <span>Not linked</span>
+                }
+            </td>
+        </tr>
+        <tr>
+            <th>Last Login</th>
+            <td>@Model.LastLoginAt</td>
+        </tr>
+    </tbody>
+</table>
+
+<a asp-action="ChangePassword" class="btn btn-primary">Change Password</a>
+<a asp-action="Logout" class="btn btn-outline-danger">Logout</a>

@@ -24,8 +24,18 @@ namespace HRM.Repositories.Interfaces
 
         Task<bool> IsUserLinkedToEmployeeAsync(int userId);
 
+        Task<bool> IsUserLinkedToEmployeeAsync(int userId, int excludeEmployeeId);
+
         Task<bool> IsActiveEmployeeAsync(int employeeId);
 
         Task<bool> IsEmployeeUnderManagerAsync(int employeeId, int managerEmployeeId);
+
+        Task<EmployeeAssignment?> GetCurrentAssignmentAsync(int employeeId);
+
+        Task<bool> HasCurrentAssignmentAsync(int employeeId);
+
+        Task AddAssignmentAsync(EmployeeAssignment assignment);
+
+        void UpdateAssignment(EmployeeAssignment assignment);
     }
 }

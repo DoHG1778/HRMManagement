@@ -8,6 +8,7 @@ using HRM.Repositories.Interfaces;
 using HRM.Repositories.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -86,6 +87,30 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
 
             ClockSkew = TimeSpan.Zero
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                var logger = context.HttpContext.RequestServices
+                    .GetRequiredService<ILoggerFactory>()
+                    .CreateLogger("JwtAuthentication");
+                logger.LogWarning(context.Exception, "JWT authentication failed.");
+                return Task.CompletedTask;
+            },
+            OnChallenge = context =>
+            {
+                if (context.AuthenticateFailure != null)
+                {
+                    var logger = context.HttpContext.RequestServices
+                        .GetRequiredService<ILoggerFactory>()
+                        .CreateLogger("JwtAuthentication");
+                    logger.LogWarning(context.AuthenticateFailure, "JWT challenge returned 401.");
+                }
+
+                return Task.CompletedTask;
+            }
         };
     });
 

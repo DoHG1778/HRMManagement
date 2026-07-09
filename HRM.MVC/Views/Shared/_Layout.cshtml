@@ -1,4 +1,34 @@
-﻿<!DOCTYPE html>
+@functions {
+    private bool IsLoggedIn()
+    {
+        return !string.IsNullOrWhiteSpace(Context.Session.GetString("AccessToken"));
+    }
+
+    private bool HasAnyRole(params string[] allowedRoles)
+    {
+        var roleText = Context.Session.GetString("Roles") ?? string.Empty;
+        var currentRoles = roleText
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        return allowedRoles.Any(currentRoles.Contains);
+    }
+
+    private string DisabledUnless(bool condition)
+    {
+        return condition ? string.Empty : "disabled";
+    }
+}
+
+@{
+    var loggedIn = IsLoggedIn();
+    var canEmployee = HasAnyRole("Employee");
+    var canHrAdmin = HasAnyRole("Admin", "HR", "HR Staff", "System Administrator");
+    var canManager = HasAnyRole("Manager", "Department Manager");
+    var canPayroll = HasAnyRole("Payroll", "Payroll Officer");
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -20,31 +50,70 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Staff Leave</a>
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Authentication</a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" asp-controller="StaffLeave" asp-action="Index">My Leave Requests</a></li>
-                                <li><a class="dropdown-item" asp-controller="StaffLeave" asp-action="Create">Create Leave Request</a></li>
+                                <li><h6 class="dropdown-header">All Actors</h6></li>
+                                <li><a class="dropdown-item" asp-controller="Auth" asp-action="Login">Login</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(loggedIn)" asp-controller="Auth" asp-action="ChangePassword">Change Password</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(loggedIn)" asp-controller="Auth" asp-action="MyAccount">My Account</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(loggedIn)" asp-controller="Auth" asp-action="Logout">Logout</a></li>
                             </ul>
                         </li>
+
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Staff Overtime</a>
+                            <a class="nav-link dropdown-toggle @DisabledUnless(canEmployee)" href="#" role="button" data-bs-toggle="dropdown">Employee</a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" asp-controller="StaffOvertime" asp-action="Index">My OT Requests</a></li>
-                                <li><a class="dropdown-item" asp-controller="StaffOvertime" asp-action="Create">Register Overtime</a></li>
+                                <li><h6 class="dropdown-header">Self Service</h6></li>
+                                <li><a class="dropdown-item @DisabledUnless(canEmployee)" asp-controller="EmployeeManagement" asp-action="MyProfile">My Profile</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><h6 class="dropdown-header">Leave</h6></li>
+                                <li><a class="dropdown-item @DisabledUnless(canEmployee)" asp-controller="StaffLeave" asp-action="Index">My Leave Requests</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(canEmployee)" asp-controller="StaffLeave" asp-action="Create">Create Leave Request</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><h6 class="dropdown-header">Overtime</h6></li>
+                                <li><a class="dropdown-item @DisabledUnless(canEmployee)" asp-controller="StaffOvertime" asp-action="Index">My OT Requests</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(canEmployee)" asp-controller="StaffOvertime" asp-action="Create">Register Overtime</a></li>
                             </ul>
                         </li>
+
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Manager Leave</a>
+                            <a class="nav-link dropdown-toggle @DisabledUnless(canHrAdmin)" href="#" role="button" data-bs-toggle="dropdown">HR / Admin</a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" asp-controller="ManagerLeave" asp-action="Index">Pending Approvals</a></li>
-                                <li><a class="dropdown-item" asp-controller="ManagerLeave" asp-action="LeaveTypes">Leave Types</a></li>
-                                <li><a class="dropdown-item" asp-controller="ManagerLeave" asp-action="Balances">Leave Balances</a></li>
+                                <li><h6 class="dropdown-header">Employee Management</h6></li>
+                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="EmployeeManagement" asp-action="Index">Employee List</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="EmployeeManagement" asp-action="Create">Create Employee Profile</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="EmployeeManagement" asp-action="Index">Update Employee Profile / Status</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="EmployeeManagement" asp-action="Index">Assign Employee</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="EmployeeManagement" asp-action="Index">Transfer Employee</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><h6 class="dropdown-header">Organization</h6></li>
+                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="DepartmentManagement" asp-action="Index">Departments</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="PositionManagement" asp-action="Index">Positions</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><h6 class="dropdown-header">Leave Administration</h6></li>
+                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="ManagerLeave" asp-action="LeaveTypes">Leave Types</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="ManagerLeave" asp-action="Balances">Leave Balances</a></li>
                             </ul>
                         </li>
+
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Manager Overtime</a>
+                            <a class="nav-link dropdown-toggle @DisabledUnless(canManager)" href="#" role="button" data-bs-toggle="dropdown">Manager</a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" asp-controller="ManagerOvertime" asp-action="Index">Pending Approvals</a></li>
+                                <li><h6 class="dropdown-header">Employees</h6></li>
+                                <li><a class="dropdown-item @DisabledUnless(canManager)" asp-controller="EmployeeManagement" asp-action="Index">Department Employees</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(canManager)" asp-controller="EmployeeManagement" asp-action="Index">Employee Details</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><h6 class="dropdown-header">Approvals</h6></li>
+                                <li><a class="dropdown-item @DisabledUnless(canManager)" asp-controller="ManagerLeave" asp-action="Index">Pending Leave Approvals</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(canManager)" asp-controller="ManagerOvertime" asp-action="Index">Pending OT Approvals</a></li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle @DisabledUnless(canPayroll)" href="#" role="button" data-bs-toggle="dropdown">Payroll</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item @DisabledUnless(canPayroll)" href="#">Payroll Management</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(canPayroll)" href="#">My Payslip</a></li>
                             </ul>
                         </li>
                     </ul>

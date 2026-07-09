@@ -1,0 +1,82 @@
+@model PagedResult<EmployeeResponseDto>
+
+@{
+    ViewData["Title"] = "Employees";
+    var filter = ViewBag.Filter as EmployeeFilterDto ?? new EmployeeFilterDto();
+    var departments = ViewBag.Departments as List<DepartmentResponseDto> ?? new();
+    var positions = ViewBag.Positions as List<PositionResponseDto> ?? new();
+}
+
+<h2>Employees</h2>
+
+@if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
+@if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
+
+<a asp-action="Create" class="btn btn-primary mb-3">Create Employee</a>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-3">
+        <input name="keyword" value="@filter.Keyword" class="form-control" placeholder="Keyword" />
+    </div>
+    <div class="col-md-2">
+        <select name="departmentId" class="form-select">
+            <option value="">All departments</option>
+            @foreach (var item in departments)
+            {
+                <option value="@item.DepartmentId" selected="@(filter.DepartmentId == item.DepartmentId)">@item.DepartmentName</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="positionId" class="form-select">
+            <option value="">All positions</option>
+            @foreach (var item in positions)
+            {
+                <option value="@item.PositionId" selected="@(filter.PositionId == item.PositionId)">@item.PositionName</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="employmentStatus" class="form-select">
+            <option value="">All statuses</option>
+            <option value="ACTIVE" selected="@(filter.EmploymentStatus == "ACTIVE")">ACTIVE</option>
+            <option value="ON_LEAVE" selected="@(filter.EmploymentStatus == "ON_LEAVE")">ON_LEAVE</option>
+            <option value="RESIGNED" selected="@(filter.EmploymentStatus == "RESIGNED")">RESIGNED</option>
+            <option value="TERMINATED" selected="@(filter.EmploymentStatus == "TERMINATED")">TERMINATED</option>
+        </select>
+    </div>
+    <div class="col-md-1">
+        <button class="btn btn-outline-secondary">Filter</button>
+    </div>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Manager</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Items)
+        {
+            <tr>
+                <td>@item.EmployeeCode</td>
+                <td>@item.FullName</td>
+                <td>@item.Email</td>
+                <td>@item.EmploymentStatus</td>
+                <td>@item.ManagerName</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.EmployeeId" class="btn btn-sm btn-info">Details</a>
+                    <a asp-action="Edit" asp-route-id="@item.EmployeeId" class="btn btn-sm btn-warning">Edit</a>
+                    <a asp-action="Assign" asp-route-id="@item.EmployeeId" class="btn btn-sm btn-secondary">Assign</a>
+                    <a asp-action="Transfer" asp-route-id="@item.EmployeeId" class="btn btn-sm btn-dark">Transfer</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
