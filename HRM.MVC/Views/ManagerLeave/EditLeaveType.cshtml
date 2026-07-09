@@ -1,0 +1,30 @@
+@model UpdateLeaveTypeRequestDto
+@{
+    ViewData["Title"] = "Edit Leave Type";
+}
+
+<h2>Edit Leave Type</h2>
+
+<form asp-action="EditLeaveType" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3">
+        <label asp-for="LeaveTypeName" class="form-label">Name</label>
+        <input asp-for="LeaveTypeName" class="form-control" />
+        <span asp-validation-for="LeaveTypeName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="MaxDaysPerYear" class="form-label">Max Days Per Year</label>
+        <input asp-for="MaxDaysPerYear" type="number" class="form-control" min="0" />
+        <span asp-validation-for="MaxDaysPerYear" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="LeaveTypes" class="btn btn-secondary">Cancel</a>
+</form>

@@ -50,6 +50,10 @@ namespace HRM.Business.Services.Interfaces
             CurrentUser currentUser,
             int leaveTypeId);
 
+        Task<ApiResponse<bool>> ActivateLeaveTypeAsync(
+            CurrentUser currentUser,
+            int leaveTypeId);
+
         Task<ApiResponse<LeaveBalanceResponseDto>> SetLeaveBalanceAsync(
             CurrentUser currentUser,
             SetLeaveBalanceRequestDto request);

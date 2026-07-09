@@ -2,6 +2,7 @@
 using HRM.Business.Services.Implementations;
 using HRM.Business.Services.Interfaces;
 using HRM.DataAccess.Contexts;
+using HRM.Models.Entities;
 using HRM.Repositories.Implementations;
 using HRM.Repositories.Interfaces;
 using HRM.Repositories.UnitOfWork;
@@ -35,6 +36,8 @@ builder.Services.AddScoped<IOvertimeRequestRepository, OvertimeRequestRepository
 builder.Services.AddScoped<IPayrollRepository, PayrollRepository>();
 builder.Services.AddScoped<IKpiRepository, KpiRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<IGenericRepository<LeaveType>, GenericRepository<LeaveType>>();
+builder.Services.AddScoped<IGenericRepository<LeaveBalance>, GenericRepository<LeaveBalance>>();
 
 // Unit of Work
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

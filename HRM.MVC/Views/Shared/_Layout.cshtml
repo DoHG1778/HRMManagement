@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - HRM.MVC</title>
+    <title>@ViewData["Title"] - HRM</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/HRM.MVC.styles.css" asp-append-version="true" />
@@ -12,18 +12,40 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">HRM.MVC</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">HRM</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Staff Leave</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="StaffLeave" asp-action="Index">My Leave Requests</a></li>
+                                <li><a class="dropdown-item" asp-controller="StaffLeave" asp-action="Create">Create Leave Request</a></li>
+                            </ul>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Staff Overtime</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="StaffOvertime" asp-action="Index">My OT Requests</a></li>
+                                <li><a class="dropdown-item" asp-controller="StaffOvertime" asp-action="Create">Register Overtime</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Manager Leave</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="ManagerLeave" asp-action="Index">Pending Approvals</a></li>
+                                <li><a class="dropdown-item" asp-controller="ManagerLeave" asp-action="LeaveTypes">Leave Types</a></li>
+                                <li><a class="dropdown-item" asp-controller="ManagerLeave" asp-action="Balances">Leave Balances</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Manager Overtime</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="ManagerOvertime" asp-action="Index">Pending Approvals</a></li>
+                            </ul>
                         </li>
                     </ul>
                 </div>
@@ -38,7 +60,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2026 - HRM.MVC - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2026 - HRM
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

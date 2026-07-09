@@ -1,12 +1,10 @@
 ﻿using HRM.Business.DTOs.Leaves;
 using HRM.Business.Services.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HRM.API.Controllers
 {
     [Route("api/leaves")]
-    [Authorize]
     public class LeavesController : BaseApiController
     {
         private readonly ILeaveService _leaveService;
@@ -51,7 +49,6 @@ namespace HRM.API.Controllers
         }
 
         [HttpGet("requests")]
-        [Authorize(Roles = "Admin,HR,Manager")]
         public async Task<IActionResult> GetLeaveRequests([FromQuery] LeaveRequestFilterDto filter)
         {
             var currentUser = GetCurrentUser();
@@ -60,7 +57,6 @@ namespace HRM.API.Controllers
         }
 
         [HttpGet("requests/pending")]
-        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> GetPendingLeaveRequests()
         {
             var currentUser = GetCurrentUser();
@@ -69,7 +65,6 @@ namespace HRM.API.Controllers
         }
 
         [HttpPut("requests/{leaveRequestId:int}/approval")]
-        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> ApproveOrRejectLeaveRequest(
             int leaveRequestId,
             [FromBody] ApproveLeaveRequestDto request)
@@ -87,7 +82,6 @@ namespace HRM.API.Controllers
         }
 
         [HttpPost("types")]
-        [Authorize(Roles = "HR")]
         public async Task<IActionResult> CreateLeaveType([FromBody] CreateLeaveTypeRequestDto request)
         {
             var currentUser = GetCurrentUser();
@@ -96,7 +90,6 @@ namespace HRM.API.Controllers
         }
 
         [HttpPut("types/{leaveTypeId:int}")]
-        [Authorize(Roles = "HR")]
         public async Task<IActionResult> UpdateLeaveType(
             int leaveTypeId,
             [FromBody] UpdateLeaveTypeRequestDto request)
@@ -107,7 +100,6 @@ namespace HRM.API.Controllers
         }
 
         [HttpPut("types/{leaveTypeId:int}/deactivate")]
-        [Authorize(Roles = "HR")]
         public async Task<IActionResult> DeactivateLeaveType(int leaveTypeId)
         {
             var currentUser = GetCurrentUser();
@@ -115,8 +107,15 @@ namespace HRM.API.Controllers
             return HandleResponse(result);
         }
 
+        [HttpPut("types/{leaveTypeId:int}/activate")]
+        public async Task<IActionResult> ActivateLeaveType(int leaveTypeId)
+        {
+            var currentUser = GetCurrentUser();
+            var result = await _leaveService.ActivateLeaveTypeAsync(currentUser, leaveTypeId);
+            return HandleResponse(result);
+        }
+
         [HttpPost("balances")]
-        [Authorize(Roles = "HR")]
         public async Task<IActionResult> SetLeaveBalance([FromBody] SetLeaveBalanceRequestDto request)
         {
             var currentUser = GetCurrentUser();
@@ -125,7 +124,6 @@ namespace HRM.API.Controllers
         }
 
         [HttpGet("balances/employee/{employeeId:int}")]
-        [Authorize(Roles = "Admin,HR,Manager")]
         public async Task<IActionResult> GetLeaveBalancesByEmployee(int employeeId, [FromQuery] int? year)
         {
             var currentUser = GetCurrentUser();

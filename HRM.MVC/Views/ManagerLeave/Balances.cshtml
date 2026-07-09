@@ -1,0 +1,61 @@
+@{
+    ViewData["Title"] = "Leave Balances";
+    var balances = ViewBag.Balances as List<LeaveBalanceResponseDto> ?? new List<LeaveBalanceResponseDto>();
+    var employeeId = ViewBag.EmployeeId as int? ?? 1;
+    var year = ViewBag.Year as int? ?? DateTime.Now.Year;
+}
+
+<h2>Leave Balances</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <input type="number" name="employeeId" class="form-control" placeholder="Employee ID" value="@employeeId" style="width:130px" />
+    </div>
+    <div class="col-auto">
+        <input type="number" name="year" class="form-control" placeholder="Year" value="@year" style="width:100px" />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-secondary">View</button>
+    </div>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Leave Type</th>
+            <th>Year</th>
+            <th>Total Days</th>
+            <th>Used Days</th>
+            <th>Remaining</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in balances)
+        {
+            <tr>
+                <td>@item.LeaveTypeName</td>
+                <td>@item.Year</td>
+                <td>@item.TotalDays</td>
+                <td>@item.UsedDays</td>
+                <td>@item.RemainingDays</td>
+                <td>
+                    <a asp-action="SetBalance" asp-route-employeeId="@employeeId" asp-route-leaveTypeId="@item.LeaveTypeId" asp-route-year="@year" class="btn btn-sm btn-warning">Edit</a>
+                </td>
+            </tr>
+        }
+        @if (!balances.Any())
+        {
+            <tr><td colspan="6" class="text-center">No balances found.</td></tr>
+        }
+    </tbody>
+</table>

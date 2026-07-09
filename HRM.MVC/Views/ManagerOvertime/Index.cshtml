@@ -1,0 +1,74 @@
+@model List<OvertimeRequestResponseDto>
+@{
+    ViewData["Title"] = "Pending Overtime Requests";
+}
+
+<h2>Pending Overtime Requests</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Employee</th>
+            <th>Date</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Hours</th>
+            <th>Reason</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Otid</td>
+                <td>@item.EmployeeName (@item.EmployeeCode)</td>
+                <td>@item.Otdate.ToString("dd/MM/yyyy")</td>
+                <td>@item.StartTime.ToString("HH:mm")</td>
+                <td>@item.EndTime.ToString("HH:mm")</td>
+                <td>@item.TotalHours</td>
+                <td>@item.Reason</td>
+                <td>
+                    <form asp-action="Approve" method="post" style="display:inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@item.Otid" />
+                        <input type="hidden" name="isApproved" value="true" />
+                        <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                    </form>
+                    <button type="button" class="btn btn-sm btn-danger" onclick="showRejectForm(@item.Otid)">Reject</button>
+
+                    <form asp-action="Approve" method="post" id="rejectForm-@item.Otid" style="display:none; margin-top:5px">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@item.Otid" />
+                        <input type="hidden" name="isApproved" value="false" />
+                        <div class="input-group">
+                            <input type="text" name="rejectionReason" class="form-control form-control-sm" placeholder="Reason" required />
+                            <button type="submit" class="btn btn-sm btn-danger">Confirm Reject</button>
+                        </div>
+                    </form>
+                </td>
+            </tr>
+        }
+        @if (!Model.Any())
+        {
+            <tr><td colspan="8" class="text-center">No pending overtime requests.</td></tr>
+        }
+    </tbody>
+</table>
+
+<script>
+    function showRejectForm(id) {
+        var form = document.getElementById('rejectForm-' + id);
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+</script>
