@@ -1,0 +1,191 @@
+@using HRM.Business.DTOs.Payrolls
+@model PayrollResponseDto
+
+@{
+    ViewData["Title"] = "My Payslip";
+    int selectedMonth = ViewBag.SelectedMonth ?? DateTime.Today.Month;
+    int selectedYear = ViewBag.SelectedYear ?? DateTime.Today.Year;
+    string err = ViewBag.ErrorMessage as string;
+}
+
+<div class="container py-4">
+    <!-- Period Selector Header -->
+    <div class="card shadow-sm border-0 mb-4 bg-light">
+        <div class="card-body">
+            <form asp-controller="Payroll" asp-action="MyPayslip" method="get" class="row g-3 align-items-end justify-content-between">
+                <div class="col-md-5">
+                    <h2 class="mb-0 text-primary fw-bold"><i class="bi bi-file-earmark-ruled"></i> My Payslips</h2>
+                    <p class="text-muted small mb-0">Select a month and year to retrieve your released payroll statement.</p>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">Month</label>
+                    <select name="month" class="form-select">
+                        @for (int m = 1; m <= 12; m++)
+                        {
+                            <option value="@m" selected="@(m == selectedMonth)">Month @m</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">Year</label>
+                    <select name="year" class="form-select">
+                        @for (int y = DateTime.Today.Year - 2; y <= DateTime.Today.Year + 2; y++)
+                        {
+                            <option value="@y" selected="@(y == selectedYear)">@y</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> View Slip</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(err))
+    {
+        <div class="card shadow-sm border-0 py-5 text-center bg-white">
+            <div class="card-body">
+                <div class="text-muted display-1 mb-3"><i class="bi bi-file-earmark-x"></i></div>
+                <h4 class="text-dark">Payslip Not Found</h4>
+                <p class="text-muted mb-0">@err</p>
+            </div>
+        </div>
+    }
+    else if (Model != null)
+    {
+        <!-- Printable Payslip Receipt Container -->
+        <div class="card shadow-lg border-0 bg-white" id="payslipPrintArea">
+            <!-- Slip Header -->
+            <div class="card-header bg-dark text-white p-4 border-0">
+                <div class="row align-items-center">
+                    <div class="col-6">
+                        <h4 class="mb-0 fw-bold">HRM SYSTEM</h4>
+                        <span class="small opacity-75">Monthly Statement of Earnings</span>
+                    </div>
+                    <div class="col-6 text-end">
+                        <h5 class="mb-0 text-warning">STATEMENT PERIOD</h5>
+                        <h3 class="mb-0 fw-bold">@Model.PayrollMonth/@Model.PayrollYear</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employee Info Block -->
+            <div class="card-body p-4">
+                <div class="row g-3 border-bottom pb-4 mb-4">
+                    <div class="col-sm-6 col-md-3">
+                        <span class="d-block small text-muted">EMPLOYEE NAME</span>
+                        <strong class="text-dark">@Model.EmployeeName</strong>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <span class="d-block small text-muted">EMPLOYEE CODE</span>
+                        <strong class="text-dark">@Model.EmployeeCode</strong>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <span class="d-block small text-muted">DEPARTMENT</span>
+                        <strong class="text-dark">@(Model.DepartmentName ?? "N/A")</strong>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <span class="d-block small text-muted">POSITION</span>
+                        <strong class="text-dark">@(Model.PositionName ?? "N/A")</strong>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Earnings and Allowances -->
+                    <div class="col-md-6 border-end">
+                        <h5 class="text-primary border-bottom pb-2 mb-3 fw-bold">EARNINGS & ALLOWANCES</h5>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Basic Contract Salary</span>
+                            <span class="fw-bold">@Model.BaseSalary.ToString("N0") ₫</span>
+                        </div>
+                        
+                        @if (Model.PayrollDetails != null)
+                        {
+                            var additions = Model.PayrollDetails.Where(d => d.ItemType == "ALLOWANCE" || d.ItemType == "BONUS" || d.ItemType == "OVERTIME" || (d.ItemType == "OTHER" && d.Amount >= 0));
+                            foreach (var add in additions)
+                            {
+                                <div class="d-flex justify-content-between mb-2 small">
+                                    <span class="text-muted">@add.Description (@add.ItemType)</span>
+                                    <span class="text-success">+@add.Amount.ToString("N0") ₫</span>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    <!-- Deductions -->
+                    <div class="col-md-6">
+                        <h5 class="text-danger border-bottom pb-2 mb-3 fw-bold">DEDUCTIONS & TAXES</h5>
+                        
+                        @if (Model.PayrollDetails != null)
+                        {
+                            var deductions = Model.PayrollDetails.Where(d => d.ItemType == "DEDUCTION" || (d.ItemType == "OTHER" && d.Amount < 0));
+                            if (deductions.Any())
+                            {
+                                foreach (var sub in deductions)
+                                {
+                                    <div class="d-flex justify-content-between mb-2 small">
+                                        <span class="text-muted">@sub.Description (@sub.ItemType)</span>
+                                        <span class="text-danger">-@Math.Abs(sub.Amount).ToString("N0") ₫</span>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <p class="text-muted small italic">No deductions applied for this month.</p>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <!-- Final Calculations Section -->
+                <div class="row bg-light rounded p-4 mt-4 border border-dashed align-items-center">
+                    <div class="col-md-8">
+                        <div class="row small g-2 mb-2">
+                            <div class="col-6 text-muted">Gross Earnings:</div>
+                            <div class="col-6 fw-bold">@Model.GrossSalary.ToString("N0") ₫</div>
+                        </div>
+                        <div class="row small g-2">
+                            <div class="col-6 text-muted">Total Deductions:</div>
+                            <div class="col-6 fw-bold text-danger">-@Model.TotalDeduction.ToString("N0") ₫</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <span class="d-block small text-muted">NET TAKE-HOME PAY</span>
+                        <h3 class="mb-0 text-success fw-bold">@Model.NetSalary.ToString("N0") ₫</h3>
+                    </div>
+                </div>
+
+                <div class="row mt-4 pt-4 border-top">
+                    <div class="col-6 small text-muted">
+                        <div>Statement released on: @Model.CreatedAt.ToString("D")</div>
+                        <div>Status: <span class="badge bg-success">@Model.Status</span></div>
+                    </div>
+                    <div class="col-6 text-end">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print();">
+                            <i class="bi bi-printer"></i> Print Statement
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <style media="print">
+        body * {
+            visibility: hidden;
+        }
+        #payslipPrintArea, #payslipPrintArea * {
+            visibility: visible;
+        }
+        #payslipPrintArea {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+    </style>
+}

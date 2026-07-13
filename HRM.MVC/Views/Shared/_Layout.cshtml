@@ -112,8 +112,8 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle @DisabledUnless(canPayroll)" href="#" role="button" data-bs-toggle="dropdown">Payroll</a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item @DisabledUnless(canPayroll)" href="#">Payroll Management</a></li>
-                                <li><a class="dropdown-item @DisabledUnless(canPayroll)" href="#">My Payslip</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(canPayroll)" asp-controller="Payroll" asp-action="Index">Payroll Management</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(loggedIn)" asp-controller="Payroll" asp-action="MyPayslip">My Payslip</a></li>
                             </ul>
                         </li>
                     </ul>

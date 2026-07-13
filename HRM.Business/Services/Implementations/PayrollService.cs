@@ -109,17 +109,31 @@ namespace HRM.Business.Services.Implementations
             CurrentUser currentUser,
             CalculatePayrollDto request)
         {
-            if (request.DefaultAllowance < 0 || request.DefaultBonus < 0 || request.DefaultDeduction < 0 || request.OvertimeRate < 0)
-                return ApiResponse<List<PayrollResponseDto>>.Fail("Allowance, bonus, deduction, and overtime rate must be non-negative.");
+            if (request.DefaultAllowance < 0 || request.DefaultBonus < 0 || request.DefaultDeduction < 0)
+                return ApiResponse<List<PayrollResponseDto>>.Fail("Allowance, bonus, and deduction must be non-negative.");
 
-            var payrolls = await _unitOfWork.Payrolls.Query()
+            if (request.OvertimeCoefficient <= 0 || request.StandardWorkingDays <= 0 || request.StandardWorkingHoursPerDay <= 0)
+                return ApiResponse<List<PayrollResponseDto>>.Fail("Overtime coefficient, standard working days, and standard working hours per day must be positive.");
+
+            var query = _unitOfWork.Payrolls.Query()
                 .Include(p => p.Employee)
                     .ThenInclude(e => e.Contract)
                 .Include(p => p.PayrollDetails)
                 .Where(p => p.PayrollMonth == request.PayrollMonth &&
                             p.PayrollYear == request.PayrollYear &&
-                            p.Status == "DRAFT")
-                .ToListAsync();
+                            p.Status == "DRAFT");
+
+            if (request.EmployeeId.HasValue)
+            {
+                query = query.Where(p => p.EmployeeId == request.EmployeeId.Value);
+            }
+
+            if (request.DepartmentId.HasValue)
+            {
+                query = query.Where(p => p.Employee.EmployeeAssignments.Any(ea => ea.DepartmentId == request.DepartmentId.Value && ea.EndDate == null));
+            }
+
+            var payrolls = await query.ToListAsync();
 
             await _unitOfWork.BeginTransactionAsync();
             try
@@ -158,25 +172,24 @@ namespace HRM.Business.Services.Implementations
                     var newDetails = new List<PayrollDetail>();
                     decimal totalOvertime = 0;
 
-                    foreach (var ot in otRequests)
+                    if (otRequests.Any())
                     {
-                        var otAmount = Math.Round(ot.TotalHours * request.OvertimeRate, 2);
-                        if (otAmount < 0) otAmount = 0;
+                        decimal totalOvertimeHours = otRequests.Sum(ot => ot.TotalHours);
+                        decimal hourlySalary = payroll.BaseSalary / request.StandardWorkingDays / request.StandardWorkingHoursPerDay;
+                        decimal overtimeAmount = Math.Round(hourlySalary * request.OvertimeCoefficient * totalOvertimeHours, 2);
 
-                        newDetails.Add(new PayrollDetail
+                        if (overtimeAmount > 0)
                         {
-                            PayrollId = payroll.PayrollId,
-                            ItemType = "OVERTIME",
-                            Amount = otAmount,
-                            Description = $"Approved Overtime on {ot.Otdate:dd/MM/yyyy} ({ot.TotalHours} hrs @ {request.OvertimeRate}/hr)",
-                            SourceType = "OVERTIME",
-                            SourceId = ot.Otid,
-                            CreatedAt = DateTime.Now
-                        });
-
-                        totalOvertime += otAmount;
-                        ot.IsTransferredToPayroll = true;
-                        _unitOfWork.OvertimeRequests.Update(ot);
+                            newDetails.Add(new PayrollDetail
+                            {
+                                PayrollId = payroll.PayrollId,
+                                ItemType = "OVERTIME",
+                                Amount = overtimeAmount,
+                                Description = $"Approved Overtime for {request.PayrollMonth}/{request.PayrollYear} ({totalOvertimeHours} hrs @ Coefficient {request.OvertimeCoefficient})",
+                                CreatedAt = DateTime.Now
+                            });
+                            totalOvertime = overtimeAmount;
+                        }
                     }
 
                     // 4. Create default details
@@ -244,16 +257,26 @@ namespace HRM.Business.Services.Implementations
             }
 
             // Reload calculated payrolls to return
-            var updatedPayrolls = await _unitOfWork.Payrolls.Query()
+            var updatedQuery = _unitOfWork.Payrolls.Query()
                 .Include(p => p.Employee)
                 .Include(p => p.PayrollDetails)
                 .Include(p => p.GeneratedByUser)
                 .Include(p => p.ConfirmedByUser)
                 .Where(p => p.PayrollMonth == request.PayrollMonth &&
                             p.PayrollYear == request.PayrollYear &&
-                            p.Status == "DRAFT")
-                .ToListAsync();
+                            p.Status == "DRAFT");
 
+            if (request.EmployeeId.HasValue)
+            {
+                updatedQuery = updatedQuery.Where(p => p.EmployeeId == request.EmployeeId.Value);
+            }
+
+            if (request.DepartmentId.HasValue)
+            {
+                updatedQuery = updatedQuery.Where(p => p.Employee.EmployeeAssignments.Any(ea => ea.DepartmentId == request.DepartmentId.Value && ea.EndDate == null));
+            }
+
+            var updatedPayrolls = await updatedQuery.ToListAsync();
             var dtos = updatedPayrolls.Select(MapToPayrollDto).ToList();
             return ApiResponse<List<PayrollResponseDto>>.Ok(dtos, "Payroll calculated successfully.");
         }
@@ -278,13 +301,19 @@ namespace HRM.Business.Services.Implementations
                 return ApiResponse<PayrollResponseDto>.NotFound("Payroll not found.");
 
             // Role-based auth
-            if (currentUser.IsEmployee() && !currentUser.IsAdmin() && !currentUser.IsPayroll() && !currentUser.IsHr())
+            if (!currentUser.IsAdmin() && !currentUser.IsPayroll())
             {
-                if (payroll.EmployeeId != currentUser.EmployeeId)
-                    return ApiResponse<PayrollResponseDto>.Forbidden("You can only view your own payroll details.");
-
-                if (payroll.Status == "DRAFT")
-                    return ApiResponse<PayrollResponseDto>.Forbidden("You cannot view draft payroll details.");
+                if (currentUser.IsEmployee() && payroll.EmployeeId == currentUser.EmployeeId)
+                {
+                    if (payroll.Status != "CONFIRMED" && payroll.Status != "PAID")
+                    {
+                        return ApiResponse<PayrollResponseDto>.Forbidden("You cannot view draft payroll details.");
+                    }
+                }
+                else
+                {
+                    return ApiResponse<PayrollResponseDto>.Forbidden("You do not have permission to view this payroll.");
+                }
             }
 
             return ApiResponse<PayrollResponseDto>.Ok(MapToPayrollDto(payroll));
@@ -444,19 +473,47 @@ namespace HRM.Business.Services.Implementations
             if (!payrolls.Any())
                 return ApiResponse<bool>.NotFound("No DRAFT payrolls found to confirm for this period.");
 
-            foreach (var payroll in payrolls)
+            await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                if (payroll.GrossSalary < 0 || payroll.NetSalary < 0)
-                    return ApiResponse<bool>.Fail($"Payroll ID {payroll.PayrollId} has invalid calculations (negative gross/net salary).");
+                foreach (var payroll in payrolls)
+                {
+                    if (payroll.GrossSalary < 0 || payroll.NetSalary < 0)
+                    {
+                        await _unitOfWork.RollbackTransactionAsync();
+                        return ApiResponse<bool>.Fail($"Payroll ID {payroll.PayrollId} has invalid calculations (negative gross/net salary).");
+                    }
 
-                payroll.Status = "CONFIRMED";
-                payroll.ConfirmedByUserId = currentUser.UserId;
-                payroll.ConfirmedAt = DateTime.Now;
+                    payroll.Status = "CONFIRMED";
+                    payroll.ConfirmedByUserId = currentUser.UserId;
+                    payroll.ConfirmedAt = DateTime.Now;
 
-                _unitOfWork.Payrolls.Update(payroll);
+                    _unitOfWork.Payrolls.Update(payroll);
+
+                    // Update related OvertimeRequests to IsTransferredToPayroll = true
+                    var otRequests = await _unitOfWork.OvertimeRequests.Query()
+                        .Where(ot => ot.EmployeeId == payroll.EmployeeId &&
+                                     ot.Status == "APPROVED" &&
+                                     !ot.IsTransferredToPayroll &&
+                                     ot.Otdate.Month == request.PayrollMonth &&
+                                     ot.Otdate.Year == request.PayrollYear)
+                        .ToListAsync();
+
+                    foreach (var ot in otRequests)
+                    {
+                        ot.IsTransferredToPayroll = true;
+                        _unitOfWork.OvertimeRequests.Update(ot);
+                    }
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
             }
-
-            await _unitOfWork.SaveChangesAsync();
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                return ApiResponse<bool>.Fail("Error confirming payroll: " + ex.Message);
+            }
 
             // Try sending system notifications to employees
             var recipientUserIds = payrolls
@@ -511,8 +568,8 @@ namespace HRM.Business.Services.Implementations
             if (payroll == null)
                 return ApiResponse<PayrollResponseDto>.NotFound($"Payslip not found for period {payrollMonth}/{payrollYear}.");
 
-            if (payroll.Status == "DRAFT")
-                return ApiResponse<PayrollResponseDto>.Fail("Payslip is still in DRAFT status and is not yet visible.");
+            if (payroll.Status != "CONFIRMED" && payroll.Status != "PAID")
+                return ApiResponse<PayrollResponseDto>.Fail("Payslip is not available.");
 
             return ApiResponse<PayrollResponseDto>.Ok(MapToPayrollDto(payroll));
         }

@@ -17,7 +17,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpPost("generate")]
-        [Authorize(Roles = "Payroll")]
+        [Authorize(Roles = "Payroll,Admin")]
         public async Task<IActionResult> GenerateMonthlyPayroll([FromBody] GeneratePayrollRequestDto request)
         {
             var currentUser = GetCurrentUser();
@@ -26,7 +26,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpPost("calculate")]
-        [Authorize(Roles = "Payroll")]
+        [Authorize(Roles = "Payroll,Admin")]
         public async Task<IActionResult> CalculatePayroll([FromBody] CalculatePayrollDto request)
         {
             var currentUser = GetCurrentUser();
@@ -35,6 +35,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpGet("{payrollId:int}")]
+        [Authorize(Roles = "Employee,Payroll,Admin")]
         public async Task<IActionResult> GetPayrollDetail(int payrollId)
         {
             var currentUser = GetCurrentUser();
@@ -43,7 +44,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Payroll,Admin,HR")]
+        [Authorize(Roles = "Payroll,Admin")]
         public async Task<IActionResult> GetPayrolls([FromQuery] PayrollFilterDto filter)
         {
             var currentUser = GetCurrentUser();
@@ -52,7 +53,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpPut("{payrollId:int}/details")]
-        [Authorize(Roles = "Payroll")]
+        [Authorize(Roles = "Payroll,Admin")]
         public async Task<IActionResult> UpdatePayrollDetail(
             int payrollId,
             [FromBody] UpdatePayrollDetailRequestDto request)
@@ -63,7 +64,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpPut("confirm")]
-        [Authorize(Roles = "Payroll")]
+        [Authorize(Roles = "Payroll,Admin")]
         public async Task<IActionResult> ConfirmPayroll([FromBody] ConfirmPayrollRequestDto request)
         {
             var currentUser = GetCurrentUser();
@@ -72,6 +73,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpGet("me")]
+        [Authorize(Roles = "Employee,Payroll,Admin")]
         public async Task<IActionResult> GetMyPayslip([FromQuery] int payrollMonth, [FromQuery] int payrollYear)
         {
             var currentUser = GetCurrentUser();
@@ -80,6 +82,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpGet("my-payslip")]
+        [Authorize(Roles = "Employee,Payroll,Admin")]
         public async Task<IActionResult> GetMyPayslipExact([FromQuery] int month, [FromQuery] int year)
         {
             var currentUser = GetCurrentUser();
@@ -88,7 +91,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpGet("report")]
-        [Authorize(Roles = "Payroll")]
+        [Authorize(Roles = "Payroll,Admin")]
         public async Task<IActionResult> ExportPayrollReport([FromQuery] PayrollFilterDto filter)
         {
             var currentUser = GetCurrentUser();
@@ -97,7 +100,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpGet("export")]
-        [Authorize(Roles = "Payroll")]
+        [Authorize(Roles = "Payroll,Admin")]
         public async Task<IActionResult> ExportPayrollReportExact(
             [FromQuery] int month,
             [FromQuery] int year,
