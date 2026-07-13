@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HRM.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -224,14 +224,7 @@ public partial class AppDbContext : DbContext
                 .IsUnicode(false)
                 .HasDefaultValue("ACTIVE");
             entity.Property(e => e.FullName).HasMaxLength(150);
-            entity.Property(e => e.Gender)
-                .HasConversion(
-                    v => v == "1"
-                        || v.ToLower() == "true"
-                        || v.ToLower() == "male"
-                        || v.ToLower() == "m"
-                        || v.ToLower() == "nam",
-                    v => v ? "Male" : "Female");
+            entity.Property(e => e.Gender).HasMaxLength(10);
             entity.Property(e => e.Phone)
                 .HasMaxLength(20)
                 .IsUnicode(false);

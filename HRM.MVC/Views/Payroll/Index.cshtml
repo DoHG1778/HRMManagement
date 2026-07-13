@@ -1,0 +1,294 @@
+@using HRM.Business.Common
+@using HRM.Business.DTOs.Payrolls
+@model PagedResult<PayrollResponseDto>
+
+@{
+    ViewData["Title"] = "Payroll Management";
+    var filter = ViewBag.Filter as PayrollFilterDto ?? new PayrollFilterDto();
+}
+
+<div class="container-fluid py-4">
+    <!-- Header Page -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">Payroll Management</h1>
+            <p class="text-muted mb-0">Generate, calculate, and manage company payrolls.</p>
+        </div>
+        <div>
+            <a href="@Url.Action("Export", "Payroll", new { month = filter.PayrollMonth, year = filter.PayrollYear })" class="btn btn-outline-primary">
+                <i class="bi bi-file-earmark-excel"></i> Export Report
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Top Action Cards -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Generate Payroll Card -->
+        <div class="col-lg-4">
+            <div class="card h-100 shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title text-primary"><i class="bi bi-person-plus"></i> 1. Generate Payroll</h5>
+                    <p class="card-text text-muted small">Initialize empty payroll worksheets (DRAFT) for active employees with active contracts.</p>
+                    <form asp-controller="Payroll" asp-action="Generate" method="post">
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small">Month</label>
+                                <select name="PayrollMonth" class="form-select form-select-sm">
+                                    @for (int m = 1; m <= 12; m++)
+                                    {
+                                        <option value="@m" selected="@(m == filter.PayrollMonth)">Month @m</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small">Year</label>
+                                <select name="PayrollYear" class="form-select form-select-sm">
+                                    @for (int y = DateTime.Today.Year - 2; y <= DateTime.Today.Year + 2; y++)
+                                    {
+                                        <option value="@y" selected="@(y == filter.PayrollYear)">@y</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary w-100">Initialize Payroll</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Calculate Payroll Card -->
+        <div class="col-lg-4">
+            <div class="card h-100 shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title text-success"><i class="bi bi-calculator"></i> 2. Calculate Payroll</h5>
+                    <p class="card-text text-muted small">Apply allowances, bonuses, deductions, and compute overtime values from approved OT requests.</p>
+                    <form asp-controller="Payroll" asp-action="Calculate" method="post">
+                        <input type="hidden" name="PayrollMonth" value="@filter.PayrollMonth" />
+                        <input type="hidden" name="PayrollYear" value="@filter.PayrollYear" />
+                        <input type="hidden" name="EmployeeId" value="@(filter.EmployeeId)" />
+                        <input type="hidden" name="DepartmentId" value="@(filter.DepartmentId)" />
+                        
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label small">Default Allowance</label>
+                                <input type="number" name="DefaultAllowance" value="500000" class="form-control form-control-sm" min="0" step="10000" required />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small">Default Bonus</label>
+                                <input type="number" name="DefaultBonus" value="0" class="form-control form-control-sm" min="0" step="10000" required />
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label small">Default Deduction</label>
+                                <input type="number" name="DefaultDeduction" value="0" class="form-control form-control-sm" min="0" step="10000" required />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small">OT Coefficient</label>
+                                <input type="number" name="OvertimeCoefficient" value="1.5" class="form-control form-control-sm" min="0.1" step="0.1" required />
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small">Std Working Days</label>
+                                <input type="number" name="StandardWorkingDays" value="22" class="form-control form-control-sm" min="1" required />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small">Std Hours/Day</label>
+                                <input type="number" name="StandardWorkingHoursPerDay" value="8" class="form-control form-control-sm" min="1" step="0.5" required />
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-success w-100">Calculate totals for @filter.PayrollMonth/@filter.PayrollYear</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Confirm Payroll Card -->
+        <div class="col-lg-4">
+            <div class="card h-100 shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title text-warning"><i class="bi bi-check2-all"></i> 3. Lock/Confirm Payroll</h5>
+                    <p class="card-text text-muted small">Lock the payroll sheets to CONFIRMED. After locking, changes are blocked and employees can view payslips.</p>
+                    <form asp-controller="Payroll" asp-action="Confirm" method="post" onsubmit="return confirm('Are you sure you want to confirm all DRAFT payrolls for this month? This action cannot be undone.');">
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small">Month</label>
+                                <select name="PayrollMonth" class="form-select form-select-sm">
+                                    @for (int m = 1; m <= 12; m++)
+                                    {
+                                        <option value="@m" selected="@(m == filter.PayrollMonth)">Month @m</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small">Year</label>
+                                <select name="PayrollYear" class="form-select form-select-sm">
+                                    @for (int y = DateTime.Today.Year - 2; y <= DateTime.Today.Year + 2; y++)
+                                    {
+                                        <option value="@y" selected="@(y == filter.PayrollYear)">@y</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-warning w-100">Lock & Release Payroll</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form asp-controller="Payroll" asp-action="Index" method="get" class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small">Month</label>
+                    <select name="PayrollMonth" class="form-select">
+                        @for (int m = 1; m <= 12; m++)
+                        {
+                            <option value="@m" selected="@(m == filter.PayrollMonth)">Month @m</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Year</label>
+                    <select name="PayrollYear" class="form-select">
+                        @for (int y = DateTime.Today.Year - 2; y <= DateTime.Today.Year + 2; y++)
+                        {
+                            <option value="@y" selected="@(y == filter.PayrollYear)">@y</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Status</label>
+                    <select name="Status" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="DRAFT" selected="@(filter.Status == "DRAFT")">DRAFT</option>
+                        <option value="CONFIRMED" selected="@(filter.Status == "CONFIRMED")">CONFIRMED</option>
+                        <option value="PAID" selected="@(filter.Status == "PAID")">PAID</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Employee ID</label>
+                    <input type="number" name="EmployeeId" value="@filter.EmployeeId" class="form-control" placeholder="Search ID" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Department ID</label>
+                    <input type="number" name="DepartmentId" value="@filter.DepartmentId" class="form-control" placeholder="Dept ID" />
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-filter"></i> Apply Filters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payroll Data Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Payroll Sheet list: @filter.PayrollMonth/@filter.PayrollYear</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Code</th>
+                            <th>Full Name</th>
+                            <th>Department</th>
+                            <th>Base Salary</th>
+                            <th>Allowance</th>
+                            <th>Bonus</th>
+                            <th>Overtime</th>
+                            <th>Deduction</th>
+                            <th>Net Salary</th>
+                            <th>Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Items != null && Model.Items.Any())
+                        {
+                            foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>@item.PayrollId</td>
+                                    <td><strong>@item.EmployeeCode</strong></td>
+                                    <td>@item.EmployeeName</td>
+                                    <td>@(item.DepartmentName ?? "N/A")</td>
+                                    <td class="text-nowrap">@item.BaseSalary.ToString("N0") ₫</td>
+                                    <td class="text-success text-nowrap">+@item.TotalAllowance.ToString("N0") ₫</td>
+                                    <td class="text-success text-nowrap">+@item.TotalBonus.ToString("N0") ₫</td>
+                                    <td class="text-success text-nowrap">+@item.TotalOvertime.ToString("N0") ₫</td>
+                                    <td class="text-danger text-nowrap">-@item.TotalDeduction.ToString("N0") ₫</td>
+                                    <td class="fw-bold text-nowrap">@item.NetSalary.ToString("N0") ₫</td>
+                                    <td>
+                                        <span class="badge @(item.Status switch {
+                                            "DRAFT" => "bg-secondary",
+                                            "CONFIRMED" => "bg-warning text-dark",
+                                            "PAID" => "bg-success",
+                                            _ => "bg-light text-dark"
+                                        })">@item.Status</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="@Url.Action("Details", "Payroll", new { id = item.PayrollId })" class="btn btn-xs btn-outline-secondary btn-sm">
+                                            Edit Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="12" class="text-center py-4 text-muted">No payroll sheets found matching criteria. Please click "Initialize Payroll" above to generate sheets.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Pagination Footer -->
+        @if (Model.TotalPages > 1)
+        {
+            <div class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+                <span class="text-muted small">Showing @Model.Items.Count of @Model.TotalItems items</span>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                            <a class="page-link" href="@Url.Action("Index", new { pageNumber = Model.PageNumber - 1, payrollMonth = filter.PayrollMonth, payrollYear = filter.PayrollYear, status = filter.Status, employeeId = filter.EmployeeId, departmentId = filter.DepartmentId })">Previous</a>
+                        </li>
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { pageNumber = i, payrollMonth = filter.PayrollMonth, payrollYear = filter.PayrollYear, status = filter.Status, employeeId = filter.EmployeeId, departmentId = filter.DepartmentId })">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                            <a class="page-link" href="@Url.Action("Index", new { pageNumber = Model.PageNumber + 1, payrollMonth = filter.PayrollMonth, payrollYear = filter.PayrollYear, status = filter.Status, employeeId = filter.EmployeeId, departmentId = filter.DepartmentId })">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+</div>
