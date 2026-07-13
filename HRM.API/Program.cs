@@ -1,4 +1,4 @@
-﻿using HRM.Business.Helpers;
+using HRM.Business.Helpers;
 using HRM.Business.Services.Implementations;
 using HRM.Business.Services.Interfaces;
 using HRM.DataAccess.Contexts;
@@ -39,6 +39,8 @@ builder.Services.AddScoped<IKpiRepository, KpiRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IGenericRepository<LeaveType>, GenericRepository<LeaveType>>();
 builder.Services.AddScoped<IGenericRepository<LeaveBalance>, GenericRepository<LeaveBalance>>();
+builder.Services.AddScoped<IGenericRepository<AttendanceAdjustment>, GenericRepository<AttendanceAdjustment>>();
+builder.Services.AddScoped<IGenericRepository<PayrollDetail>, GenericRepository<PayrollDetail>>();
 
 // Unit of Work
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

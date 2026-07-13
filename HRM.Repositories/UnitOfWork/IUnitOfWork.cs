@@ -1,4 +1,5 @@
-﻿using HRM.Repositories.Interfaces;
+using HRM.Models.Entities;
+using HRM.Repositories.Interfaces;
 
 namespace HRM.Repositories.UnitOfWork
 {
@@ -16,11 +17,15 @@ namespace HRM.Repositories.UnitOfWork
 
         IAttendanceRepository Attendances { get; }
 
+        IGenericRepository<AttendanceAdjustment> AttendanceAdjustments { get; }
+
         ILeaveRequestRepository LeaveRequests { get; }
 
         IOvertimeRequestRepository OvertimeRequests { get; }
 
         IPayrollRepository Payrolls { get; }
+
+        IGenericRepository<PayrollDetail> PayrollDetails { get; }
 
         IKpiRepository Kpis { get; }
 
