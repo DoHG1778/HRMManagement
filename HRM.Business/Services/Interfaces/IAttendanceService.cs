@@ -1,4 +1,4 @@
-﻿using HRM.Business.Common;
+using HRM.Business.Common;
 using HRM.Business.DTOs.Attendances;
 
 namespace HRM.Business.Services.Interfaces
@@ -38,6 +38,9 @@ namespace HRM.Business.Services.Interfaces
             ApproveAttendanceAdjustmentRequestDto request);
 
         Task<ApiResponse<List<AttendanceAdjustmentResponseDto>>> GetPendingAdjustmentRequestsAsync(
+            CurrentUser currentUser);
+
+        Task<ApiResponse<List<AttendanceAdjustmentResponseDto>>> GetMyAdjustmentRequestsAsync(
             CurrentUser currentUser);
     }
 }

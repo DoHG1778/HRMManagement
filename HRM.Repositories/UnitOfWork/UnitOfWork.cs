@@ -1,4 +1,6 @@
-﻿using HRM.DataAccess.Contexts;
+using HRM.DataAccess.Contexts;
+using HRM.Models.Entities;
+using HRM.Repositories.Implementations;
 using HRM.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -21,11 +23,15 @@ namespace HRM.Repositories.UnitOfWork
 
         public IAttendanceRepository Attendances { get; }
 
+        public IGenericRepository<AttendanceAdjustment> AttendanceAdjustments { get; }
+
         public ILeaveRequestRepository LeaveRequests { get; }
 
         public IOvertimeRequestRepository OvertimeRequests { get; }
 
         public IPayrollRepository Payrolls { get; }
+
+        public IGenericRepository<PayrollDetail> PayrollDetails { get; }
 
         public IKpiRepository Kpis { get; }
 
@@ -52,9 +58,11 @@ namespace HRM.Repositories.UnitOfWork
             Positions = positions;
             Contracts = contracts;
             Attendances = attendances;
+            AttendanceAdjustments = new GenericRepository<AttendanceAdjustment>(context);
             LeaveRequests = leaveRequests;
             OvertimeRequests = overtimeRequests;
             Payrolls = payrolls;
+            PayrollDetails = new GenericRepository<PayrollDetail>(context);
             Kpis = kpis;
             Notifications = notifications;
         }

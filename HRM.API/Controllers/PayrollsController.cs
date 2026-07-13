@@ -1,4 +1,4 @@
-﻿using HRM.Business.DTOs.Payrolls;
+using HRM.Business.DTOs.Payrolls;
 using HRM.Business.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,10 +27,10 @@ namespace HRM.API.Controllers
 
         [HttpPost("calculate")]
         [Authorize(Roles = "Payroll")]
-        public async Task<IActionResult> CalculatePayroll([FromQuery] int payrollMonth, [FromQuery] int payrollYear)
+        public async Task<IActionResult> CalculatePayroll([FromBody] CalculatePayrollDto request)
         {
             var currentUser = GetCurrentUser();
-            var result = await _payrollService.CalculatePayrollAsync(currentUser, payrollMonth, payrollYear);
+            var result = await _payrollService.CalculatePayrollAsync(currentUser, request);
             return HandleResponse(result);
         }
 
@@ -62,7 +62,7 @@ namespace HRM.API.Controllers
             return HandleResponse(result);
         }
 
-        [HttpPost("confirm")]
+        [HttpPut("confirm")]
         [Authorize(Roles = "Payroll")]
         public async Task<IActionResult> ConfirmPayroll([FromBody] ConfirmPayrollRequestDto request)
         {
@@ -79,11 +79,39 @@ namespace HRM.API.Controllers
             return HandleResponse(result);
         }
 
+        [HttpGet("my-payslip")]
+        public async Task<IActionResult> GetMyPayslipExact([FromQuery] int month, [FromQuery] int year)
+        {
+            var currentUser = GetCurrentUser();
+            var result = await _payrollService.GetMyPayslipAsync(currentUser, month, year);
+            return HandleResponse(result);
+        }
+
         [HttpGet("report")]
         [Authorize(Roles = "Payroll")]
         public async Task<IActionResult> ExportPayrollReport([FromQuery] PayrollFilterDto filter)
         {
             var currentUser = GetCurrentUser();
+            var result = await _payrollService.ExportPayrollReportAsync(currentUser, filter);
+            return HandleResponse(result);
+        }
+
+        [HttpGet("export")]
+        [Authorize(Roles = "Payroll")]
+        public async Task<IActionResult> ExportPayrollReportExact(
+            [FromQuery] int month,
+            [FromQuery] int year,
+            [FromQuery] int? departmentId,
+            [FromQuery] int? employeeId)
+        {
+            var currentUser = GetCurrentUser();
+            var filter = new PayrollFilterDto
+            {
+                PayrollMonth = month,
+                PayrollYear = year,
+                DepartmentId = departmentId,
+                EmployeeId = employeeId
+            };
             var result = await _payrollService.ExportPayrollReportAsync(currentUser, filter);
             return HandleResponse(result);
         }

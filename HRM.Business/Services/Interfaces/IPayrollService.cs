@@ -1,4 +1,4 @@
-﻿using HRM.Business.Common;
+using HRM.Business.Common;
 using HRM.Business.DTOs.Payrolls;
 
 namespace HRM.Business.Services.Interfaces
@@ -11,8 +11,7 @@ namespace HRM.Business.Services.Interfaces
 
         Task<ApiResponse<List<PayrollResponseDto>>> CalculatePayrollAsync(
             CurrentUser currentUser,
-            int payrollMonth,
-            int payrollYear);
+            CalculatePayrollDto request);
 
         Task<ApiResponse<PayrollResponseDto>> GetPayrollDetailAsync(
             CurrentUser currentUser,

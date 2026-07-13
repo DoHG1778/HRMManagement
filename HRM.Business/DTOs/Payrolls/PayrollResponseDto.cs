@@ -1,4 +1,4 @@
-﻿namespace HRM.Business.DTOs.Payrolls
+namespace HRM.Business.DTOs.Payrolls
 {
     public class PayrollResponseDto
     {
@@ -9,6 +9,10 @@
         public string? EmployeeCode { get; set; }
 
         public string? EmployeeName { get; set; }
+
+        public string? DepartmentName { get; set; }
+
+        public string? PositionName { get; set; }
 
         public int PayrollMonth { get; set; }
 
