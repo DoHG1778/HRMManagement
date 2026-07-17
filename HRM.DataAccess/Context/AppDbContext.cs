@@ -558,10 +558,6 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasDefaultValue("GENERAL");
-            entity.Property(e => e.TargetType)
-                .HasMaxLength(30)
-                .IsUnicode(false)
-                .HasDefaultValue("USER");
             entity.Property(e => e.Title).HasMaxLength(200);
 
             entity.HasOne(d => d.CreatedByUser).WithMany(p => p.Notifications)

@@ -1,0 +1,115 @@
+﻿@using HRM.Business.Common
+@using HRM.Business.DTOs.Notifications
+
+@model PagedResult<NotificationResponseDto>
+
+@{
+    ViewData["Title"] = "My Notifications";
+}
+
+<h2 class="mb-3">My Notifications</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
+@if (!Model.Items.Any())
+{
+    <div class="alert alert-info">
+        You don't have any notifications.
+    </div>
+}
+else
+{
+    <table class="table table-bordered table-hover">
+
+        <thead class="table-dark">
+            <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Created At</th>
+                <th>Status</th>
+                <th width="240">Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+
+                    <td>@item.Title</td>
+
+                    <td>@item.NotificationType</td>
+
+                    <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+
+                    <td>
+                        @if (item.IsRead)
+                        {
+                            <span class="badge bg-success">Read</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark">Unread</span>
+                        }
+                    </td>
+
+                    <td>
+
+                        <a asp-action="Details"
+                               asp-route-id="@item.NotificationId"
+                               class="btn btn-sm btn-primary">
+                            Details
+                        </a>
+
+                        @if (!item.IsRead)
+                        {
+                            <form asp-action="MarkAsRead"
+                                  asp-route-id="@item.NotificationId"
+                                  method="post"
+                                  class="d-inline">
+
+                                @Html.AntiForgeryToken()
+
+                                <button class="btn btn-sm btn-success">
+                                    Mark Read
+                                </button>
+
+                            </form>
+                        }
+
+                        <form asp-action="Delete"
+                              asp-route-id="@item.NotificationId"
+                              method="post"
+                              class="d-inline">
+
+                            @Html.AntiForgeryToken()
+
+                            <button class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Delete this notification?')">
+                                Delete
+                            </button>
+
+                        </form>
+
+                    </td>
+
+                </tr>
+            }
+
+        </tbody>
+
+    </table>
+}

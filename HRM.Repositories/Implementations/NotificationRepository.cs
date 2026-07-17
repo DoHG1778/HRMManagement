@@ -18,6 +18,7 @@ namespace HRM.Repositories.Implementations
         {
             var query = _context.NotificationRecipients
                 .Include(nr => nr.Notification)
+                    .ThenInclude(n => n.CreatedByUser)
                 .Where(nr =>
                     nr.UserId == userId &&
                     !nr.IsDeleted);
@@ -44,6 +45,7 @@ namespace HRM.Repositories.Implementations
         {
             return await _context.NotificationRecipients
                 .Include(nr => nr.Notification)
+                    .ThenInclude(n => n.CreatedByUser)
                 .FirstOrDefaultAsync(nr =>
                     nr.NotificationId == notificationId &&
                     nr.UserId == userId &&

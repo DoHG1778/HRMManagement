@@ -116,6 +116,68 @@
                                 <li><a class="dropdown-item @DisabledUnless(loggedIn)" asp-controller="Payroll" asp-action="MyPayslip">My Payslip</a></li>
                             </ul>
                         </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle @DisabledUnless(loggedIn)" href="#" role="button" data-bs-toggle="dropdown"> Dashboard </a>
+
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item"
+                                           asp-controller="Dashboard"
+                                           asp-action="Summary">
+                                        Summary
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a class="dropdown-item @DisabledUnless(canEmployee)"
+                                           asp-controller="Dashboard"
+                                           asp-action="Employee">
+                                        Employee Dashboard
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a class="dropdown-item @DisabledUnless(canManager)"
+                                           asp-controller="Dashboard"
+                                           asp-action="Manager">
+                                        Manager Dashboard
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a class="dropdown-item @DisabledUnless(canPayroll)"
+                                           asp-controller="Dashboard"
+                                           asp-action="Payroll">
+                                        Payroll Dashboard
+                                    </a>
+                                </li>
+
+                            </ul>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle @DisabledUnless(loggedIn)"
+                                       href="#"
+                                       role="button"
+                                       data-bs-toggle="dropdown">
+                                    Notifications
+                                </a>
+
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <h6 class="dropdown-header">
+                                            Notification Center
+                                        </h6>
+                                    </li>
+
+                                    <li>
+                                        <a class="dropdown-item @DisabledUnless(loggedIn)"
+                                               asp-controller="Notification"
+                                               asp-action="Index">
+                                            My Notifications
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </li>
                     </ul>
                 </div>
             </div>

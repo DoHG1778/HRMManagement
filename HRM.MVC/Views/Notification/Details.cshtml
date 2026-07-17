@@ -1,0 +1,108 @@
+﻿@using HRM.Business.DTOs.Notifications
+
+@model NotificationResponseDto
+
+@{
+    ViewData["Title"] = "Notification Details";
+}
+
+<h2 class="mb-4">Notification Details</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
+<div class="card shadow-sm">
+
+    <div class="card-header">
+        <h4 class="mb-0">@Model.Title</h4>
+    </div>
+
+    <div class="card-body">
+
+        <dl class="row">
+
+            <dt class="col-sm-3">
+                Notification Type
+            </dt>
+
+            <dd class="col-sm-9">
+                @Model.NotificationType
+            </dd>
+
+            <dt class="col-sm-3">
+                Content
+            </dt>
+
+            <dd class="col-sm-9">
+                @Model.Content
+            </dd>
+
+            <dt class="col-sm-3">
+                Created At
+            </dt>
+
+            <dd class="col-sm-9">
+                @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+            </dd>
+
+            <dt class="col-sm-3">
+                Status
+            </dt>
+
+            <dd class="col-sm-9">
+                @if (Model.IsRead)
+                {
+                    <span class="badge bg-success">
+                        Read
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-warning text-dark">
+                        Unread
+                    </span>
+                }
+            </dd>
+
+        </dl>
+
+    </div>
+
+    <div class="card-footer">
+
+        @if (!Model.IsRead)
+        {
+            <form asp-action="MarkAsRead"
+                  asp-route-id="@Model.NotificationId"
+                  method="post"
+                  class="d-inline">
+
+                @Html.AntiForgeryToken()
+
+                <button type="submit"
+                        class="btn btn-success">
+                    Mark As Read
+                </button>
+
+            </form>
+        }
+
+        <a asp-action="Index"
+               class="btn btn-secondary">
+            Back
+        </a>
+
+    </div>
+
+</div>

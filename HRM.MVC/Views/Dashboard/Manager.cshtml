@@ -1,0 +1,159 @@
+﻿@model HRM.Business.DTOs.Dashboards.ManagerDashboardDto
+
+@{
+    ViewData["Title"] = "Manager Dashboard";
+}
+
+<h2 class="mb-4">Manager Dashboard</h2>
+
+<div class="row">
+
+    <div class="col-md-4 mb-3">
+        <div class="card border-primary">
+            <div class="card-body">
+                <h5>Manager</h5>
+                <h3>@Model.ManagerName</h3>
+                <small>ID: @Model.ManagerEmployeeId</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card border-success">
+            <div class="card-body">
+                <h5>Department</h5>
+                <h3>@Model.DepartmentName</h3>
+                <small>Department ID: @Model.DepartmentId</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card border-info">
+            <div class="card-body text-center">
+                <h5>Total Employees</h5>
+                <h2>@Model.TotalEmployeesInDepartment</h2>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="row">
+
+    <div class="col-md-4 mb-3">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <h5>Active Employees</h5>
+                <h2>@Model.ActiveEmployeesInDepartment</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card border-warning">
+            <div class="card-body text-center">
+                <h5>Pending Leave</h5>
+                <h2>@Model.PendingLeaveRequests</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card border-danger">
+            <div class="card-body text-center">
+                <h5>Pending Overtime</h5>
+                <h2>@Model.PendingOvertimeRequests</h2>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="row">
+
+    <div class="col-md-4 mb-3">
+        <div class="card border-secondary">
+            <div class="card-body text-center">
+                <h5>Attendance Adjustments</h5>
+                <h2>@Model.PendingAttendanceAdjustments</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card border-primary">
+            <div class="card-body text-center">
+                <h5>Assigned KPIs</h5>
+                <h2>@Model.AssignedKpis</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <h5>Evaluated KPIs</h5>
+                <h2>@Model.EvaluatedKpis</h2>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">
+        Department Overview
+    </div>
+
+    <table class="table table-bordered mb-0">
+        <tbody>
+
+            <tr>
+                <th style="width:40%">Manager</th>
+                <td>@Model.ManagerName</td>
+            </tr>
+
+            <tr>
+                <th>Department</th>
+                <td>@Model.DepartmentName</td>
+            </tr>
+
+            <tr>
+                <th>Total Employees</th>
+                <td>@Model.TotalEmployeesInDepartment</td>
+            </tr>
+
+            <tr>
+                <th>Active Employees</th>
+                <td>@Model.ActiveEmployeesInDepartment</td>
+            </tr>
+
+            <tr>
+                <th>Pending Leave Requests</th>
+                <td>@Model.PendingLeaveRequests</td>
+            </tr>
+
+            <tr>
+                <th>Pending Overtime Requests</th>
+                <td>@Model.PendingOvertimeRequests</td>
+            </tr>
+
+            <tr>
+                <th>Pending Attendance Adjustments</th>
+                <td>@Model.PendingAttendanceAdjustments</td>
+            </tr>
+
+            <tr>
+                <th>Assigned KPIs</th>
+                <td>@Model.AssignedKpis</td>
+            </tr>
+
+            <tr>
+                <th>Evaluated KPIs</th>
+                <td>@Model.EvaluatedKpis</td>
+            </tr>
+
+        </tbody>
+    </table>
+</div>

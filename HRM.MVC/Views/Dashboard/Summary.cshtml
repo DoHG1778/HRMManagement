@@ -1,0 +1,118 @@
+﻿@model HRM.Business.DTOs.Dashboards.DashboardSummaryDto
+
+@{
+    ViewData["Title"] = "Dashboard Summary";
+}
+
+<h2 class="mb-4">Dashboard Summary</h2>
+
+<div class="row">
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-primary">
+            <div class="card-body">
+                <h6>Total Employees</h6>
+                <h3>@Model.TotalEmployees</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-success">
+            <div class="card-body">
+                <h6>Active Employees</h6>
+                <h3>@Model.ActiveEmployees</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-warning">
+            <div class="card-body">
+                <h6>Departments</h6>
+                <h3>@Model.TotalDepartments</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-info">
+            <div class="card-body">
+                <h6>Assigned KPIs</h6>
+                <h3>@Model.AssignedKpis</h3>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="row">
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-secondary">
+            <div class="card-body">
+                <h6>Evaluated KPIs</h6>
+                <h3>@Model.EvaluatedKpis</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-danger">
+            <div class="card-body">
+                <h6>Pending Leave</h6>
+                <h3>@Model.PendingLeaveRequests</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-dark">
+            <div class="card-body">
+                <h6>Pending OT</h6>
+                <h3>@Model.PendingOvertimeRequests</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-primary">
+            <div class="card-body">
+                <h6>Unread Notifications</h6>
+                <h3>@Model.UnreadNotifications</h3>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="row">
+
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h6>Payroll This Month</h6>
+                <h3>@Model.CurrentMonthPayrolls</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h6>Confirmed Payroll</h6>
+                <h3>@Model.ConfirmedPayrolls</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h6>Draft Payroll</h6>
+                <h3>@Model.DraftPayrolls</h3>
+            </div>
+        </div>
+    </div>
+
+</div>
