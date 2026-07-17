@@ -1,0 +1,135 @@
+﻿@model HRM.Business.DTOs.Dashboards.EmployeeDashboardDto
+
+@{
+    ViewData["Title"] = "Employee Dashboard";
+}
+
+<h2 class="mb-4">Employee Dashboard</h2>
+
+<div class="row">
+
+    <div class="col-md-4 mb-3">
+        <div class="card border-primary">
+            <div class="card-body">
+                <h5>Employee</h5>
+                <h3>@Model.EmployeeName</h3>
+                <small>ID: @Model.EmployeeId</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card border-success">
+            <div class="card-body">
+                <h5>Attendance</h5>
+
+                <p>
+                    Attendance Days:
+                    <strong>@Model.AttendanceDaysThisMonth</strong>
+                </p>
+
+                <p>
+                    Late Days:
+                    <strong>@Model.LateDaysThisMonth</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card border-warning">
+            <div class="card-body">
+                <h5>Notifications</h5>
+
+                <h2>
+                    @Model.UnreadNotifications
+                </h2>
+
+                <small>Unread</small>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="row">
+
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                Leave Requests
+            </div>
+
+            <table class="table table-bordered mb-0">
+                <tr>
+                    <th>Pending</th>
+                    <td>@Model.PendingLeaveRequests</td>
+                </tr>
+
+                <tr>
+                    <th>Approved</th>
+                    <td>@Model.ApprovedLeaveRequests</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                Overtime Requests
+            </div>
+
+            <table class="table table-bordered mb-0">
+                <tr>
+                    <th>Pending</th>
+                    <td>@Model.PendingOvertimeRequests</td>
+                </tr>
+
+                <tr>
+                    <th>Approved</th>
+                    <td>@Model.ApprovedOvertimeRequests</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<div class="row">
+
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                KPI
+            </div>
+
+            <table class="table table-bordered mb-0">
+                <tr>
+                    <th>Assigned KPI</th>
+                    <td>@Model.AssignedKpis</td>
+                </tr>
+
+                <tr>
+                    <th>Evaluated KPI</th>
+                    <td>@Model.EvaluatedKpis</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <div class="card border-success">
+            <div class="card-body text-center">
+
+                <h5>Latest Salary</h5>
+
+                <h2>
+                    @(Model.LatestNetSalary?.ToString("N0") ?? "0")
+                </h2>
+
+            </div>
+        </div>
+    </div>
+
+</div>

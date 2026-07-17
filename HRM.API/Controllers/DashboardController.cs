@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HRM.API.Controllers
 {
+    [ApiController]
     [Route("api/dashboard")]
     [Authorize]
     public class DashboardController : BaseApiController

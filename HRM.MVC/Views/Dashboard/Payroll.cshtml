@@ -1,0 +1,95 @@
+﻿@model HRM.Business.DTOs.Dashboards.PayrollDashboardDto
+
+@{
+    ViewData["Title"] = "Payroll Dashboard";
+}
+
+<h2 class="mb-4">Payroll Dashboard</h2>
+
+<div class="row">
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-primary">
+            <div class="card-body">
+                <h6>Total Payrolls</h6>
+                <h3>@Model.TotalPayrolls</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-warning">
+            <div class="card-body">
+                <h6>Draft Payrolls</h6>
+                <h3>@Model.DraftPayrolls</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-success">
+            <div class="card-body">
+                <h6>Confirmed Payrolls</h6>
+                <h3>@Model.ConfirmedPayrolls</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-info">
+            <div class="card-body">
+                <h6>Paid Payrolls</h6>
+                <h3>@Model.PaidPayrolls</h3>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<hr />
+
+<div class="row">
+
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                Salary Summary
+            </div>
+
+            <table class="table mb-0">
+
+                <tr>
+                    <th>Payroll Month</th>
+                    <td>@Model.PayrollMonth</td>
+                </tr>
+
+                <tr>
+                    <th>Payroll Year</th>
+                    <td>@Model.PayrollYear</td>
+                </tr>
+
+                <tr>
+                    <th>Total Gross Salary</th>
+                    <td>@Model.TotalGrossSalary.ToString("N0")</td>
+                </tr>
+
+                <tr>
+                    <th>Total Net Salary</th>
+                    <td>@Model.TotalNetSalary.ToString("N0")</td>
+                </tr>
+
+                <tr>
+                    <th>Total Overtime</th>
+                    <td>@Model.TotalOvertime.ToString("N0")</td>
+                </tr>
+
+                <tr>
+                    <th>Total Deduction</th>
+                    <td>@Model.TotalDeduction.ToString("N0")</td>
+                </tr>
+
+            </table>
+        </div>
+    </div>
+
+</div>

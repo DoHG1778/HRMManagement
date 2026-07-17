@@ -17,10 +17,24 @@ namespace HRM.Repositories.Implementations
                 .FirstOrDefaultAsync(k => k.Kpiname == kpiName);
         }
 
+        public async Task<Kpi?> GetDetailAsync(int kpiId)
+        {
+            return await _context.Kpis
+                .Include(k => k.CreatedByUser)
+                .FirstOrDefaultAsync(k => k.Kpiid == kpiId);
+        }
+
         public async Task<List<Kpi>> GetActiveKpisAsync()
         {
             return await _context.Kpis
                 .Where(k => k.IsActive)
+                .ToListAsync();
+        }
+
+        public async Task<List<Kpi>> GetAllWithCreatorAsync()
+        {
+            return await _context.Kpis
+                .Include(k => k.CreatedByUser)
                 .ToListAsync();
         }
 
@@ -84,6 +98,50 @@ namespace HRM.Repositories.Implementations
                         ea.EmployeeId == ka.EmployeeId &&
                         ea.EndDate == null &&
                         ea.Department.ManagerEmployeeId == managerEmployeeId));
+        }
+
+        public async Task AddAssignmentAsync(Kpiassignment assignment)
+        {
+            await _context.Kpiassignments.AddAsync(assignment);
+        }
+
+        public async Task<bool> HasAssignmentAsync(int kpiId, int employeeId)
+        {
+            return await _context.Kpiassignments.AnyAsync(x =>
+                x.Kpiid == kpiId &&
+                x.EmployeeId == employeeId);
+        }
+
+        public async Task<Kpiassignment?> GetAssignmentByIdAsync(int assignmentId)
+        {
+            return await _context.Kpiassignments
+                .Include(x => x.Kpi)
+                .Include(x => x.Employee)
+                .Include(x => x.AssignedByNavigation)
+                .Include(x => x.ReviewedByNavigation)
+                .FirstOrDefaultAsync(x => x.AssignmentId == assignmentId);
+        }
+
+        public void UpdateAssignment(Kpiassignment assignment)
+        {
+            _context.Kpiassignments.Update(assignment);
+        }
+
+        public async Task<List<Kpiassignment>> GetAssignmentsByEmployeeAsync(int employeeId)
+        {
+            return await _context.Kpiassignments
+                .Include(x => x.Kpi)
+                .Include(x => x.Employee)
+                .Include(x => x.AssignedByNavigation)
+                .Include(x => x.ReviewedByNavigation)
+                .Where(x => x.EmployeeId == employeeId)
+                .OrderByDescending(x => x.CreatedAt)
+                .ToListAsync();
+        }
+
+        public IQueryable<Kpiassignment> QueryAssignments()
+        {
+            return _context.Kpiassignments.AsQueryable();
         }
     }
 }

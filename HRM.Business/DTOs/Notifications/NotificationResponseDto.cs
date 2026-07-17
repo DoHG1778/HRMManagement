@@ -12,8 +12,6 @@
 
         public string NotificationType { get; set; } = string.Empty;
 
-        public string? TargetType { get; set; }
-
         public int? CreatedByUserId { get; set; }
 
         public string? CreatedByUsername { get; set; }

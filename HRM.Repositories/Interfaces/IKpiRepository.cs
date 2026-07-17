@@ -6,7 +6,11 @@ namespace HRM.Repositories.Interfaces
     {
         Task<Kpi?> GetByNameAsync(string kpiName);
 
+        Task<Kpi?> GetDetailAsync(int kpiId);
+
         Task<List<Kpi>> GetActiveKpisAsync();
+
+        Task<List<Kpi>> GetAllWithCreatorAsync();
 
         Task<bool> IsKpiNameExistsAsync(string kpiName);
 
@@ -21,5 +25,17 @@ namespace HRM.Repositories.Interfaces
         Task<bool> IsKpiAssignmentOwnedByEmployeeAsync(int assignmentId, int employeeId);
 
         Task<bool> IsKpiAssignmentUnderManagerAsync(int assignmentId, int managerEmployeeId);
+
+        Task AddAssignmentAsync(Kpiassignment assignment);
+
+        Task<bool> HasAssignmentAsync(int kpiId, int employeeId);
+
+        Task<Kpiassignment?> GetAssignmentByIdAsync(int assignmentId);
+
+        void UpdateAssignment(Kpiassignment assignment);
+
+        Task<List<Kpiassignment>> GetAssignmentsByEmployeeAsync(int employeeId);
+
+        IQueryable<Kpiassignment> QueryAssignments();
     }
 }
