@@ -33,6 +33,9 @@ namespace HRM.MVC.Controllers
             if (response?.StatusCode == 401) return RedirectToAction("Login", "Auth");
             if (response?.StatusCode == 403) return RedirectToAction("Index", "Home");
 
+            ViewBag.Keyword = keyword;
+            ViewBag.IsActive = isActive;
+
             return View(response?.Data ?? PagedResult<UserResponseDto>.Create(new List<UserResponseDto>(), pageNumber, pageSize, 0));
         }
 
@@ -41,17 +44,7 @@ namespace HRM.MVC.Controllers
             var client = CreateAuthorizedClient();
             if (client == null) return RedirectToAction("Login", "Auth");
 
-            // Load Employees without User accounts to link
-            var empResponse = await client.GetAsync("api/employees?pageSize=100");
-            var employees = await ApiResponseReader.ReadAsync<PagedResult<EmployeeResponseDto>>(empResponse);
-            
-            // Load Roles
-            var roleResponse = await client.GetAsync("api/users/roles");
-            var roles = await ApiResponseReader.ReadAsync<List<RoleResponseDto>>(roleResponse);
-
-            ViewBag.Employees = employees?.Data?.Items?.Where(e => e.UserId == null).ToList() ?? new List<EmployeeResponseDto>();
-            ViewBag.Roles = roles?.Data ?? new List<RoleResponseDto>();
-
+            await LoadViewData(client);
             return View(new CreateUserRequestDto());
         }
 
@@ -64,7 +57,7 @@ namespace HRM.MVC.Controllers
 
             if (!ModelState.IsValid)
             {
-                await ReloadViewData(client);
+                await LoadViewData(client);
                 return View(model);
             }
 
@@ -78,11 +71,92 @@ namespace HRM.MVC.Controllers
             }
 
             ModelState.AddModelError("", result?.Message ?? "Failed to create user account.");
-            await ReloadViewData(client);
+            await LoadViewData(client);
             return View(model);
         }
 
-        private async Task ReloadViewData(HttpClient client)
+        public async Task<IActionResult> Edit(int id)
+        {
+            var client = CreateAuthorizedClient();
+            if (client == null) return RedirectToAction("Login", "Auth");
+
+            var httpResponse = await client.GetAsync($"api/users/{id}");
+            var response = await ApiResponseReader.ReadAsync<UserResponseDto>(httpResponse);
+            
+            if (response?.Success != true)
+            {
+                TempData["Error"] = response?.Message ?? "User not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            await LoadViewData(client);
+            
+            // Get current Role IDs
+            var allRoles = ViewBag.Roles as List<RoleResponseDto> ?? new List<RoleResponseDto>();
+            var userRoleIds = allRoles
+                .Where(r => response.Data.Roles.Contains(r.RoleName))
+                .Select(r => r.RoleId)
+                .ToList();
+
+            var model = new UpdateUserRequestDto
+            {
+                Email = response.Data.Email,
+                IsActive = response.Data.IsActive,
+                RoleIds = userRoleIds
+            };
+
+            ViewBag.Username = response.Data.Username;
+            ViewBag.UserId = id;
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, UpdateUserRequestDto model)
+        {
+            var client = CreateAuthorizedClient();
+            if (client == null) return RedirectToAction("Login", "Auth");
+
+            if (!ModelState.IsValid)
+            {
+                await LoadViewData(client);
+                return View(model);
+            }
+
+            var response = await client.PutAsJsonAsync($"api/users/{id}", model);
+            var result = await ApiResponseReader.ReadAsync<UserResponseDto>(response);
+
+            if (result?.Success == true)
+            {
+                TempData["Success"] = "User account updated successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            ModelState.AddModelError("", result?.Message ?? "Failed to update user account.");
+            await LoadViewData(client);
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ToggleStatus(int id, bool lockIt)
+        {
+            var client = CreateAuthorizedClient();
+            if (client == null) return RedirectToAction("Login", "Auth");
+
+            var action = lockIt ? "lock" : "unlock";
+            var response = await client.PutAsync($"api/users/{id}/{action}", null);
+            var result = await ApiResponseReader.ReadAsync<bool>(response);
+
+            if (result?.Success == true)
+                TempData["Success"] = $"User {(lockIt ? "locked" : "unlocked")} successfully.";
+            else
+                TempData["Error"] = result?.Message ?? $"Failed to {action} user.";
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        private async Task LoadViewData(HttpClient client)
         {
             var empResponse = await client.GetAsync("api/employees?pageSize=100");
             var employees = await ApiResponseReader.ReadAsync<PagedResult<EmployeeResponseDto>>(empResponse);

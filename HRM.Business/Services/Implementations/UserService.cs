@@ -45,10 +45,11 @@ namespace HRM.Business.Services.Implementations
                 .OrderByDescending(u => u.CreatedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .Select(u => MapToResponseDto(u))
                 .ToListAsync();
 
-            var result = PagedResult<UserResponseDto>.Create(items, pageNumber, pageSize, totalCount);
+            var responseItems = items.Select(u => MapToResponseDto(u)).ToList();
+
+            var result = PagedResult<UserResponseDto>.Create(responseItems, pageNumber, pageSize, totalCount);
             return ApiResponse<PagedResult<UserResponseDto>>.Ok(result);
         }
 
@@ -75,7 +76,7 @@ namespace HRM.Business.Services.Implementations
                 return ApiResponse<UserResponseDto>.Fail($"Email '{request.Email}' is already registered.");
 
             if (!PasswordHelper.IsPasswordStrong(request.Password))
-                return ApiResponse<UserResponseDto>.Fail("Password is too weak. It must be at least 8 characters and include uppercase, lowercase, number and special character.");
+                return ApiResponse<UserResponseDto>.Fail("Password is too weak.");
 
             Employee? employee = null;
             if (request.EmployeeId.HasValue)
@@ -101,15 +102,7 @@ namespace HRM.Business.Services.Implementations
             {
                 foreach (var roleId in request.RoleIds)
                 {
-                    var role = await _unitOfWork.Roles.GetByIdAsync(roleId);
-                    if (role != null)
-                    {
-                        user.UserRoles.Add(new UserRole
-                        {
-                            RoleId = roleId,
-                            AssignedAt = DateTime.Now
-                        });
-                    }
+                    user.UserRoles.Add(new UserRole { RoleId = roleId, AssignedAt = DateTime.Now });
                 }
             }
 
@@ -132,44 +125,68 @@ namespace HRM.Business.Services.Implementations
             int userId,
             UpdateUserRequestDto request)
         {
-            throw new NotImplementedException();
-        }
+            var user = await _unitOfWork.Users.GetUserWithRolesAsync(userId);
+            if (user == null) return ApiResponse<UserResponseDto>.NotFound("User not found.");
 
-        public async Task<ApiResponse<bool>> LockUserAsync(
-            int currentUserId,
-            int userId)
-        {
-            var user = await _unitOfWork.Users.GetByIdAsync(userId);
-            if (user == null) return ApiResponse<bool>.NotFound("User not found.");
+            if (!string.IsNullOrWhiteSpace(request.Email) && !request.Email.Equals(user.Email, StringComparison.OrdinalIgnoreCase))
+            {
+                if (await _unitOfWork.Users.IsEmailExistsAsync(request.Email))
+                    return ApiResponse<UserResponseDto>.Fail("Email is already taken.");
+                user.Email = request.Email.Trim().ToLower();
+            }
 
-            user.IsActive = false;
+            if (request.IsActive.HasValue)
+            {
+                if (!request.IsActive.Value && await _unitOfWork.Users.IsLastAdminAsync(userId))
+                    return ApiResponse<UserResponseDto>.Fail("Cannot lock the last Admin.");
+                user.IsActive = request.IsActive.Value;
+            }
+
+            if (request.RoleIds != null)
+            {
+                // Logic to update roles safely
+                bool willHaveAdmin = false;
+                foreach(var rid in request.RoleIds)
+                {
+                    var r = await _unitOfWork.Roles.GetByIdAsync(rid);
+                    if (r?.RoleName == "Admin") willHaveAdmin = true;
+                }
+
+                if (user.UserRoles.Any(ur => ur.Role.RoleName == "Admin") && !willHaveAdmin && await _unitOfWork.Users.IsLastAdminAsync(userId))
+                {
+                    return ApiResponse<UserResponseDto>.Fail("Cannot remove Admin role from the last admin.");
+                }
+
+                user.UserRoles.Clear();
+                foreach (var roleId in request.RoleIds)
+                {
+                    user.UserRoles.Add(new UserRole { UserId = userId, RoleId = roleId, AssignedAt = DateTime.Now });
+                }
+            }
+
             user.UpdatedAt = DateTime.Now;
-            _unitOfWork.Users.Update(user);
             await _unitOfWork.SaveChangesAsync();
 
-            return ApiResponse<bool>.Ok(true, "User locked successfully.");
+            var updatedUser = await _unitOfWork.Users.GetUserWithRolesAsync(userId);
+            return ApiResponse<UserResponseDto>.Ok(MapToResponseDto(updatedUser!), "User updated successfully.");
         }
 
-        public async Task<ApiResponse<bool>> UnlockUserAsync(
-            int currentUserId,
-            int userId)
+        public async Task<ApiResponse<bool>> LockUserAsync(int currentUserId, int userId)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(userId);
-            if (user == null) return ApiResponse<bool>.NotFound("User not found.");
-
-            user.IsActive = true;
-            user.UpdatedAt = DateTime.Now;
-            _unitOfWork.Users.Update(user);
-            await _unitOfWork.SaveChangesAsync();
-
-            return ApiResponse<bool>.Ok(true, "User unlocked successfully.");
+            var result = await UpdateUserAsync(currentUserId, userId, new UpdateUserRequestDto { IsActive = false });
+            return new ApiResponse<bool> { Success = result.Success, Message = result.Message, Data = result.Success };
         }
 
-        public async Task<ApiResponse<bool>> AssignRolesAsync(
-            int currentUserId,
-            AssignRoleRequestDto request)
+        public async Task<ApiResponse<bool>> UnlockUserAsync(int currentUserId, int userId)
         {
-            throw new NotImplementedException();
+            var result = await UpdateUserAsync(currentUserId, userId, new UpdateUserRequestDto { IsActive = true });
+            return new ApiResponse<bool> { Success = result.Success, Message = result.Message, Data = result.Success };
+        }
+
+        public async Task<ApiResponse<bool>> AssignRolesAsync(int currentUserId, AssignRoleRequestDto request)
+        {
+            var result = await UpdateUserAsync(currentUserId, request.UserId, new UpdateUserRequestDto { RoleIds = request.RoleIds });
+            return new ApiResponse<bool> { Success = result.Success, Message = result.Message, Data = result.Success };
         }
 
         public async Task<ApiResponse<List<RoleResponseDto>>> GetRolesAsync()
@@ -177,12 +194,8 @@ namespace HRM.Business.Services.Implementations
             var roles = await _unitOfWork.Roles.GetAllAsync();
             var response = roles.Select(r => new RoleResponseDto
             {
-                RoleId = r.RoleId,
-                RoleName = r.RoleName,
-                Description = r.Description,
-                IsActive = r.IsActive
+                RoleId = r.RoleId, RoleName = r.RoleName, Description = r.Description, IsActive = r.IsActive
             }).ToList();
-
             return ApiResponse<List<RoleResponseDto>>.Ok(response);
         }
 
@@ -200,10 +213,7 @@ namespace HRM.Business.Services.Implementations
                 EmployeeId = user.Employee?.EmployeeId,
                 FullName = user.Employee?.FullName,
                 EmployeeCode = user.Employee?.EmployeeCode,
-                Roles = user.UserRoles
-                    .Where(ur => ur.Role != null)
-                    .Select(ur => ur.Role!.RoleName)
-                    .ToList()
+                Roles = user.UserRoles.Where(ur => ur.Role != null).Select(ur => ur.Role!.RoleName).ToList()
             };
         }
     }
