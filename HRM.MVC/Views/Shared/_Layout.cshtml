@@ -79,12 +79,13 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle @DisabledUnless(canHrAdmin)" href="#" role="button" data-bs-toggle="dropdown">HR / Admin</a>
                             <ul class="dropdown-menu">
+                                <li><h6 class="dropdown-header">User Accounts</h6></li>
+                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="UserManagement" asp-action="Index">User Management</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="UserManagement" asp-action="Create">Create User Account</a></li>
+                                <li><hr class="dropdown-divider" /></li>
                                 <li><h6 class="dropdown-header">Employee Management</h6></li>
                                 <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="EmployeeManagement" asp-action="Index">Employee List</a></li>
                                 <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="EmployeeManagement" asp-action="Create">Create Employee Profile</a></li>
-                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="EmployeeManagement" asp-action="Index">Update Employee Profile / Status</a></li>
-                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="EmployeeManagement" asp-action="Index">Assign Employee</a></li>
-                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="EmployeeManagement" asp-action="Index">Transfer Employee</a></li>
                                 <li><hr class="dropdown-divider" /></li>
                                 <li><h6 class="dropdown-header">Organization</h6></li>
                                 <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="DepartmentManagement" asp-action="Index">Departments</a></li>
