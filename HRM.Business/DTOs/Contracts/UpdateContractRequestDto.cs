@@ -17,6 +17,8 @@ namespace HRM.Business.DTOs.Contracts
         [MaxLength(500)]
         public string? ContractFileUrl { get; set; }
 
+        [Required(ErrorMessage = "Reason for update is required.")] // Bắt buộc nhập lý do sửa
+        [MinLength(10, ErrorMessage = "Please provide a detailed reason (at least 10 characters).")]
         [MaxLength(500)]
         public string? Note { get; set; }
     }

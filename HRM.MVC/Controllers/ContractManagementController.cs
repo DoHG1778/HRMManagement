@@ -93,12 +93,171 @@ namespace HRM.MVC.Controllers
             return View(model);
         }
 
+        public async Task<IActionResult> Edit(int id)
+        {
+            if (!IsAdmin()) return RedirectToAction("Index", "Home");
+
+            var client = CreateAuthorizedClient();
+            if (client == null) return RedirectToAction("Login", "Auth");
+
+            var httpResponse = await client.GetAsync($"api/contracts/{id}");
+            var response = await ApiResponseReader.ReadAsync<ContractResponseDto>(httpResponse);
+
+            if (response?.Success != true)
+            {
+                TempData["Error"] = response?.Message ?? "Contract not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var contract = response.Data;
+            var model = new UpdateContractRequestDto
+            {
+                ContractType = contract.ContractType,
+                StartDate = contract.StartDate,
+                EndDate = contract.EndDate,
+                Salary = contract.Salary,
+                ContractFileUrl = contract.ContractFileUrl,
+                Note = "" 
+            };
+
+            ViewBag.EmployeeName = contract.EmployeeName;
+            ViewBag.ContractId = id;
+            ViewBag.CreatedAt = contract.CreatedAt;
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, UpdateContractRequestDto model)
+        {
+            if (!IsAdmin()) return RedirectToAction("Index", "Home");
+
+            var client = CreateAuthorizedClient();
+            if (client == null) return RedirectToAction("Login", "Auth");
+
+            if (!ModelState.IsValid)
+            {
+                var contractResponse = await client.GetAsync($"api/contracts/{id}");
+                var contractData = await ApiResponseReader.ReadAsync<ContractResponseDto>(contractResponse);
+                if (contractData?.Success == true)
+                {
+                    ViewBag.EmployeeName = contractData.Data.EmployeeName;
+                    ViewBag.ContractId = id;
+                    ViewBag.CreatedAt = contractData.Data.CreatedAt;
+                }
+                return View(model);
+            }
+
+            var response = await client.PutAsJsonAsync($"api/contracts/{id}", model);
+            var result = await ApiResponseReader.ReadAsync<ContractResponseDto>(response);
+
+            if (result?.Success == true)
+            {
+                TempData["Success"] = "Contract updated successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            ModelState.AddModelError("", result?.Message ?? "Failed to update contract.");
+            
+            var cResponse = await client.GetAsync($"api/contracts/{id}");
+            var cData = await ApiResponseReader.ReadAsync<ContractResponseDto>(cResponse);
+            if (cData?.Success == true)
+            {
+                ViewBag.EmployeeName = cData.Data.EmployeeName;
+                ViewBag.ContractId = id;
+                ViewBag.CreatedAt = cData.Data.CreatedAt;
+            }
+            
+            return View(model);
+        }
+
+        // UC15: Extend (Gia hạn) - GET
+        public async Task<IActionResult> Extend(int id)
+        {
+            var client = CreateAuthorizedClient();
+            if (client == null) return RedirectToAction("Login", "Auth");
+
+            var httpResponse = await client.GetAsync($"api/contracts/{id}");
+            var response = await ApiResponseReader.ReadAsync<ContractResponseDto>(httpResponse);
+
+            if (response?.Success != true) return RedirectToAction(nameof(Index));
+
+            ViewBag.EmployeeName = response.Data.EmployeeName;
+            ViewBag.CurrentEndDate = response.Data.EndDate;
+
+            return View(new ExtendContractRequestDto { NewEndDate = response.Data.EndDate ?? DateOnly.FromDateTime(DateTime.Now.AddYears(1)) });
+        }
+
+        // UC15: Extend (Gia hạn) - POST
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Extend(int id, ExtendContractRequestDto model)
+        {
+            var client = CreateAuthorizedClient();
+            if (client == null) return RedirectToAction("Login", "Auth");
+
+            var response = await client.PutAsJsonAsync($"api/contracts/{id}/extend", model);
+            var result = await ApiResponseReader.ReadAsync<ContractResponseDto>(response);
+
+            if (result?.Success == true)
+            {
+                TempData["Success"] = "Contract extended successfully.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            TempData["Error"] = result?.Message ?? "Failed to extend contract.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        // UC15: Terminate (Chấm dứt) - GET
+        public async Task<IActionResult> Terminate(int id)
+        {
+            var client = CreateAuthorizedClient();
+            if (client == null) return RedirectToAction("Login", "Auth");
+
+            var httpResponse = await client.GetAsync($"api/contracts/{id}");
+            var response = await ApiResponseReader.ReadAsync<ContractResponseDto>(httpResponse);
+
+            if (response?.Success != true) return RedirectToAction(nameof(Index));
+
+            ViewBag.EmployeeName = response.Data.EmployeeName;
+
+            return View(new TerminateContractRequestDto { TerminationDate = DateOnly.FromDateTime(DateTime.Now) });
+        }
+
+        // UC15: Terminate (Chấm dứt) - POST
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Terminate(int id, TerminateContractRequestDto model)
+        {
+            var client = CreateAuthorizedClient();
+            if (client == null) return RedirectToAction("Login", "Auth");
+
+            var response = await client.PutAsJsonAsync($"api/contracts/{id}/terminate", model);
+            var result = await ApiResponseReader.ReadAsync<ContractResponseDto>(response);
+
+            if (result?.Success == true)
+            {
+                TempData["Success"] = "Contract terminated successfully.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            TempData["Error"] = result?.Message ?? "Failed to terminate contract.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
         private async Task LoadEmployees(HttpClient client)
         {
-            // Fetch all employees to select for the contract
             var empResponse = await client.GetAsync("api/employees?pageSize=1000");
             var employees = await ApiResponseReader.ReadAsync<PagedResult<EmployeeResponseDto>>(empResponse);
             ViewBag.Employees = employees?.Data?.Items ?? new List<EmployeeResponseDto>();
+        }
+
+        private bool IsAdmin()
+        {
+            var roles = HttpContext.Session.GetString("Roles") ?? "";
+            return roles.Split(',').Any(r => r.Trim().Equals("Admin", StringComparison.OrdinalIgnoreCase));
         }
 
         private HttpClient? CreateAuthorizedClient()

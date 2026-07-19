@@ -1,0 +1,50 @@
+@using HRM.Business.DTOs.Contracts
+@model ExtendContractRequestDto
+
+@{
+    ViewData["Title"] = "Extend Contract";
+    var employeeName = ViewBag.EmployeeName as string;
+    var currentEndDate = ViewBag.CurrentEndDate as DateOnly?;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-info">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">Extend Contract: @employeeName</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Current End Date: <strong>@(currentEndDate?.ToString("dd/MM/yyyy") ?? "Indefinite")</strong>
+                    </p>
+                    <hr />
+                    <form asp-action="Extend" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="NewEndDate" class="form-label">New End Date</label>
+                            <input asp-for="NewEndDate" class="form-control" type="date" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                            <span asp-validation-for="NewEndDate" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Note" class="form-label">Extension Note (Optional)</label>
+                            <textarea asp-for="Note" class="form-control" rows="3" placeholder="e.g., Performance based extension..."></textarea>
+                            <span asp-validation-for="Note" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a asp-action="Details" asp-route-id="@ViewContext.RouteData.Values["id"]" class="btn btn-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-info px-4 text-white">Confirm Extension</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

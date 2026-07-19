@@ -118,22 +118,37 @@ namespace HRM.Business.Services.Implementations
             var contract = await _unitOfWork.Contracts.GetByIdAsync(contractId);
             if (contract == null) return ApiResponse<ContractResponseDto>.NotFound();
 
-            // Sửa lỗi CS0266 bằng cách gán tường minh
+            if (request.Salary.HasValue && Math.Abs(request.Salary.Value - contract.Salary) > 0.01m)
+            {
+                var daysSinceCreation = (DateTime.Now - contract.CreatedAt).TotalDays;
+                if (daysSinceCreation > 7)
+                {
+                    return ApiResponse<ContractResponseDto>.Fail("Salary cannot be updated after 7 days of contract creation.");
+                }
+            }
+
             if (request.ContractType != null)
                 contract.ContractType = request.ContractType;
             
             if (request.StartDate.HasValue)
                 contract.StartDate = request.StartDate.Value;
             
-            contract.EndDate = request.EndDate; // Cho phép null nên gán trực tiếp
+            contract.EndDate = request.EndDate;
             
             if (request.Salary.HasValue)
                 contract.Salary = request.Salary.Value;
             
-            if (request.Note != null)
-                contract.Note = request.Note;
-            
-            if (request.ContractFileUrl != null)
+            var updateInfo = $"[Updated by {currentUser.Username} at {DateTime.Now:yyyy-MM-dd HH:mm}]";
+            if (!string.IsNullOrEmpty(request.Note))
+            {
+                contract.Note = $"{contract.Note}\n{updateInfo}: {request.Note}";
+            }
+            else
+            {
+                contract.Note = $"{contract.Note}\n{updateInfo}: Information updated.";
+            }
+
+            if (!string.IsNullOrEmpty(request.ContractFileUrl))
                 contract.ContractFileUrl = request.ContractFileUrl;
 
             contract.UpdatedAt = DateTime.Now;
@@ -152,9 +167,16 @@ namespace HRM.Business.Services.Implementations
             var contract = await _unitOfWork.Contracts.GetByIdAsync(contractId);
             if (contract == null) return ApiResponse<ContractResponseDto>.NotFound();
 
+            if (contract.Status != "ACTIVE")
+                return ApiResponse<ContractResponseDto>.Fail("Only active contracts can be extended.");
+
+            var oldEndDate = contract.EndDate?.ToString("dd/MM/yyyy") ?? "Indefinite";
             contract.EndDate = request.NewEndDate;
             contract.UpdatedAt = DateTime.Now;
             
+            var log = $"[Extended by {currentUser.Username} at {DateTime.Now:yyyy-MM-dd HH:mm}]: Changed end date from {oldEndDate} to {request.NewEndDate:dd/MM/yyyy}. {request.Note}";
+            contract.Note = $"{contract.Note}\n{log}";
+
             await _unitOfWork.SaveChangesAsync();
             return ApiResponse<ContractResponseDto>.Ok(MapToDto(contract), "Contract extended successfully.");
         }
@@ -167,9 +189,15 @@ namespace HRM.Business.Services.Implementations
             var contract = await _unitOfWork.Contracts.GetByIdAsync(contractId);
             if (contract == null) return ApiResponse<ContractResponseDto>.NotFound();
 
+            if (contract.Status != "ACTIVE")
+                return ApiResponse<ContractResponseDto>.Fail("Only active contracts can be terminated.");
+
             contract.Status = "TERMINATED";
             contract.EndDate = request.TerminationDate;
             contract.UpdatedAt = DateTime.Now;
+
+            var log = $"[Terminated by {currentUser.Username} at {DateTime.Now:yyyy-MM-dd HH:mm}]: Effective on {request.TerminationDate:dd/MM/yyyy}. Reason: {request.Reason}";
+            contract.Note = $"{contract.Note}\n{log}";
             
             await _unitOfWork.SaveChangesAsync();
             return ApiResponse<ContractResponseDto>.Ok(MapToDto(contract), "Contract terminated successfully.");

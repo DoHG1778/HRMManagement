@@ -51,7 +51,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpPut("{contractId:int}")]
-        [Authorize(Roles = "Admin,HR")]
+        [Authorize(Roles = "Admin")] // UC14: CHỈ ADMIN MỚI ĐƯỢC PHÉP CẬP NHẬT
         public async Task<IActionResult> UpdateContract(int contractId, [FromBody] UpdateContractRequestDto request)
         {
             var currentUser = GetCurrentUser();
