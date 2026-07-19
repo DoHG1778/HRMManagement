@@ -136,7 +136,14 @@ namespace HRM.Business.Services.Implementations
         {
             var query = _unitOfWork.Attendances.Query()
                 .Include(a => a.Employee)
+                    .ThenInclude(e => e.User)
+                        .ThenInclude(u => u.UserRoles)
+                            .ThenInclude(ur => ur.Role)
                 .AsQueryable();
+
+            // UC: Manager/HR xem được bảng chấm công của toàn bộ trừ Admin
+            query = query.Where(a => a.Employee.User == null || 
+                                    !a.Employee.User.UserRoles.Any(ur => ur.Role.RoleName == "Admin"));
 
             if (filter.EmployeeId.HasValue)
                 query = query.Where(a => a.EmployeeId == filter.EmployeeId.Value);

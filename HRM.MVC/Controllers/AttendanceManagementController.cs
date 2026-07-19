@@ -16,6 +16,7 @@ namespace HRM.MVC.Controllers
             _httpClientFactory = httpClientFactory;
         }
 
+        // View cá nhân cho Employee
         public async Task<IActionResult> Index(AttendanceFilterDto filter)
         {
             if (!HasRole("Employee")) return RedirectToAction("Index", "Home");
@@ -44,6 +45,33 @@ namespace HRM.MVC.Controllers
 
             ViewBag.Filter = filter;
             return View(listData?.Data ?? PagedResult<AttendanceResponseDto>.Create(new List<AttendanceResponseDto>(), filter.PageNumber, filter.PageSize, 0));
+        }
+
+        // View tổng quát cho HR và Manager
+        public async Task<IActionResult> Sheet(AttendanceFilterDto filter)
+        {
+            if (!HasAnyRole("HR", "Manager")) return RedirectToAction("Index", "Home");
+
+            var client = CreateAuthorizedClient();
+            if (client == null) return RedirectToAction("Login", "Auth");
+
+            filter.PageNumber = filter.PageNumber == 0 ? 1 : filter.PageNumber;
+            filter.PageSize = filter.PageSize == 0 ? 10 : filter.PageSize;
+
+            var queryString = $"?pageNumber={filter.PageNumber}&pageSize={filter.PageSize}";
+            if (filter.FromDate.HasValue) queryString += $"&fromDate={filter.FromDate:yyyy-MM-dd}";
+            if (filter.ToDate.HasValue) queryString += $"&toDate={filter.ToDate:yyyy-MM-dd}";
+            if (!string.IsNullOrEmpty(filter.Status)) queryString += $"&status={filter.Status}";
+            if (!string.IsNullOrEmpty(filter.Keyword)) queryString += $"&keyword={Uri.EscapeDataString(filter.Keyword)}";
+
+            var response = await client.GetAsync($"api/attendances{queryString}");
+            var result = await ApiResponseReader.ReadAsync<PagedResult<AttendanceResponseDto>>(response);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) return RedirectToAction("Login", "Auth");
+            if (response.StatusCode == System.Net.HttpStatusCode.Forbidden) return RedirectToAction("Index", "Home");
+
+            ViewBag.Filter = filter;
+            return View(result?.Data ?? PagedResult<AttendanceResponseDto>.Create(new List<AttendanceResponseDto>(), filter.PageNumber, filter.PageSize, 0));
         }
 
         [HttpPost]
@@ -90,6 +118,13 @@ namespace HRM.MVC.Controllers
         {
             var roles = HttpContext.Session.GetString("Roles") ?? "";
             return roles.Split(',').Any(r => r.Trim().Equals(roleName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private bool HasAnyRole(params string[] roleNames)
+        {
+            var roles = HttpContext.Session.GetString("Roles") ?? "";
+            var userRoles = roles.Split(',').Select(r => r.Trim());
+            return roleNames.Any(role => userRoles.Contains(role, StringComparer.OrdinalIgnoreCase));
         }
 
         private HttpClient? CreateAuthorizedClient()

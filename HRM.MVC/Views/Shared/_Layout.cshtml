@@ -26,6 +26,7 @@
     var canHrAdmin = HasAnyRole("Admin", "HR", "HR Staff", "System Administrator");
     var canManager = HasAnyRole("Manager", "Department Manager");
     var canPayroll = HasAnyRole("Payroll", "Payroll Officer");
+    var canSeeAttendanceSheet = HasAnyRole("HR", "Manager");
 }
 
 <!DOCTYPE html>
@@ -62,13 +63,27 @@
                         </li>
 
                         <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle @DisabledUnless(canEmployee || canSeeAttendanceSheet)" href="#" role="button" data-bs-toggle="dropdown">Attendance</a>
+                            <ul class="dropdown-menu">
+                                @if (canEmployee)
+                                {
+                                    <li><h6 class="dropdown-header">Self Service</h6></li>
+                                    <li><a class="dropdown-item" asp-controller="AttendanceManagement" asp-action="Index">My Attendance</a></li>
+                                }
+                                @if (canSeeAttendanceSheet)
+                                {
+                                    if (canEmployee) { <li><hr class="dropdown-divider" /></li> }
+                                    <li><h6 class="dropdown-header">Management</h6></li>
+                                    <li><a class="dropdown-item" asp-controller="AttendanceManagement" asp-action="Sheet">Attendance Sheet</a></li>
+                                }
+                            </ul>
+                        </li>
+
+                        <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle @DisabledUnless(canEmployee)" href="#" role="button" data-bs-toggle="dropdown">Employee</a>
                             <ul class="dropdown-menu">
                                 <li><h6 class="dropdown-header">Self Service</h6></li>
                                 <li><a class="dropdown-item @DisabledUnless(canEmployee)" asp-controller="EmployeeManagement" asp-action="MyProfile">My Profile</a></li>
-                                <li><hr class="dropdown-divider" /></li>
-                                <li><h6 class="dropdown-header">Attendance</h6></li>
-                                <li><a class="dropdown-item @DisabledUnless(canEmployee)" asp-controller="AttendanceManagement" asp-action="Index">My Attendance</a></li>
                                 <li><hr class="dropdown-divider" /></li>
                                 <li><h6 class="dropdown-header">Leave</h6></li>
                                 <li><a class="dropdown-item @DisabledUnless(canEmployee)" asp-controller="StaffLeave" asp-action="Index">My Leave Requests</a></li>
