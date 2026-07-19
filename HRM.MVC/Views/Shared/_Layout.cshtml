@@ -83,6 +83,10 @@
                                 <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="UserManagement" asp-action="Index">User Management</a></li>
                                 <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="UserManagement" asp-action="Create">Create User Account</a></li>
                                 <li><hr class="dropdown-divider" /></li>
+                                <li><h6 class="dropdown-header">Contract Management</h6></li>
+                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="ContractManagement" asp-action="Index">Contracts List</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="ContractManagement" asp-action="Create">Create New Contract</a></li>
+                                <li><hr class="dropdown-divider" /></li>
                                 <li><h6 class="dropdown-header">Employee Management</h6></li>
                                 <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="EmployeeManagement" asp-action="Index">Employee List</a></li>
                                 <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="EmployeeManagement" asp-action="Create">Create Employee Profile</a></li>
@@ -154,30 +158,30 @@
                                 </li>
 
                             </ul>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle @DisabledUnless(loggedIn)"
-                                       href="#"
-                                       role="button"
-                                       data-bs-toggle="dropdown">
-                                    Notifications
-                                </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle @DisabledUnless(loggedIn)"
+                                    href="#"
+                                    role="button"
+                                    data-bs-toggle="dropdown">
+                                Notifications
+                            </a>
 
-                                <ul class="dropdown-menu">
-                                    <li>
-                                        <h6 class="dropdown-header">
-                                            Notification Center
-                                        </h6>
-                                    </li>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <h6 class="dropdown-header">
+                                        Notification Center
+                                    </h6>
+                                </li>
 
-                                    <li>
-                                        <a class="dropdown-item @DisabledUnless(loggedIn)"
-                                               asp-controller="Notification"
-                                               asp-action="Index">
-                                            My Notifications
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
+                                <li>
+                                    <a class="dropdown-item @DisabledUnless(loggedIn)"
+                                            asp-controller="Notification"
+                                            asp-action="Index">
+                                        My Notifications
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
                     </ul>
                 </div>

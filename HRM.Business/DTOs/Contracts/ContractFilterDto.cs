@@ -8,6 +8,8 @@
 
         public string? ContractType { get; set; }
 
+        public string? Keyword { get; set; }
+
         public DateOnly? FromDate { get; set; }
 
         public DateOnly? ToDate { get; set; }
