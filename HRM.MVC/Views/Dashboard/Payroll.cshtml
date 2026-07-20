@@ -1,14 +1,20 @@
-﻿@model HRM.Business.DTOs.Dashboards.PayrollDashboardDto
+@model HRM.Business.DTOs.Dashboards.PayrollDashboardDto
 
 @{
     ViewData["Title"] = "Payroll Dashboard";
 }
 
+<style>
+.money-value {
+    white-space: nowrap !important;
+}
+</style>
+
 <h2 class="mb-4">Payroll Dashboard</h2>
 
-<div class="row">
+<div class="row g-3">
 
-    <div class="col-md-3 mb-3">
+    <div class="col-lg mb-3">
         <div class="card border-primary">
             <div class="card-body">
                 <h6>Total Payrolls</h6>
@@ -17,8 +23,8 @@
         </div>
     </div>
 
-    <div class="col-md-3 mb-3">
-        <div class="card border-warning">
+    <div class="col-lg mb-3">
+        <div class="card border-secondary">
             <div class="card-body">
                 <h6>Draft Payrolls</h6>
                 <h3>@Model.DraftPayrolls</h3>
@@ -26,8 +32,8 @@
         </div>
     </div>
 
-    <div class="col-md-3 mb-3">
-        <div class="card border-success">
+    <div class="col-lg mb-3">
+        <div class="card border-warning">
             <div class="card-body">
                 <h6>Confirmed Payrolls</h6>
                 <h3>@Model.ConfirmedPayrolls</h3>
@@ -35,8 +41,8 @@
         </div>
     </div>
 
-    <div class="col-md-3 mb-3">
-        <div class="card border-info">
+    <div class="col-lg mb-3">
+        <div class="card border-success">
             <div class="card-body">
                 <h6>Paid Payrolls</h6>
                 <h3>@Model.PaidPayrolls</h3>
@@ -52,11 +58,11 @@
 
     <div class="col-md-6 mb-3">
         <div class="card">
-            <div class="card-header">
-                Salary Summary
+            <div class="card-header bg-white py-3">
+                <h5 class="m-0 font-weight-bold text-primary">Salary Summary</h5>
             </div>
 
-            <table class="table mb-0">
+            <table class="table mb-0 align-middle">
 
                 <tr>
                     <th>Payroll Month</th>
@@ -69,23 +75,28 @@
                 </tr>
 
                 <tr>
+                    <th>Total Base Salary</th>
+                    <td class="money-value fw-bold">@Model.TotalBaseSalary.ToString("N0") ₫</td>
+                </tr>
+
+                <tr>
                     <th>Total Gross Salary</th>
-                    <td>@Model.TotalGrossSalary.ToString("N0")</td>
+                    <td class="money-value text-success">@Model.TotalGrossSalary.ToString("N0") ₫</td>
                 </tr>
 
                 <tr>
                     <th>Total Net Salary</th>
-                    <td>@Model.TotalNetSalary.ToString("N0")</td>
+                    <td class="money-value text-primary fw-bold">@Model.TotalNetSalary.ToString("N0") ₫</td>
                 </tr>
 
                 <tr>
                     <th>Total Overtime</th>
-                    <td>@Model.TotalOvertime.ToString("N0")</td>
+                    <td class="money-value text-success">+@Model.TotalOvertime.ToString("N0") ₫</td>
                 </tr>
 
                 <tr>
                     <th>Total Deduction</th>
-                    <td>@Model.TotalDeduction.ToString("N0")</td>
+                    <td class="money-value text-danger">-@Model.TotalDeduction.ToString("N0") ₫</td>
                 </tr>
 
             </table>

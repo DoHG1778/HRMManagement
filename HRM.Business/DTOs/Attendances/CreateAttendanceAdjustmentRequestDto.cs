@@ -1,10 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace HRM.Business.DTOs.Attendances
 {
     public class CreateAttendanceAdjustmentRequestDto
     {
-        [Required(ErrorMessage = "AttendanceId is required.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Attendance is required.")]
         public int AttendanceId { get; set; }
 
         public DateTime? RequestedCheckInTime { get; set; }

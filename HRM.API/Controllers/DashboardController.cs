@@ -1,4 +1,4 @@
-﻿using HRM.Business.Services.Interfaces;
+using HRM.Business.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -42,11 +42,13 @@ namespace HRM.API.Controllers
         }
 
         [HttpGet("payroll")]
-        [Authorize(Roles = "Payroll")]
-        public async Task<IActionResult> GetPayrollDashboard([FromQuery] int payrollMonth, [FromQuery] int payrollYear)
+        [Authorize(Roles = "Admin,Payroll,Payroll Officer")]
+        public async Task<IActionResult> GetPayrollDashboard([FromQuery] int? payrollMonth, [FromQuery] int? payrollYear)
         {
             var currentUser = GetCurrentUser();
-            var result = await _dashboardService.GetPayrollDashboardAsync(currentUser, payrollMonth, payrollYear);
+            int month = payrollMonth ?? DateTime.Today.Month;
+            int year = payrollYear ?? DateTime.Today.Year;
+            var result = await _dashboardService.GetPayrollDashboardAsync(currentUser, month, year);
             return HandleResponse(result);
         }
     }

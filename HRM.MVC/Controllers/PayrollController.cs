@@ -1,5 +1,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.IO;
+using ClosedXML.Excel;
 using HRM.Business.Common;
 using HRM.Business.DTOs.Payrolls;
 using HRM.MVC.Helpers;
@@ -134,7 +136,7 @@ namespace HRM.MVC.Controllers
                 TempData["Error"] = response?.Message ?? "Failed to generate payrolls.";
             }
 
-            return RedirectToAction(nameof(Index), new { payrollMonth = model.PayrollMonth, payrollYear = model.PayrollYear });
+            return RedirectToAction(nameof(Index), new { payrollMonth = model.PayrollMonth, payrollYear = model.PayrollYear, employeeId = model.EmployeeId, departmentId = model.DepartmentId });
         }
 
         // POST: /Payroll/Calculate
@@ -166,7 +168,7 @@ namespace HRM.MVC.Controllers
                 TempData["Error"] = response?.Message ?? "Failed to calculate payrolls.";
             }
 
-            return RedirectToAction(nameof(Index), new { payrollMonth = model.PayrollMonth, payrollYear = model.PayrollYear });
+            return RedirectToAction(nameof(Index), new { payrollMonth = model.PayrollMonth, payrollYear = model.PayrollYear, employeeId = model.EmployeeId, departmentId = model.DepartmentId });
         }
 
         // POST: /Payroll/Confirm
@@ -198,7 +200,7 @@ namespace HRM.MVC.Controllers
                 TempData["Error"] = response?.Message ?? "Failed to confirm payrolls.";
             }
 
-            return RedirectToAction(nameof(Index), new { payrollMonth = model.PayrollMonth, payrollYear = model.PayrollYear });
+            return RedirectToAction(nameof(Index), new { payrollMonth = model.PayrollMonth, payrollYear = model.PayrollYear, employeeId = model.EmployeeId, departmentId = model.DepartmentId });
         }
 
         // GET: /Payroll/MyPayslip
@@ -273,10 +275,121 @@ namespace HRM.MVC.Controllers
             if (response?.Success != true || response.Data == null)
             {
                 TempData["Error"] = response?.Message ?? "Failed to export payroll report.";
-                return RedirectToAction(nameof(Index), new { payrollMonth = month, payrollYear = year });
+                return RedirectToAction(nameof(Index), new { payrollMonth = month, payrollYear = year, employeeId = employeeId, departmentId = departmentId });
             }
 
-            return View(response.Data);
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Payroll Report");
+
+                var headers = new string[]
+                {
+                    "STT", "Employee Code", "Employee Name", "Department", "Position",
+                    "Payroll Month", "Payroll Year", "Base Salary", "Allowance", "Bonus",
+                    "Overtime", "Other", "Deduction", "Gross Salary", "Net Salary", "Status", "Confirmed At"
+                };
+
+                for (int i = 0; i < headers.Length; i++)
+                {
+                    var cell = worksheet.Cell(1, i + 1);
+                    cell.Value = headers[i];
+                    cell.Style.Font.Bold = true;
+                    cell.Style.Fill.BackgroundColor = XLColor.LightGray;
+                }
+
+                int row = 2;
+                var list = response.Data.Payrolls ?? new List<PayrollResponseDto>();
+                for (int idx = 0; idx < list.Count; idx++)
+                {
+                    var p = list[idx];
+                    decimal otherEarnings = p.PayrollDetails?.Where(d => d.ItemType == "OTHER").Sum(d => d.Amount) ?? 0;
+                    decimal deduction = p.PayrollDetails?.Where(d => d.ItemType == "DEDUCTION").Sum(d => d.Amount) ?? 0;
+
+                    worksheet.Cell(row, 1).Value = idx + 1;
+                    worksheet.Cell(row, 2).Value = p.EmployeeCode ?? "";
+                    worksheet.Cell(row, 3).Value = p.EmployeeName ?? "";
+                    worksheet.Cell(row, 4).Value = p.DepartmentName ?? "";
+                    worksheet.Cell(row, 5).Value = p.PositionName ?? "";
+                    worksheet.Cell(row, 6).Value = p.PayrollMonth;
+                    worksheet.Cell(row, 7).Value = p.PayrollYear;
+                    worksheet.Cell(row, 8).Value = p.BaseSalary;
+                    worksheet.Cell(row, 9).Value = p.TotalAllowance;
+                    worksheet.Cell(row, 10).Value = p.TotalBonus;
+                    worksheet.Cell(row, 11).Value = p.TotalOvertime;
+                    worksheet.Cell(row, 12).Value = otherEarnings;
+                    worksheet.Cell(row, 13).Value = deduction;
+                    worksheet.Cell(row, 14).Value = p.GrossSalary;
+                    worksheet.Cell(row, 15).Value = p.NetSalary;
+                    worksheet.Cell(row, 16).Value = p.Status;
+                    worksheet.Cell(row, 17).Value = p.ConfirmedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "";
+
+                    for (int col = 8; col <= 15; col++)
+                    {
+                        worksheet.Cell(row, col).Style.NumberFormat.Format = "#,##0.00";
+                    }
+                    row++;
+                }
+
+                int totalRow = row;
+                worksheet.Cell(totalRow, 3).Value = "Total";
+                worksheet.Cell(totalRow, 3).Style.Font.Bold = true;
+
+                worksheet.Cell(totalRow, 8).FormulaA1 = $"=SUM(H2:H{totalRow - 1})";
+                worksheet.Cell(totalRow, 9).FormulaA1 = $"=SUM(I2:I{totalRow - 1})";
+                worksheet.Cell(totalRow, 10).FormulaA1 = $"=SUM(J2:J{totalRow - 1})";
+                worksheet.Cell(totalRow, 11).FormulaA1 = $"=SUM(K2:K{totalRow - 1})";
+                worksheet.Cell(totalRow, 12).FormulaA1 = $"=SUM(L2:L{totalRow - 1})";
+                worksheet.Cell(totalRow, 13).FormulaA1 = $"=SUM(M2:M{totalRow - 1})";
+                worksheet.Cell(totalRow, 14).FormulaA1 = $"=SUM(N2:N{totalRow - 1})";
+                worksheet.Cell(totalRow, 15).FormulaA1 = $"=SUM(O2:O{totalRow - 1})";
+
+                for (int col = 8; col <= 15; col++)
+                {
+                    worksheet.Cell(totalRow, col).Style.Font.Bold = true;
+                    worksheet.Cell(totalRow, col).Style.NumberFormat.Format = "#,##0.00";
+                }
+
+                worksheet.Columns().AdjustToContents();
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var content = stream.ToArray();
+                    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"Payroll_Report_{month}_{year}.xlsx");
+                }
+            }
+        }
+
+        // POST: /Payroll/Pay
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Pay(ConfirmPayrollRequestDto model)
+        {
+            var client = CreateAuthorizedClient();
+            if (client == null) return RedirectToAction("Login", "Auth");
+
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Invalid month or year values for payment confirmation.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var httpResponse = await client.PutAsJsonAsync("api/payrolls/pay", model);
+            var response = await ApiResponseReader.ReadAsync<bool>(httpResponse);
+
+            var authFailure = RedirectOnAuthFailure(response);
+            if (authFailure != null) return authFailure;
+
+            if (response?.Success == true)
+            {
+                TempData["Success"] = response.Message ?? "Payrolls marked as paid successfully.";
+            }
+            else
+            {
+                TempData["Error"] = response?.Message ?? "Failed to mark payrolls as paid.";
+            }
+
+            return RedirectToAction(nameof(Index), new { payrollMonth = model.PayrollMonth, payrollYear = model.PayrollYear, employeeId = model.EmployeeId, departmentId = model.DepartmentId });
         }
     }
 }

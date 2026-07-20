@@ -5,8 +5,13 @@
     ViewData["Title"] = "My Payslip";
     int selectedMonth = ViewBag.SelectedMonth ?? DateTime.Today.Month;
     int selectedYear = ViewBag.SelectedYear ?? DateTime.Today.Year;
-    string err = ViewBag.ErrorMessage as string;
+    string? err = ViewBag.ErrorMessage as string;
 }
+<style>
+.money-value {
+    white-space: nowrap !important;
+}
+</style>
 
 <div class="container py-4">
     <!-- Period Selector Header -->
@@ -98,17 +103,17 @@
                         
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted">Basic Contract Salary</span>
-                            <span class="fw-bold">@Model.BaseSalary.ToString("N0") ₫</span>
+                            <span class="fw-bold money-value">@Model.BaseSalary.ToString("N0") ₫</span>
                         </div>
                         
                         @if (Model.PayrollDetails != null)
                         {
-                            var additions = Model.PayrollDetails.Where(d => d.ItemType == "ALLOWANCE" || d.ItemType == "BONUS" || d.ItemType == "OVERTIME" || (d.ItemType == "OTHER" && d.Amount >= 0));
+                            var additions = Model.PayrollDetails.Where(d => d.ItemType == "ALLOWANCE" || d.ItemType == "BONUS" || d.ItemType == "OVERTIME" || d.ItemType == "OTHER");
                             foreach (var add in additions)
                             {
                                 <div class="d-flex justify-content-between mb-2 small">
                                     <span class="text-muted">@add.Description (@add.ItemType)</span>
-                                    <span class="text-success">+@add.Amount.ToString("N0") ₫</span>
+                                    <span class="text-success money-value">+@add.Amount.ToString("N0") ₫</span>
                                 </div>
                             }
                         }
@@ -120,14 +125,14 @@
                         
                         @if (Model.PayrollDetails != null)
                         {
-                            var deductions = Model.PayrollDetails.Where(d => d.ItemType == "DEDUCTION" || (d.ItemType == "OTHER" && d.Amount < 0));
+                            var deductions = Model.PayrollDetails.Where(d => d.ItemType == "DEDUCTION");
                             if (deductions.Any())
                             {
                                 foreach (var sub in deductions)
                                 {
                                     <div class="d-flex justify-content-between mb-2 small">
                                         <span class="text-muted">@sub.Description (@sub.ItemType)</span>
-                                        <span class="text-danger">-@Math.Abs(sub.Amount).ToString("N0") ₫</span>
+                                        <span class="text-danger money-value">-@Math.Abs(sub.Amount).ToString("N0") ₫</span>
                                     </div>
                                 }
                             }
@@ -144,16 +149,16 @@
                     <div class="col-md-8">
                         <div class="row small g-2 mb-2">
                             <div class="col-6 text-muted">Gross Earnings:</div>
-                            <div class="col-6 fw-bold">@Model.GrossSalary.ToString("N0") ₫</div>
+                            <div class="col-6 fw-bold money-value">@Model.GrossSalary.ToString("N0") ₫</div>
                         </div>
                         <div class="row small g-2">
                             <div class="col-6 text-muted">Total Deductions:</div>
-                            <div class="col-6 fw-bold text-danger">-@Model.TotalDeduction.ToString("N0") ₫</div>
+                            <div class="col-6 fw-bold text-danger money-value">-@Model.TotalDeduction.ToString("N0") ₫</div>
                         </div>
                     </div>
                     <div class="col-md-4 text-end">
                         <span class="d-block small text-muted">NET TAKE-HOME PAY</span>
-                        <h3 class="mb-0 text-success fw-bold">@Model.NetSalary.ToString("N0") ₫</h3>
+                        <h3 class="mb-0 text-success fw-bold money-value">@Model.NetSalary.ToString("N0") ₫</h3>
                     </div>
                 </div>
 

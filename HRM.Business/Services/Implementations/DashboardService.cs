@@ -1,4 +1,4 @@
-﻿using HRM.Business.Common;
+using HRM.Business.Common;
 using HRM.Business.DTOs.Dashboards;
 using HRM.Business.Services.Interfaces;
 using HRM.Repositories.UnitOfWork;
@@ -285,42 +285,26 @@ namespace HRM.Business.Services.Implementations
                     "Only Payroll can view payroll dashboard.");
             }
 
-            var payrolls = await _unitOfWork.Payrolls.GetAllAsync();
-
-            payrolls = payrolls
+            var payrolls = await _unitOfWork.Payrolls.Query()
                 .Where(p =>
                     p.PayrollMonth == payrollMonth &&
                     p.PayrollYear == payrollYear)
-                .ToList();
+                .ToListAsync();
 
             var dto = new PayrollDashboardDto
             {
                 PayrollMonth = payrollMonth,
-
                 PayrollYear = payrollYear,
-
                 TotalPayrolls = payrolls.Count,
-
-                DraftPayrolls = payrolls.Count(p =>
-                    p.Status == "DRAFT"),
-
-                ConfirmedPayrolls = payrolls.Count(p =>
-                    p.Status == "CONFIRMED"),
-
-                PaidPayrolls = payrolls.Count(p =>
-                    p.Status == "PAID"),
-
-                TotalGrossSalary = payrolls.Sum(p =>
-                    p.GrossSalary),
-
-                TotalNetSalary = payrolls.Sum(p =>
-                    p.NetSalary),
-
-                TotalOvertime = payrolls.Sum(p =>
-                    p.TotalOvertime),
-
-                TotalDeduction = payrolls.Sum(p =>
-                    p.TotalDeduction)
+                DraftPayrolls = payrolls.Count(p => p.Status == "DRAFT" && p.UpdatedAt == null),
+                CalculatedPayrolls = payrolls.Count(p => p.Status == "DRAFT" && p.UpdatedAt != null),
+                ConfirmedPayrolls = payrolls.Count(p => p.Status == "CONFIRMED"),
+                PaidPayrolls = payrolls.Count(p => p.Status == "PAID"),
+                TotalBaseSalary = payrolls.Sum(p => p.BaseSalary),
+                TotalGrossSalary = payrolls.Sum(p => p.GrossSalary),
+                TotalNetSalary = payrolls.Sum(p => p.NetSalary),
+                TotalOvertime = payrolls.Sum(p => p.TotalOvertime),
+                TotalDeduction = payrolls.Sum(p => p.TotalDeduction)
             };
 
             return ApiResponse<PayrollDashboardDto>.Ok(dto);

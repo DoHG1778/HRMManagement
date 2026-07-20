@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace HRM.Models.Entities;
@@ -36,6 +36,8 @@ public partial class Payroll
     public DateTime CreatedAt { get; set; }
 
     public DateTime? ConfirmedAt { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
 
     public virtual User? ConfirmedByUser { get; set; }
 

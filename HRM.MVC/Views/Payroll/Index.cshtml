@@ -6,6 +6,11 @@
     ViewData["Title"] = "Payroll Management";
     var filter = ViewBag.Filter as PayrollFilterDto ?? new PayrollFilterDto();
 }
+<style>
+.money-value {
+    white-space: nowrap !important;
+}
+</style>
 
 <div class="container-fluid py-4">
     <!-- Header Page -->
@@ -40,12 +45,14 @@
     <!-- Top Action Cards -->
     <div class="row g-3 mb-4">
         <!-- 1. Generate Payroll Card -->
-        <div class="col-lg-4">
+        <div class="col-lg-3">
             <div class="card h-100 shadow-sm border-0 bg-light">
                 <div class="card-body">
                     <h5 class="card-title text-primary"><i class="bi bi-person-plus"></i> 1. Generate Payroll</h5>
                     <p class="card-text text-muted small">Initialize empty payroll worksheets (DRAFT) for active employees with active contracts.</p>
                     <form asp-controller="Payroll" asp-action="Generate" method="post">
+                        <input type="hidden" name="EmployeeId" value="@(filter.EmployeeId)" />
+                        <input type="hidden" name="DepartmentId" value="@(filter.DepartmentId)" />
                         <div class="row g-2 mb-3">
                             <div class="col-6">
                                 <label class="form-label small">Month</label>
@@ -73,7 +80,7 @@
         </div>
 
         <!-- 2. Calculate Payroll Card -->
-        <div class="col-lg-4">
+        <div class="col-lg-3">
             <div class="card h-100 shadow-sm border-0 bg-light">
                 <div class="card-body">
                     <h5 class="card-title text-success"><i class="bi bi-calculator"></i> 2. Calculate Payroll</h5>
@@ -121,12 +128,14 @@
         </div>
 
         <!-- 3. Confirm Payroll Card -->
-        <div class="col-lg-4">
+        <div class="col-lg-3">
             <div class="card h-100 shadow-sm border-0 bg-light">
                 <div class="card-body">
                     <h5 class="card-title text-warning"><i class="bi bi-check2-all"></i> 3. Lock/Confirm Payroll</h5>
                     <p class="card-text text-muted small">Lock the payroll sheets to CONFIRMED. After locking, changes are blocked and employees can view payslips.</p>
-                    <form asp-controller="Payroll" asp-action="Confirm" method="post" onsubmit="return confirm('Are you sure you want to confirm all DRAFT payrolls for this month? This action cannot be undone.');">
+                    <form asp-controller="Payroll" asp-action="Confirm" method="post" onsubmit="return confirm('Are you sure you want to confirm all DRAFT payrolls for this period? This action will lock the payroll sheets.');">
+                        <input type="hidden" name="EmployeeId" value="@(filter.EmployeeId)" />
+                        <input type="hidden" name="DepartmentId" value="@(filter.DepartmentId)" />
                         <div class="row g-2 mb-3">
                             <div class="col-6">
                                 <label class="form-label small">Month</label>
@@ -148,6 +157,41 @@
                             </div>
                         </div>
                         <button type="submit" class="btn btn-sm btn-warning w-100">Lock & Release Payroll</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Mark as Paid Card -->
+        <div class="col-lg-3">
+            <div class="card h-100 shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title text-success"><i class="bi bi-cash-coin"></i> 4. Mark as Paid</h5>
+                    <p class="card-text text-muted small">Mark all CONFIRMED payroll sheets as PAID. This records the payment timestamps.</p>
+                    <form asp-controller="Payroll" asp-action="Pay" method="post" onsubmit="return confirm('Are you sure you want to mark all CONFIRMED payrolls as PAID for this period?');">
+                        <input type="hidden" name="EmployeeId" value="@(filter.EmployeeId)" />
+                        <input type="hidden" name="DepartmentId" value="@(filter.DepartmentId)" />
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small">Month</label>
+                                <select name="PayrollMonth" class="form-select form-select-sm">
+                                    @for (int m = 1; m <= 12; m++)
+                                    {
+                                        <option value="@m" selected="@(m == filter.PayrollMonth)">Month @m</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small">Year</label>
+                                <select name="PayrollYear" class="form-select form-select-sm">
+                                    @for (int y = DateTime.Today.Year - 2; y <= DateTime.Today.Year + 2; y++)
+                                    {
+                                        <option value="@y" selected="@(y == filter.PayrollYear)">@y</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-success w-100">Mark Period as Paid</button>
                     </form>
                 </div>
             </div>
@@ -234,24 +278,59 @@
                                     <td><strong>@item.EmployeeCode</strong></td>
                                     <td>@item.EmployeeName</td>
                                     <td>@(item.DepartmentName ?? "N/A")</td>
-                                    <td class="text-nowrap">@item.BaseSalary.ToString("N0") ₫</td>
-                                    <td class="text-success text-nowrap">+@item.TotalAllowance.ToString("N0") ₫</td>
-                                    <td class="text-success text-nowrap">+@item.TotalBonus.ToString("N0") ₫</td>
-                                    <td class="text-success text-nowrap">+@item.TotalOvertime.ToString("N0") ₫</td>
-                                    <td class="text-danger text-nowrap">-@item.TotalDeduction.ToString("N0") ₫</td>
-                                    <td class="fw-bold text-nowrap">@item.NetSalary.ToString("N0") ₫</td>
+                                    <td class="money-value">@item.BaseSalary.ToString("N0") ₫</td>
+                                    <td class="text-success money-value">+@item.TotalAllowance.ToString("N0") ₫</td>
+                                    <td class="text-success money-value">+@item.TotalBonus.ToString("N0") ₫</td>
+                                    <td class="text-success money-value">+@item.TotalOvertime.ToString("N0") ₫</td>
+                                    <td class="text-danger money-value">-@item.TotalDeduction.ToString("N0") ₫</td>
+                                    <td class="fw-bold money-value">@item.NetSalary.ToString("N0") ₫</td>
                                     <td>
-                                        <span class="badge @(item.Status switch {
-                                            "DRAFT" => "bg-secondary",
-                                            "CONFIRMED" => "bg-warning text-dark",
-                                            "PAID" => "bg-success",
-                                            _ => "bg-light text-dark"
-                                        })">@item.Status</span>
+                                        @if (item.Status == "DRAFT")
+                                        {
+                                            if (item.UpdatedAt == null)
+                                            {
+                                                <span class="badge bg-secondary">DRAFT - Not Calculated</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-info text-dark">DRAFT - Calculated</span>
+                                            }
+                                        }
+                                        else if (item.Status == "CONFIRMED")
+                                        {
+                                            <span class="badge bg-warning text-dark">CONFIRMED</span>
+                                        }
+                                        else if (item.Status == "PAID")
+                                        {
+                                            <span class="badge bg-success">PAID</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark">@item.Status</span>
+                                        }
                                     </td>
                                     <td class="text-center">
                                         <a href="@Url.Action("Details", "Payroll", new { id = item.PayrollId })" class="btn btn-xs btn-outline-secondary btn-sm">
-                                            Edit Details
+                                            @(item.Status == "DRAFT" ? "Edit Details" : "View Details")
                                         </a>
+                                        @if (item.Status == "DRAFT" && item.UpdatedAt != null)
+                                        {
+                                            <form asp-controller="Payroll" asp-action="Confirm" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to lock and confirm this payroll sheet?');">
+                                                <input type="hidden" name="PayrollMonth" value="@item.PayrollMonth" />
+                                                <input type="hidden" name="PayrollYear" value="@item.PayrollYear" />
+                                                <input type="hidden" name="EmployeeId" value="@item.EmployeeId" />
+                                                <button type="submit" class="btn btn-xs btn-warning btn-sm ms-1">Confirm</button>
+                                            </form>
+                                        }
+                                        @if (item.Status == "CONFIRMED")
+                                        {
+                                            <form asp-controller="Payroll" asp-action="Pay" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to mark this payroll as PAID?');">
+                                                <input type="hidden" name="PayrollMonth" value="@item.PayrollMonth" />
+                                                <input type="hidden" name="PayrollYear" value="@item.PayrollYear" />
+                                                <input type="hidden" name="EmployeeId" value="@item.EmployeeId" />
+                                                <button type="submit" class="btn btn-xs btn-success btn-sm ms-1">Mark as Paid</button>
+                                            </form>
+                                        }
                                     </td>
                                 </tr>
                             }
@@ -271,7 +350,7 @@
         @if (Model.TotalPages > 1)
         {
             <div class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
-                <span class="text-muted small">Showing @Model.Items.Count of @Model.TotalItems items</span>
+                <span class="text-muted small">Showing @(Model.Items?.Count ?? 0) of @Model.TotalItems items</span>
                 <nav aria-label="Page navigation">
                     <ul class="pagination pagination-sm mb-0">
                         <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">

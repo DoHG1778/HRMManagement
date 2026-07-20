@@ -1,4 +1,4 @@
-﻿using HRM.Business.Common;
+using HRM.Business.Common;
 using HRM.Business.DTOs.Overtimes;
 using HRM.Business.Services.Interfaces;
 using HRM.Repositories.UnitOfWork;
@@ -228,9 +228,6 @@ namespace HRM.Business.Services.Implementations
             int overtimeRequestId,
             ApproveOvertimeRequestDto request)
         {
-            if (!currentUser.EmployeeId.HasValue)
-                return ApiResponse<OvertimeRequestResponseDto>.Fail("Employee not found.");
-
             var existing = await _unitOfWork.OvertimeRequests.Query()
                 .Include(o => o.Employee)
                 .FirstOrDefaultAsync(o => o.Otid == overtimeRequestId);
@@ -240,9 +237,21 @@ namespace HRM.Business.Services.Implementations
             if (existing.Status != "PENDING")
                 return ApiResponse<OvertimeRequestResponseDto>.Fail("Only PENDING requests can be approved or rejected.");
 
-            var underManager = await _unitOfWork.OvertimeRequests.IsOvertimeRequestUnderManagerAsync(overtimeRequestId, currentUser.EmployeeId.Value);
-            if (!underManager && currentUser.EmployeeId != existing.EmployeeId)
+            if (currentUser.EmployeeId.HasValue && currentUser.EmployeeId.Value == existing.EmployeeId)
+            {
+                return ApiResponse<OvertimeRequestResponseDto>.Forbidden("You cannot approve or reject your own overtime request.");
+            }
+
+            bool isAuthorized = currentUser.IsAdmin();
+            if (!isAuthorized && currentUser.EmployeeId.HasValue)
+            {
+                isAuthorized = await _unitOfWork.OvertimeRequests.IsOvertimeRequestUnderManagerAsync(overtimeRequestId, currentUser.EmployeeId.Value);
+            }
+
+            if (!isAuthorized)
+            {
                 return ApiResponse<OvertimeRequestResponseDto>.Forbidden("You are not authorized to approve/reject this request.");
+            }
 
             if (request.IsApproved)
             {

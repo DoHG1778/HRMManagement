@@ -38,9 +38,24 @@ namespace HRM.Business.Services.Interfaces
             ApproveAttendanceAdjustmentRequestDto request);
 
         Task<ApiResponse<List<AttendanceAdjustmentResponseDto>>> GetPendingAdjustmentRequestsAsync(
-            CurrentUser currentUser);
+            CurrentUser currentUser,
+            int? employeeId = null,
+            int? month = null,
+            int? year = null);
 
         Task<ApiResponse<List<AttendanceAdjustmentResponseDto>>> GetMyAdjustmentRequestsAsync(
-            CurrentUser currentUser);
+            CurrentUser currentUser,
+            string? status = null,
+            int? month = null,
+            int? year = null);
+
+        Task<ApiResponse<List<AdjustableAttendanceDto>>> GetAdjustableAttendancesAsync(
+            CurrentUser currentUser,
+            int? month = null,
+            int? year = null);
+
+        Task<ApiResponse<AttendanceAdjustmentResponseDto>> GetAdjustmentDetailAsync(
+            CurrentUser currentUser,
+            int adjustmentId);
     }
 }

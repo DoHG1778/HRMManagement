@@ -1,4 +1,4 @@
-﻿namespace HRM.Business.DTOs.Payrolls
+namespace HRM.Business.DTOs.Payrolls
 {
     public class PayrollDetailResponseDto
     {
@@ -15,6 +15,8 @@
         public string? SourceType { get; set; }
 
         public int? SourceId { get; set; }
+
+        public bool IsManual { get; set; }
 
         public DateTime CreatedAt { get; set; }
     }
