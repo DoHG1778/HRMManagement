@@ -6,6 +6,9 @@
 
         public int? EmployeeId { get; set; }
 
+        public string? Keyword { get; set; }
+
+        // Khôi phục lại tên cũ để không làm lỗi UC khác
         public DateOnly? FromDate { get; set; }
 
         public DateOnly? ToDate { get; set; }

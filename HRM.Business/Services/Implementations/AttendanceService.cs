@@ -18,30 +18,164 @@ namespace HRM.Business.Services.Implementations
             _notificationService = notificationService;
         }
 
-        public async Task<ApiResponse<CheckInResponseDto>> CheckInAsync(
-            CurrentUser currentUser)
+        public async Task<ApiResponse<CheckInResponseDto>> CheckInAsync(CurrentUser currentUser)
         {
-            throw new NotImplementedException();
+            if (!currentUser.EmployeeId.HasValue)
+                return ApiResponse<CheckInResponseDto>.Fail("Employee profile not found.");
+
+            var today = DateOnly.FromDateTime(DateTime.Now);
+            var employeeId = currentUser.EmployeeId.Value;
+
+            var existingAttendance = await _unitOfWork.Attendances.Query()
+                .FirstOrDefaultAsync(a => a.EmployeeId == employeeId && a.AttendanceDate == today);
+
+            if (existingAttendance != null)
+                return ApiResponse<CheckInResponseDto>.Fail("You have already checked in today.");
+
+            var attendance = new Attendance
+            {
+                EmployeeId = employeeId,
+                AttendanceDate = today,
+                CheckInTime = DateTime.Now,
+                Status = "PRESENT", 
+                WorkingHours = 0,
+                CreatedAt = DateTime.Now
+            };
+
+            if (attendance.CheckInTime.Value.TimeOfDay > new TimeSpan(8, 30, 0))
+            {
+                attendance.Status = "LATE";
+            }
+
+            await _unitOfWork.Attendances.AddAsync(attendance);
+            await _unitOfWork.SaveChangesAsync();
+
+            return ApiResponse<CheckInResponseDto>.Ok(new CheckInResponseDto
+            {
+                AttendanceId = attendance.AttendanceId,
+                EmployeeId = attendance.EmployeeId,
+                AttendanceDate = attendance.AttendanceDate,
+                CheckInTime = attendance.CheckInTime,
+                Status = attendance.Status,
+                Message = "Checked in successfully."
+            });
         }
 
-        public async Task<ApiResponse<CheckOutResponseDto>> CheckOutAsync(
-            CurrentUser currentUser)
+        public async Task<ApiResponse<CheckOutResponseDto>> CheckOutAsync(CurrentUser currentUser)
         {
-            throw new NotImplementedException();
+            if (!currentUser.EmployeeId.HasValue)
+                return ApiResponse<CheckOutResponseDto>.Fail("Employee profile not found.");
+
+            var today = DateOnly.FromDateTime(DateTime.Now);
+            var employeeId = currentUser.EmployeeId.Value;
+
+            var attendance = await _unitOfWork.Attendances.Query()
+                .FirstOrDefaultAsync(a => a.EmployeeId == employeeId && a.AttendanceDate == today);
+
+            if (attendance == null)
+                return ApiResponse<CheckOutResponseDto>.Fail("No check-in record found for today. Please check in first.");
+
+            if (attendance.CheckOutTime.HasValue)
+                return ApiResponse<CheckOutResponseDto>.Fail("You have already checked out today.");
+
+            attendance.CheckOutTime = DateTime.Now;
+            attendance.WorkingHours = (decimal)(attendance.CheckOutTime.Value - attendance.CheckInTime.Value).TotalHours;
+            attendance.WorkingHours = Math.Round(attendance.WorkingHours, 2);
+            attendance.UpdatedAt = DateTime.Now;
+
+            _unitOfWork.Attendances.Update(attendance);
+            await _unitOfWork.SaveChangesAsync();
+
+            return ApiResponse<CheckOutResponseDto>.Ok(new CheckOutResponseDto
+            {
+                AttendanceId = attendance.AttendanceId,
+                EmployeeId = attendance.EmployeeId,
+                AttendanceDate = attendance.AttendanceDate,
+                CheckInTime = attendance.CheckInTime,
+                CheckOutTime = attendance.CheckOutTime,
+                WorkingHours = attendance.WorkingHours,
+                Status = attendance.Status,
+                Message = "Checked out successfully."
+            });
         }
 
         public async Task<ApiResponse<PagedResult<AttendanceResponseDto>>> GetMyAttendanceHistoryAsync(
             CurrentUser currentUser,
             AttendanceFilterDto filter)
         {
-            throw new NotImplementedException();
+            if (!currentUser.EmployeeId.HasValue)
+                return ApiResponse<PagedResult<AttendanceResponseDto>>.Fail("Employee profile not found.");
+
+            var query = _unitOfWork.Attendances.Query()
+                .Where(a => a.EmployeeId == currentUser.EmployeeId.Value)
+                .AsQueryable();
+
+            if (filter.FromDate.HasValue)
+                query = query.Where(a => a.AttendanceDate >= filter.FromDate.Value);
+            
+            if (filter.ToDate.HasValue)
+                query = query.Where(a => a.AttendanceDate <= filter.ToDate.Value);
+
+            if (!string.IsNullOrEmpty(filter.Status))
+                query = query.Where(a => a.Status == filter.Status);
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .OrderByDescending(a => a.AttendanceDate)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            var result = items.Select(MapToDto).ToList();
+            var pagedResult = PagedResult<AttendanceResponseDto>.Create(result, filter.PageNumber, filter.PageSize, totalCount);
+
+            return ApiResponse<PagedResult<AttendanceResponseDto>>.Ok(pagedResult);
         }
 
         public async Task<ApiResponse<PagedResult<AttendanceResponseDto>>> GetAttendanceSheetAsync(
             CurrentUser currentUser,
             AttendanceFilterDto filter)
         {
-            throw new NotImplementedException();
+            var query = _unitOfWork.Attendances.Query()
+                .Include(a => a.Employee)
+                    .ThenInclude(e => e.User)
+                        .ThenInclude(u => u.UserRoles)
+                            .ThenInclude(ur => ur.Role)
+                .AsQueryable();
+
+            // UC: Manager/HR xem được bảng chấm công của toàn bộ trừ Admin
+            query = query.Where(a => a.Employee.User == null || 
+                                    !a.Employee.User.UserRoles.Any(ur => ur.Role.RoleName == "Admin"));
+
+            if (filter.EmployeeId.HasValue)
+                query = query.Where(a => a.EmployeeId == filter.EmployeeId.Value);
+
+            if (filter.FromDate.HasValue)
+                query = query.Where(a => a.AttendanceDate >= filter.FromDate.Value);
+            
+            if (filter.ToDate.HasValue)
+                query = query.Where(a => a.AttendanceDate <= filter.ToDate.Value);
+
+            if (!string.IsNullOrEmpty(filter.Status))
+                query = query.Where(a => a.Status == filter.Status);
+
+            if (!string.IsNullOrEmpty(filter.Keyword))
+            {
+                var kw = filter.Keyword.ToLower();
+                query = query.Where(a => a.Employee.FullName.ToLower().Contains(kw) || a.Employee.EmployeeCode.ToLower().Contains(kw));
+            }
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .OrderByDescending(a => a.AttendanceDate)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            var result = items.Select(MapToDto).ToList();
+            var pagedResult = PagedResult<AttendanceResponseDto>.Create(result, filter.PageNumber, filter.PageSize, totalCount);
+
+            return ApiResponse<PagedResult<AttendanceResponseDto>>.Ok(pagedResult);
         }
 
         private ApiResponse<bool> ValidateFinalAttendanceTimes(
@@ -643,6 +777,24 @@ namespace HRM.Business.Services.Implementations
             {
                 return ApiResponse<AttendanceAdjustmentResponseDto>.Fail("An error occurred while processing the attendance adjustment request.");
             }
+        }
+
+        private AttendanceResponseDto MapToDto(Attendance a)
+        {
+            return new AttendanceResponseDto
+            {
+                AttendanceId = a.AttendanceId,
+                EmployeeId = a.EmployeeId,
+                EmployeeName = a.Employee?.FullName,
+                EmployeeCode = a.Employee?.EmployeeCode,
+                AttendanceDate = a.AttendanceDate,
+                CheckInTime = a.CheckInTime,
+                CheckOutTime = a.CheckOutTime,
+                WorkingHours = a.WorkingHours,
+                Status = a.Status,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt
+            };
         }
 
         private AttendanceAdjustmentResponseDto MapToAdjustmentDto(AttendanceAdjustment entity)

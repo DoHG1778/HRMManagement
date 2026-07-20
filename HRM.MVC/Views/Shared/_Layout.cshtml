@@ -25,7 +25,8 @@
     var canEmployee = HasAnyRole("Employee");
     var canHrAdmin = HasAnyRole("Admin", "HR", "HR Staff", "System Administrator");
     var canManager = HasAnyRole("Manager", "Department Manager");
-    var canPayroll = HasAnyRole("Admin", "Payroll", "Payroll Officer");
+    var canPayroll = HasAnyRole("Payroll");
+    var canSeeAttendanceSheet = HasAnyRole("HR", "Manager");
 }
 
 <!DOCTYPE html>
@@ -37,6 +38,7 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/HRM.MVC.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
     <header>
@@ -57,6 +59,23 @@
                                 <li><a class="dropdown-item @DisabledUnless(loggedIn)" asp-controller="Auth" asp-action="ChangePassword">Change Password</a></li>
                                 <li><a class="dropdown-item @DisabledUnless(loggedIn)" asp-controller="Auth" asp-action="MyAccount">My Account</a></li>
                                 <li><a class="dropdown-item @DisabledUnless(loggedIn)" asp-controller="Auth" asp-action="Logout">Logout</a></li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle @DisabledUnless(canEmployee || canSeeAttendanceSheet)" href="#" role="button" data-bs-toggle="dropdown">Attendance</a>
+                            <ul class="dropdown-menu">
+                                @if (canEmployee)
+                                {
+                                    <li><h6 class="dropdown-header">Self Service</h6></li>
+                                    <li><a class="dropdown-item" asp-controller="AttendanceManagement" asp-action="Index">My Attendance</a></li>
+                                }
+                                @if (canSeeAttendanceSheet)
+                                {
+                                    if (canEmployee) { <li><hr class="dropdown-divider" /></li> }
+                                    <li><h6 class="dropdown-header">Management</h6></li>
+                                    <li><a class="dropdown-item" asp-controller="AttendanceManagement" asp-action="Sheet">Attendance Sheet</a></li>
+                                }
                             </ul>
                         </li>
 
@@ -82,12 +101,17 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle @DisabledUnless(canHrAdmin)" href="#" role="button" data-bs-toggle="dropdown">HR / Admin</a>
                             <ul class="dropdown-menu">
+                                <li><h6 class="dropdown-header">User Accounts</h6></li>
+                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="UserManagement" asp-action="Index">User Management</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="UserManagement" asp-action="Create">Create User Account</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><h6 class="dropdown-header">Contract Management</h6></li>
+                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="ContractManagement" asp-action="Index">Contracts List</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="ContractManagement" asp-action="Create">Create New Contract</a></li>
+                                <li><hr class="dropdown-divider" /></li>
                                 <li><h6 class="dropdown-header">Employee Management</h6></li>
                                 <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="EmployeeManagement" asp-action="Index">Employee List</a></li>
                                 <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="EmployeeManagement" asp-action="Create">Create Employee Profile</a></li>
-                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="EmployeeManagement" asp-action="Index">Update Employee Profile / Status</a></li>
-                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="EmployeeManagement" asp-action="Index">Assign Employee</a></li>
-                                <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="EmployeeManagement" asp-action="Index">Transfer Employee</a></li>
                                 <li><hr class="dropdown-divider" /></li>
                                 <li><h6 class="dropdown-header">Organization</h6></li>
                                 <li><a class="dropdown-item @DisabledUnless(canHrAdmin)" asp-controller="DepartmentManagement" asp-action="Index">Departments</a></li>
@@ -157,30 +181,30 @@
                                 </li>
 
                             </ul>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle @DisabledUnless(loggedIn)"
-                                       href="#"
-                                       role="button"
-                                       data-bs-toggle="dropdown">
-                                    Notifications
-                                </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle @DisabledUnless(loggedIn)"
+                                    href="#"
+                                    role="button"
+                                    data-bs-toggle="dropdown">
+                                Notifications
+                            </a>
 
-                                <ul class="dropdown-menu">
-                                    <li>
-                                        <h6 class="dropdown-header">
-                                            Notification Center
-                                        </h6>
-                                    </li>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <h6 class="dropdown-header">
+                                        Notification Center
+                                    </h6>
+                                </li>
 
-                                    <li>
-                                        <a class="dropdown-item @DisabledUnless(loggedIn)"
-                                               asp-controller="Notification"
-                                               asp-action="Index">
-                                            My Notifications
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
+                                <li>
+                                    <a class="dropdown-item @DisabledUnless(loggedIn)"
+                                            asp-controller="Notification"
+                                            asp-action="Index">
+                                        My Notifications
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
                     </ul>
                 </div>

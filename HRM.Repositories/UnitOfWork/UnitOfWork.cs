@@ -12,29 +12,18 @@ namespace HRM.Repositories.UnitOfWork
         private IDbContextTransaction? _transaction;
 
         public IUserRepository Users { get; }
-
+        public IGenericRepository<Role> Roles { get; }
         public IEmployeeRepository Employees { get; }
-
         public IDepartmentRepository Departments { get; }
-
         public IPositionRepository Positions { get; }
-
         public IContractRepository Contracts { get; }
-
         public IAttendanceRepository Attendances { get; }
-
         public IGenericRepository<AttendanceAdjustment> AttendanceAdjustments { get; }
-
         public ILeaveRequestRepository LeaveRequests { get; }
-
         public IOvertimeRequestRepository OvertimeRequests { get; }
-
         public IPayrollRepository Payrolls { get; }
-
         public IGenericRepository<PayrollDetail> PayrollDetails { get; }
-
         public IKpiRepository Kpis { get; }
-
         public INotificationRepository Notifications { get; }
 
         public UnitOfWork(
@@ -53,6 +42,7 @@ namespace HRM.Repositories.UnitOfWork
         {
             _context = context;
             Users = users;
+            Roles = new GenericRepository<Role>(context);
             Employees = employees;
             Departments = departments;
             Positions = positions;

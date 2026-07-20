@@ -1,0 +1,151 @@
+@using HRM.Business.Common
+@using HRM.Business.DTOs.Attendances
+@model PagedResult<AttendanceResponseDto>
+
+@{
+    ViewData["Title"] = "Attendance Management";
+    var filter = ViewBag.Filter as AttendanceFilterDto ?? new AttendanceFilterDto();
+}
+
+<div class="container-fluid mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-primary font-weight-bold">
+                <i class="bi bi-calendar-check-fill me-2"></i>Employee Attendance Sheet
+            </h5>
+        </div>
+        <div class="card-body">
+            <!-- Filter Section -->
+            <form asp-action="Sheet" method="get" class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label small">Search Name/Code</label>
+                    <input type="text" name="Keyword" class="form-control form-control-sm" 
+                           value="@filter.Keyword" placeholder="Employee name or code...">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">From Date</label>
+                    <input type="date" name="FromDate" class="form-control form-control-sm" 
+                           value="@filter.FromDate?.ToString("yyyy-MM-dd")">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">To Date</label>
+                    <input type="date" name="ToDate" class="form-control form-control-sm" 
+                           value="@filter.ToDate?.ToString("yyyy-MM-dd")">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Status</label>
+                    <select name="Status" class="form-select form-select-sm">
+                        <option value="">All Status</option>
+                        <option value="PRESENT" selected="@(filter.Status == "PRESENT")">Present</option>
+                        <option value="LATE" selected="@(filter.Status == "LATE")">Late</option>
+                        <option value="ABSENT" selected="@(filter.Status == "ABSENT")">Absent</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+                        <i class="bi bi-search"></i> Filter
+                    </button>
+                    <a asp-action="Sheet" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-clockwise"></i> Reset
+                    </a>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle border">
+                    <thead class="table-light text-nowrap">
+                        <tr>
+                            <th>Code</th>
+                            <th>Employee Name</th>
+                            <th>Date</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Hours</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Items != null && Model.Items.Any())
+                        {
+                            foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-light text-dark border">@item.EmployeeCode</span></td>
+                                    <td class="fw-bold text-dark">@item.EmployeeName</td>
+                                    <td>@item.AttendanceDate.ToString("dd/MM/yyyy")</td>
+                                    <td>@(item.CheckInTime?.ToString("HH:mm:ss") ?? "--:--:--")</td>
+                                    <td>@(item.CheckOutTime?.ToString("HH:mm:ss") ?? "--:--:--")</td>
+                                    <td><strong>@item.WorkingHours</strong></td>
+                                    <td>
+                                        @if (item.Status == "PRESENT")
+                                        {
+                                            <span class="badge bg-success-subtle text-success border border-success">Present</span>
+                                        }
+                                        else if (item.Status == "LATE")
+                                        {
+                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning">Late</span>
+                                        }
+                                        else if (item.Status == "ABSENT")
+                                        {
+                                            <span class="badge bg-danger-subtle text-danger border border-danger">Absent</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@item.Status</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-5">
+                                    <i class="bi bi-info-circle me-1"></i> No attendance records match your criteria.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                <nav class="mt-4">
+                    <ul class="pagination pagination-sm justify-content-center">
+                        <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
+                            <a class="page-link" asp-action="Sheet" 
+                               asp-route-pageNumber="@(Model.PageNumber - 1)" 
+                               asp-route-keyword="@filter.Keyword"
+                               asp-route-fromDate="@filter.FromDate"
+                               asp-route-toDate="@filter.ToDate"
+                               asp-route-status="@filter.Status">Previous</a>
+                        </li>
+
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" asp-action="Sheet" 
+                                   asp-route-pageNumber="@i"
+                                   asp-route-keyword="@filter.Keyword"
+                                   asp-route-fromDate="@filter.FromDate"
+                                   asp-route-toDate="@filter.ToDate"
+                                   asp-route-status="@filter.Status">@i</a>
+                            </li>
+                        }
+
+                        <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link" asp-action="Sheet" 
+                               asp-route-pageNumber="@(Model.PageNumber + 1)"
+                               asp-route-keyword="@filter.Keyword"
+                               asp-route-fromDate="@filter.FromDate"
+                               asp-route-toDate="@filter.ToDate"
+                               asp-route-status="@filter.Status">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        </div>
+    </div>
+</div>

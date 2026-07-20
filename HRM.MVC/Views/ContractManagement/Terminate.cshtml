@@ -1,0 +1,56 @@
+@using HRM.Business.DTOs.Contracts
+@model TerminateContractRequestDto
+
+@{
+    ViewData["Title"] = "Terminate Contract";
+    var employeeName = ViewBag.EmployeeName as string;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Terminate Contract: @employeeName</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> <strong>Warning:</strong> This action will mark the contract as TERMINATED. This cannot be undone easily.
+                    </div>
+                    
+                    <form asp-action="Terminate" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="TerminationDate" class="form-label">Effective Date</label>
+                            <input asp-for="TerminationDate" class="form-control" type="date" />
+                            <span asp-validation-for="TerminationDate" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Reason" class="form-label">Reason for Termination</label>
+                            <textarea asp-for="Reason" class="form-control" rows="3" placeholder="Explain why the contract is being terminated..."></textarea>
+                            <span asp-validation-for="Reason" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input asp-for="UpdateEmployeeStatus" class="form-check-input" type="checkbox" checked />
+                            <label asp-for="UpdateEmployeeStatus" class="form-check-label">
+                                Also update employee's status to TERMINATED
+                            </label>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Details" asp-route-id="@ViewContext.RouteData.Values["id"]" class="btn btn-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-danger px-4" onclick="return confirm('Are you sure you want to terminate this contract?')">Confirm Termination</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
