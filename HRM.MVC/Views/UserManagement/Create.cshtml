@@ -1,0 +1,81 @@
+@using HRM.Business.DTOs.Users
+@using HRM.Business.DTOs.Employees
+@model CreateUserRequestDto
+
+@{
+    ViewData["Title"] = "Create User Account";
+    var employees = ViewBag.Employees as List<EmployeeResponseDto> ?? new List<EmployeeResponseDto>();
+    var roles = ViewBag.Roles as List<RoleResponseDto> ?? new List<RoleResponseDto>();
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Create User Account</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Username" class="form-label">Username</label>
+                                <input asp-for="Username" class="form-control" placeholder="e.g. johndoe" />
+                                <span asp-validation-for="Username" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label">Email</label>
+                                <input asp-for="Email" class="form-control" type="email" placeholder="e.g. john@company.com" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">Password</label>
+                            <input asp-for="Password" class="form-control" type="password" />
+                            <small class="text-muted">Min 8 chars, incl. Upper, Lower, Number, Special.</small>
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Link to Employee (Optional)</label>
+                            <select asp-for="EmployeeId" class="form-select">
+                                <option value="">-- Select Employee without account --</option>
+                                @foreach (var emp in employees)
+                                {
+                                    <option value="@emp.EmployeeId">[@emp.EmployeeCode] @emp.FullName</option>
+                                }
+                            </select>
+                            <span asp-validation-for="EmployeeId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Assign Roles</label>
+                            <div class="border rounded p-3 bg-light">
+                                @foreach (var role in roles)
+                                {
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" name="RoleIds" value="@role.RoleId" id="role_@role.RoleId">
+                                        <label class="form-check-label" for="role_@role.RoleId">@role.RoleName</label>
+                                    </div>
+                                }
+                            </div>
+                            <span asp-validation-for="RoleIds" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary me-md-2">Back to List</a>
+                            <button type="submit" class="btn btn-primary px-5">Create Account</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,197 @@
+@using HRM.Business.Common
+@using HRM.Business.DTOs.Attendances
+@model PagedResult<AttendanceResponseDto>
+
+@{
+    ViewData["Title"] = "My Attendance";
+    var todayRecord = ViewBag.TodayRecord as AttendanceResponseDto;
+    var filter = ViewBag.Filter as AttendanceFilterDto ?? new AttendanceFilterDto();
+    
+    bool canCheckIn = todayRecord == null;
+    bool canCheckOut = todayRecord != null && !todayRecord.CheckOutTime.HasValue;
+    bool alreadyCheckedOut = todayRecord != null && todayRecord.CheckOutTime.HasValue;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Check-in/Out Action Card -->
+        <div class="col-md-4">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-clock"></i> Today's Attendance</h5>
+                </div>
+                <div class="card-body text-center py-4">
+                    <h3 id="live-clock" class="display-6 mb-3">00:00:00</h3>
+                    <p class="text-muted">@DateTime.Now.ToString("dddd, dd MMMM yyyy")</p>
+                    
+                    <hr />
+
+                    @if (canCheckIn)
+                    {
+                        <form asp-action="CheckIn" method="post">
+                            <button type="submit" class="btn btn-success btn-lg w-100 py-3 mb-2">
+                                <i class="bi bi-box-arrow-in-right"></i> CHECK IN
+                            </button>
+                            <small class="text-muted">Start your work session</small>
+                        </form>
+                    }
+                    else if (canCheckOut)
+                    {
+                        <div class="alert alert-info mb-3">
+                            Checked in at: <strong>@todayRecord.CheckInTime?.ToString("HH:mm:ss")</strong>
+                        </div>
+                        <form asp-action="CheckOut" method="post">
+                            <button type="submit" class="btn btn-danger btn-lg w-100 py-3 mb-2">
+                                <i class="bi bi-box-arrow-left"></i> CHECK OUT
+                            </button>
+                            <small class="text-muted">End your work session</small>
+                        </form>
+                    }
+                    else if (alreadyCheckedOut)
+                    {
+                        <div class="alert alert-success">
+                            <h5 class="alert-heading">Completed!</h5>
+                            <p class="mb-0">In: @todayRecord.CheckInTime?.ToString("HH:mm")</p>
+                            <p class="mb-0">Out: @todayRecord.CheckOutTime?.ToString("HH:mm")</p>
+                            <hr>
+                            <p class="mb-0">Hours: <strong>@todayRecord.WorkingHours</strong></p>
+                        </div>
+                        <button class="btn btn-secondary btn-lg w-100 disabled" disabled>
+                            FINISHED TODAY
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Summary Card -->
+            <div class="card shadow border-left-info">
+                <div class="card-body">
+                    <h6 class="text-info font-weight-bold text-uppercase mb-1">Status Summary</h6>
+                    <ul class="list-group list-group-flush small">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Standard Shift
+                            <span class="badge bg-light text-dark border">08:00 - 17:00</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Grace Period
+                            <span class="badge bg-light text-dark border">8:30 AM</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- History List -->
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-dark">Personal Attendance History</h5>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show">
+                            @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Index" method="get" class="row g-2 mb-4">
+                        <div class="col-md-4">
+                            <input type="date" name="FromDate" class="form-control form-control-sm" value="@filter.FromDate?.ToString("yyyy-MM-dd")" placeholder="From Date">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="date" name="ToDate" class="form-control form-control-sm" value="@filter.ToDate?.ToString("yyyy-MM-dd")" placeholder="To Date">
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm w-100">Filter</button>
+                        </div>
+                    </form>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Check In</th>
+                                    <th>Check Out</th>
+                                    <th>Hours</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Items != null && Model.Items.Any())
+                                {
+                                    foreach (var item in Model.Items)
+                                    {
+                                        <tr>
+                                            <td>@item.AttendanceDate.ToString("dd/MM/yyyy")</td>
+                                            <td>@item.CheckInTime?.ToString("HH:mm:ss")</td>
+                                            <td>@item.CheckOutTime?.ToString("HH:mm:ss")</td>
+                                            <td><strong>@item.WorkingHours</strong></td>
+                                            <td>
+                                                @if (item.Status == "PRESENT")
+                                                {
+                                                    <span class="badge bg-success">Present</span>
+                                                }
+                                                else if (item.Status == "LATE")
+                                                {
+                                                    <span class="badge bg-warning text-dark">Late</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">@item.Status</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">No records found.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if (Model.TotalPages > 1)
+                    {
+                        <nav class="mt-3">
+                            <ul class="pagination pagination-sm justify-content-center">
+                                @for (int i = 1; i <= Model.TotalPages; i++)
+                                {
+                                    <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                        <a class="page-link" asp-action="Index" asp-route-pageNumber="@i" asp-route-fromDate="@filter.FromDate" asp-route-toDate="@filter.ToDate">@i</a>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ":" +
+                          now.getMinutes().toString().padStart(2, '0') + ":" +
+                          now.getSeconds().toString().padStart(2, '0');
+            document.getElementById('live-clock').innerText = timeStr;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
+}

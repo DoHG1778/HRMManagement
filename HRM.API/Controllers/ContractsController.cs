@@ -42,7 +42,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "HR")]
+        [Authorize(Roles = "Admin,HR")]
         public async Task<IActionResult> CreateContract([FromBody] CreateContractRequestDto request)
         {
             var currentUser = GetCurrentUser();
@@ -51,7 +51,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpPut("{contractId:int}")]
-        [Authorize(Roles = "HR")]
+        [Authorize(Roles = "Admin")] // UC14: CHỈ ADMIN MỚI ĐƯỢC PHÉP CẬP NHẬT
         public async Task<IActionResult> UpdateContract(int contractId, [FromBody] UpdateContractRequestDto request)
         {
             var currentUser = GetCurrentUser();
@@ -60,7 +60,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpPut("{contractId:int}/extend")]
-        [Authorize(Roles = "HR")]
+        [Authorize(Roles = "Admin,HR")]
         public async Task<IActionResult> ExtendContract(int contractId, [FromBody] ExtendContractRequestDto request)
         {
             var currentUser = GetCurrentUser();
@@ -69,7 +69,7 @@ namespace HRM.API.Controllers
         }
 
         [HttpPut("{contractId:int}/terminate")]
-        [Authorize(Roles = "HR")]
+        [Authorize(Roles = "Admin,HR")]
         public async Task<IActionResult> TerminateContract(int contractId, [FromBody] TerminateContractRequestDto request)
         {
             var currentUser = GetCurrentUser();

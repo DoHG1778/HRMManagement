@@ -7,6 +7,8 @@ namespace HRM.Repositories.UnitOfWork
     {
         IUserRepository Users { get; }
 
+        IGenericRepository<Role> Roles { get; }
+
         IEmployeeRepository Employees { get; }
 
         IDepartmentRepository Departments { get; }
