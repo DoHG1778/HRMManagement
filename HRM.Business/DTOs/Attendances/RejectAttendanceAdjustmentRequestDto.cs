@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace HRM.Business.DTOs.Attendances
 {
-    public class RejectAttendanceAdjustmentDto
+    public class RejectAttendanceAdjustmentRequestDto
     {
         [Required(ErrorMessage = "Rejection reason is required.")]
         [MaxLength(500)]

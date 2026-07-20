@@ -1,0 +1,189 @@
+@model List<HRM.Business.DTOs.Attendances.AttendanceAdjustmentResponseDto>
+@{
+    ViewData["Title"] = "Pending Attendance Adjustments";
+    var employees = ViewBag.EmployeesList as IEnumerable<HRM.Business.DTOs.Employees.EmployeeResponseDto>;
+}
+
+<div class="container py-4">
+    <!-- Header -->
+    <div class="mb-4">
+        <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-patch-check text-warning"></i> Attendance Adjustment Approvals</h1>
+        <p class="text-muted mb-0 small">Approve or reject attendance adjustments for employees in your managed department.</p>
+    </div>
+
+    <!-- Alert Messages -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Filter Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" asp-action="Pending" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">Employee</label>
+                    <select name="employeeId" class="form-select form-select-sm">
+                        <option value="">All Employees</option>
+                        @if (employees != null)
+                        {
+                            foreach (var emp in employees)
+                            {
+                                <option value="@emp.EmployeeId" selected="@(ViewBag.CurrentEmployeeId == emp.EmployeeId)">@emp.EmployeeCode - @emp.FullName</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">Month</label>
+                    <select name="month" class="form-select form-select-sm">
+                        <option value="">All Months</option>
+                        @for (int m = 1; m <= 12; m++)
+                        {
+                            <option value="@m" selected="@(ViewBag.CurrentMonth == m)">Month @m</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">Year</label>
+                    <select name="year" class="form-select form-select-sm">
+                        <option value="">All Years</option>
+                        @for (int y = DateTime.Now.Year - 3; y <= DateTime.Now.Year + 1; y++)
+                        {
+                            <option value="@y" selected="@(ViewBag.CurrentYear == y)">@y</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-filter"></i> Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Data Table Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Employee</th>
+                        <th>Date</th>
+                        <th>Current Check-in/out</th>
+                        <th>Proposed Check-in/out</th>
+                        <th>Reason</th>
+                        <th>Created At</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model == null || !Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-check2-circle fs-1 d-block mb-2 text-success"></i> No pending adjustment requests to approve.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold">@item.RequestedByName</div>
+                                    <div class="text-muted small">@item.EmployeeCode | @(item.DepartmentName ?? "N/A")</div>
+                                </td>
+                                <td>
+                                    <span class="fw-bold">@item.AttendanceDate.ToString("dd/MM/yyyy")</span>
+                                </td>
+                                <td>
+                                    <div class="small text-muted">
+                                        In: @(item.CurrentCheckInTime?.ToString("HH:mm") ?? "-")<br />
+                                        Out: @(item.CurrentCheckOutTime?.ToString("HH:mm") ?? "-")
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="small">
+                                        In: <strong class="text-success">@(item.RequestedCheckInTime?.ToString("HH:mm") ?? "-")</strong><br />
+                                        Out: <strong class="text-danger">@(item.RequestedCheckOutTime?.ToString("HH:mm") ?? "-")</strong>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="text-truncate small" style="max-width: 150px;" title="@item.Reason">@item.Reason</div>
+                                </td>
+                                <td class="small text-muted">
+                                    @item.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a asp-action="Details" asp-route-id="@item.AdjustmentId" class="btn btn-xs btn-outline-info btn-sm" title="View Details">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                    
+                                    <!-- Approve Action Form -->
+                                    <form asp-action="Approve" asp-route-id="@item.AdjustmentId" method="post" class="d-inline" onsubmit="return confirm('Approving this request will update the original attendance record. Proceed?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-xs btn-success btn-sm ms-1" title="Approve Request">
+                                            <i class="bi bi-check"></i> Approve
+                                        </button>
+                                    </form>
+
+                                    <!-- Trigger Reject Modal -->
+                                    <button type="button" class="btn btn-xs btn-danger btn-sm ms-1" title="Reject Request" onclick="openRejectModal(@item.AdjustmentId)">
+                                        <i class="bi bi-slash-circle"></i> Reject
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Global Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0">
+            <form id="rejectForm" method="post" action="">
+                @Html.AntiForgeryToken()
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-bold" id="rejectModalLabel">Reject Adjustment Request</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Provide Rejection Reason <span class="text-danger">*</span></label>
+                        <textarea name="rejectionReason" class="form-control" rows="4" placeholder="Explain why this request is being rejected..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger">Confirm Reject</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openRejectModal(id) {
+            const form = document.getElementById('rejectForm');
+            form.action = `/AttendanceAdjustment/Reject/${id}`;
+            const modal = new bootstrap.Modal(document.getElementById('rejectModal'));
+            modal.show();
+        }
+    </script>
+}

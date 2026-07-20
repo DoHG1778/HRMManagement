@@ -25,7 +25,7 @@
     var canEmployee = HasAnyRole("Employee");
     var canHrAdmin = HasAnyRole("Admin", "HR", "HR Staff", "System Administrator");
     var canManager = HasAnyRole("Manager", "Department Manager");
-    var canPayroll = HasAnyRole("Payroll", "Payroll Officer");
+    var canPayroll = HasAnyRole("Admin", "Payroll", "Payroll Officer");
 }
 
 <!DOCTYPE html>
@@ -73,6 +73,9 @@
                                 <li><h6 class="dropdown-header">Overtime</h6></li>
                                 <li><a class="dropdown-item @DisabledUnless(canEmployee)" asp-controller="StaffOvertime" asp-action="Index">My OT Requests</a></li>
                                 <li><a class="dropdown-item @DisabledUnless(canEmployee)" asp-controller="StaffOvertime" asp-action="Create">Register Overtime</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><h6 class="dropdown-header">Attendance Adjustment</h6></li>
+                                <li><a class="dropdown-item @DisabledUnless(canEmployee)" asp-controller="AttendanceAdjustment" asp-action="MyRequests">My Attendance Adjustments</a></li>
                             </ul>
                         </li>
 
@@ -106,6 +109,7 @@
                                 <li><h6 class="dropdown-header">Approvals</h6></li>
                                 <li><a class="dropdown-item @DisabledUnless(canManager)" asp-controller="ManagerLeave" asp-action="Index">Pending Leave Approvals</a></li>
                                 <li><a class="dropdown-item @DisabledUnless(canManager)" asp-controller="ManagerOvertime" asp-action="Index">Pending OT Approvals</a></li>
+                                <li><a class="dropdown-item @DisabledUnless(canManager)" asp-controller="AttendanceAdjustment" asp-action="Pending">Attendance Adjustment Approvals</a></li>
                             </ul>
                         </li>
 

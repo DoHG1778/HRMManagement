@@ -1,4 +1,4 @@
-﻿namespace HRM.Business.DTOs.Dashboards
+namespace HRM.Business.DTOs.Dashboards
 {
     public class PayrollDashboardDto
     {
@@ -13,6 +13,10 @@
         public int ConfirmedPayrolls { get; set; }
 
         public int PaidPayrolls { get; set; }
+
+        public int CalculatedPayrolls { get; set; }
+
+        public decimal TotalBaseSalary { get; set; }
 
         public decimal TotalGrossSalary { get; set; }
 

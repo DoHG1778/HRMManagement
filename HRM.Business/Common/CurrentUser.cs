@@ -1,4 +1,4 @@
-﻿namespace HRM.Business.Common
+namespace HRM.Business.Common
 {
     public class CurrentUser
     {
@@ -57,7 +57,7 @@
 
         public bool IsPayroll()
         {
-            return IsInRole("Payroll");
+            return IsInRole("Payroll") || IsInRole("Payroll Officer");
         }
 
         public bool IsEmployee()

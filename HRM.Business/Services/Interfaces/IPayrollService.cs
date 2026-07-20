@@ -30,6 +30,10 @@ namespace HRM.Business.Services.Interfaces
             CurrentUser currentUser,
             ConfirmPayrollRequestDto request);
 
+        Task<ApiResponse<bool>> PayPayrollAsync(
+            CurrentUser currentUser,
+            ConfirmPayrollRequestDto request);
+
         Task<ApiResponse<PayrollResponseDto>> GetMyPayslipAsync(
             CurrentUser currentUser,
             int payrollMonth,

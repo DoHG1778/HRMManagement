@@ -1,4 +1,4 @@
-﻿using HRM.Business.DTOs.Attendances;
+using HRM.Business.DTOs.Attendances;
 using HRM.Business.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -90,10 +90,14 @@ namespace HRM.API.Controllers
 
         [HttpGet("adjustments/pending")]
         [Authorize(Roles = "Manager")]
-        public async Task<IActionResult> GetPendingAdjustmentRequests()
+        [Obsolete("Use AttendanceAdjustmentsController.GetPendingAdjustmentRequests instead.")]
+        public async Task<IActionResult> GetPendingAdjustmentRequests(
+            [FromQuery] int? employeeId,
+            [FromQuery] int? month,
+            [FromQuery] int? year)
         {
             var currentUser = GetCurrentUser();
-            var result = await _attendanceService.GetPendingAdjustmentRequestsAsync(currentUser);
+            var result = await _attendanceService.GetPendingAdjustmentRequestsAsync(currentUser, employeeId, month, year);
             return HandleResponse(result);
         }
     }

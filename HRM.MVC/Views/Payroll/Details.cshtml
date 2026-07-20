@@ -3,9 +3,14 @@
 
 @{
     ViewData["Title"] = $"Payroll Details - {Model.EmployeeName}";
-    bool isDraft = Model.Status == "DRAFT";
+    bool isEditable = Model.Status == "DRAFT";
     int index = 0;
 }
+<style>
+.money-value {
+    white-space: nowrap !important;
+}
+</style>
 
 <div class="container py-4">
     <!-- Breadcrumbs -->
@@ -20,7 +25,21 @@
     <div class="card shadow-sm border-0 mb-4 bg-primary text-white">
         <div class="card-body p-4 d-flex justify-content-between align-items-center">
             <div>
-                <span class="badge bg-light text-primary mb-2">@Model.Status</span>
+                @if (Model.Status == "DRAFT")
+                {
+                    if (Model.UpdatedAt == null)
+                    {
+                        <span class="badge bg-light text-secondary mb-2">DRAFT - Not Calculated</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-light text-info mb-2">DRAFT - Calculated</span>
+                    }
+                }
+                else
+                {
+                    <span class="badge bg-light text-primary mb-2">@Model.Status</span>
+                }
                 <h2 class="mb-1">@Model.EmployeeName</h2>
                 <p class="mb-0 opacity-75">Code: <strong>@Model.EmployeeCode</strong> | Department: @(Model.DepartmentName ?? "N/A") | Position: @(Model.PositionName ?? "N/A")</p>
             </div>
@@ -100,8 +119,7 @@
         <div class="col-md-8">
             <div class="card shadow-sm border-0 mb-4 h-100">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="m-0 font-weight-bold text-primary">Payroll Breakdown Details</h5>
-                    @if (isDraft)
+                    <h5 class="m-0 font-weight-bold text-primary">Payroll Breakdown                    @if (isEditable)
                     {
                         <button type="button" class="btn btn-sm btn-outline-success" onclick="addRow()">
                             <i class="bi bi-plus-lg"></i> Add Custom Row
@@ -117,7 +135,7 @@
                                         <th style="width: 25%">Item Type</th>
                                         <th style="width: 40%">Description</th>
                                         <th style="width: 25%">Amount (₫)</th>
-                                        @if (isDraft)
+                                        @if (isEditable)
                                         {
                                             <th style="width: 10%" class="text-center">Action</th>
                                         }
@@ -128,9 +146,11 @@
                                     {
                                         foreach (var detail in Model.PayrollDetails)
                                         {
+                                            bool isAutoOt = detail.SourceType == "OVERTIME";
+                                            bool canEditRow = isEditable && !isAutoOt;
                                             <tr>
                                                 <td>
-                                                    @if (isDraft)
+                                                    @if (canEditRow)
                                                     {
                                                         <select name="Items[@index].ItemType" class="form-select form-select-sm">
                                                             <option value="ALLOWANCE" selected="@(detail.ItemType == "ALLOWANCE")">ALLOWANCE</option>
@@ -147,7 +167,7 @@
                                                     }
                                                 </td>
                                                 <td>
-                                                    @if (isDraft)
+                                                    @if (canEditRow)
                                                     {
                                                         <input type="text" name="Items[@index].Description" value="@detail.Description" class="form-control form-control-sm" placeholder="e.g. Fuel allowance, late fine" required />
                                                     }
@@ -158,7 +178,7 @@
                                                     }
                                                 </td>
                                                 <td>
-                                                    @if (isDraft)
+                                                    @if (canEditRow)
                                                     {
                                                         <input type="number" name="Items[@index].Amount" value="@((int)detail.Amount)" class="form-control form-control-sm text-end" min="0" step="1000" required />
                                                     }
@@ -170,19 +190,26 @@
                                                     <input type="hidden" name="Items[@index].SourceType" value="@detail.SourceType" />
                                                     <input type="hidden" name="Items[@index].SourceId" value="@detail.SourceId" />
                                                 </td>
-                                                @if (isDraft)
+                                                @if (isEditable)
                                                 {
                                                     <td class="text-center">
-                                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteRow(this)">
-                                                            Remove
-                                                        </button>
+                                                        @if (!isAutoOt)
+                                                        {
+                                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteRow(this)">
+                                                                Remove
+                                                            </button>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted small">Auto (OT)</span>
+                                                        }
                                                     </td>
                                                 }
                                             </tr>
                                             index++;
                                         }
                                     }
-                                    else if (!isDraft)
+                                    else if (!isEditable)
                                     {
                                         <tr>
                                             <td colspan="3" class="text-center py-3 text-muted">No details found for this payroll.</td>
@@ -192,7 +219,7 @@
                             </table>
                         </div>
 
-                        @if (isDraft)
+                        @if (isEditable)
                         {
                             <div class="d-flex justify-content-end gap-2 mt-3">
                                 <a asp-action="Index" class="btn btn-secondary btn-sm">Discard</a>
@@ -241,7 +268,7 @@
                 </td>
                 <td>
                     <input type="number" name="Items[\${rowCount}].Amount" value="0" class="form-control form-control-sm text-end" min="0" step="1000" required />
-                    <input type="hidden" name="Items[\${rowCount}].SourceType" value="" />
+                    <input type="hidden" name="Items[\${rowCount}].SourceType" value="MANUAL" />
                     <input type="hidden" name="Items[\${rowCount}].SourceId" value="" />
                 </td>
                 <td class="text-center">

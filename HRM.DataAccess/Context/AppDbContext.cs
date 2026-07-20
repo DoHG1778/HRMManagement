@@ -649,6 +649,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.TotalBonus).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.TotalDeduction).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.TotalOvertime).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
 
             entity.HasOne(d => d.ConfirmedByUser).WithMany(p => p.PayrollConfirmedByUsers)
                 .HasForeignKey(d => d.ConfirmedByUserId)

@@ -42,20 +42,44 @@ namespace HRM.API.Controllers
             return HandleResponse(result);
         }
 
-        [HttpGet("my")]
-        public async Task<IActionResult> GetMyAdjustmentRequests()
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetAdjustmentDetail(int id)
         {
             var currentUser = GetCurrentUser();
-            var result = await _attendanceService.GetMyAdjustmentRequestsAsync(currentUser);
+            var result = await _attendanceService.GetAdjustmentDetailAsync(currentUser, id);
+            return HandleResponse(result);
+        }
+
+        [HttpGet("my")]
+        public async Task<IActionResult> GetMyAdjustmentRequests(
+            [FromQuery] string? status,
+            [FromQuery] int? month,
+            [FromQuery] int? year)
+        {
+            var currentUser = GetCurrentUser();
+            var result = await _attendanceService.GetMyAdjustmentRequestsAsync(currentUser, status, month, year);
+            return HandleResponse(result);
+        }
+
+        [HttpGet("available-attendances")]
+        public async Task<IActionResult> GetAdjustableAttendances(
+            [FromQuery] int? month,
+            [FromQuery] int? year)
+        {
+            var currentUser = GetCurrentUser();
+            var result = await _attendanceService.GetAdjustableAttendancesAsync(currentUser, month, year);
             return HandleResponse(result);
         }
 
         [HttpGet("pending")]
         [Authorize(Roles = "Manager")]
-        public async Task<IActionResult> GetPendingAdjustmentRequests()
+        public async Task<IActionResult> GetPendingAdjustmentRequests(
+            [FromQuery] int? employeeId,
+            [FromQuery] int? month,
+            [FromQuery] int? year)
         {
             var currentUser = GetCurrentUser();
-            var result = await _attendanceService.GetPendingAdjustmentRequestsAsync(currentUser);
+            var result = await _attendanceService.GetPendingAdjustmentRequestsAsync(currentUser, employeeId, month, year);
             return HandleResponse(result);
         }
 
@@ -73,7 +97,7 @@ namespace HRM.API.Controllers
         [Authorize(Roles = "Manager")]
         public async Task<IActionResult> RejectAdjustment(
             int id,
-            [FromBody] RejectAttendanceAdjustmentDto request)
+            [FromBody] RejectAttendanceAdjustmentRequestDto request)
         {
             var currentUser = GetCurrentUser();
             var approvalRequest = new ApproveAttendanceAdjustmentRequestDto 

@@ -1,0 +1,216 @@
+@model HRM.Business.DTOs.Attendances.AttendanceAdjustmentResponseDto
+@{
+    ViewData["Title"] = "Attendance Adjustment Details";
+    var roles = Context.Session.GetString("Roles") ?? string.Empty;
+    bool isManager = roles.Contains("Manager");
+    int? currentEmployeeId = ViewBag.CurrentEmployeeId as int?;
+}
+
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            @if (isManager)
+            {
+                <li class="breadcrumb-item"><a asp-action="Pending">Pending Approvals</a></li>
+            }
+            else
+            {
+                <li class="breadcrumb-item"><a asp-action="MyRequests">My Adjustments</a></li>
+            }
+            <li class="breadcrumb-item active" aria-current="page">Request Details</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-info-circle"></i> Adjustment Request Details</h5>
+                    <span class="badge @(Model.Status switch {
+                        "PENDING" => "bg-warning text-dark",
+                        "APPROVED" => "bg-success",
+                        "REJECTED" => "bg-danger",
+                        "CANCELLED" => "bg-secondary",
+                        _ => "bg-light text-dark"
+                    })">@Model.Status</span>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <!-- 1. Employee Info -->
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted fw-bold small border-bottom pb-2">Employee Information</h6>
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <span class="text-muted small d-block">Employee Name</span>
+                                <span class="fw-bold">@Model.RequestedByName</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="text-muted small d-block">Employee Code</span>
+                                <span class="fw-bold text-gray-800">@Model.EmployeeCode</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="text-muted small d-block">Department</span>
+                                <span>@(Model.DepartmentName ?? "N/A")</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="text-muted small d-block">Attendance Date</span>
+                                <span class="fw-bold">@Model.AttendanceDate.ToString("dd/MM/yyyy")</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Adjustment Times -->
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted fw-bold small border-bottom pb-2">Time Details</h6>
+                        <div class="row text-center g-3 mt-1">
+                            <!-- Current -->
+                            <div class="col-sm-6">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-title text-muted small fw-bold mb-3">CURRENT RECORDS</h6>
+                                        <div class="mb-2">
+                                            <span class="text-muted small d-block">Check-In</span>
+                                            <span class="fw-bold text-success">@(Model.CurrentCheckInTime?.ToString("dd/MM/yyyy HH:mm") ?? "-")</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-muted small d-block">Check-Out</span>
+                                            <span class="fw-bold text-danger">@(Model.CurrentCheckOutTime?.ToString("dd/MM/yyyy HH:mm") ?? "-")</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Proposed -->
+                            <div class="col-sm-6">
+                                <div class="card bg-light border-0 border-start border-primary border-4">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-title text-primary small fw-bold mb-3">PROPOSED ADJUSTMENTS</h6>
+                                        <div class="mb-2">
+                                            <span class="text-muted small d-block">Check-In</span>
+                                            <span class="fw-bold text-success">@(Model.RequestedCheckInTime?.ToString("dd/MM/yyyy HH:mm") ?? "-")</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-muted small d-block">Check-Out</span>
+                                            <span class="fw-bold text-danger">@(Model.RequestedCheckOutTime?.ToString("dd/MM/yyyy HH:mm") ?? "-")</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Reason & Logs -->
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted fw-bold small border-bottom pb-2">Reason & Logging</h6>
+                        <div class="bg-light p-3 rounded mb-3">
+                            <span class="text-muted small d-block mb-1 fw-bold">Employee Comment</span>
+                            <p class="mb-0 text-dark small" style="white-space: pre-wrap;">@Model.Reason</p>
+                        </div>
+                        
+                        <div class="row g-2 text-muted small">
+                            <div class="col-sm-6">
+                                <span>Requested at: <strong>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</strong></span>
+                            </div>
+                            @if (Model.UpdatedAt.HasValue)
+                            {
+                                <div class="col-sm-6 text-sm-end">
+                                    <span>Last updated: <strong>@Model.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm")</strong></span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- 4. Approval details if any -->
+                    @if (Model.Status == "APPROVED" || Model.Status == "REJECTED")
+                    {
+                        <div class="mb-4 p-3 rounded @(Model.Status == "APPROVED" ? "bg-success-subtle border border-success" : "bg-danger-subtle border border-danger")">
+                            <h6 class="fw-bold small mb-2 text-dark">Approval Process Result</h6>
+                            <div class="row g-2 small text-dark">
+                                <div class="col-sm-6">
+                                    <span>Processed by: <strong>@Model.ApprovedByName</strong></span>
+                                </div>
+                                <div class="col-sm-6 text-sm-end">
+                                    <span>Processed at: <strong>@(Model.ApprovedAt?.ToString("dd/MM/yyyy HH:mm") ?? "-")</strong></span>
+                                </div>
+                                @if (Model.Status == "REJECTED" && !string.IsNullOrEmpty(Model.RejectionReason))
+                                {
+                                    <div class="col-12 mt-2 pt-2 border-top">
+                                        <span class="fw-bold text-danger">Rejection Reason:</span>
+                                        <p class="mb-0 text-dark mt-1">@Model.RejectionReason</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Actions Footer -->
+                    <div class="d-flex justify-content-between border-top pt-3 mt-4">
+                        @if (isManager)
+                        {
+                            <a asp-action="Pending" class="btn btn-outline-secondary">Back to approvals</a>
+                            @if (Model.Status == "PENDING")
+                            {
+                                @if (Model.RequestedBy == currentEmployeeId)
+                                {
+                                    <span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle"></i> You cannot approve your own request.</span>
+                                }
+                                else
+                                {
+                                    <div class="d-flex">
+                                        <button type="button" class="btn btn-danger me-2" data-bs-toggle="modal" data-bs-target="#rejectModal">Reject</button>
+                                        <form asp-action="Approve" asp-route-id="@Model.AdjustmentId" method="post" onsubmit="return confirm('Approving this request will update the original attendance record. Proceed?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-success">Approve</button>
+                                        </form>
+                                    </div>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <a asp-action="MyRequests" class="btn btn-outline-secondary">Back to List</a>
+                            @if (Model.Status == "PENDING")
+                            {
+                                <div class="d-flex">
+                                    <form asp-action="Cancel" asp-route-id="@Model.AdjustmentId" method="post" onsubmit="return confirm('Are you sure you want to cancel this pending request?');" class="me-2">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-danger">Cancel Request</button>
+                                    </form>
+                                    <a asp-action="Edit" asp-route-id="@Model.AdjustmentId" class="btn btn-primary">Edit Request</a>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (isManager && Model.Status == "PENDING")
+{
+    <!-- Reject Comment Modal -->
+    <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0">
+                <form asp-action="Reject" asp-route-id="@Model.AdjustmentId" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title fw-bold" id="rejectModalLabel">Reject Adjustment Request</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Provide Rejection Reason <span class="text-danger">*</span></label>
+                            <textarea name="rejectionReason" class="form-control" rows="4" placeholder="Explain why this request is being rejected..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-danger">Confirm Reject</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}

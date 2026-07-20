@@ -1,0 +1,101 @@
+@model HRM.Business.DTOs.Attendances.UpdateAttendanceAdjustmentRequestDto
+@{
+    ViewData["Title"] = "Edit Attendance Adjustment Request";
+    var detail = ViewBag.AdjustmentDetail as HRM.Business.DTOs.Attendances.AttendanceAdjustmentResponseDto;
+}
+
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="MyRequests">My Adjustments</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit Request</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-pencil-square"></i> Edit Attendance Adjustment Request</h5>
+                </div>
+                <div class="card-body p-4">
+                    @if (detail != null)
+                    {
+                        <!-- Summary info -->
+                        <div class="bg-light p-3 rounded mb-4">
+                            <div class="row g-2">
+                                <div class="col-sm-6">
+                                    <span class="text-muted small d-block">Adjustment Date</span>
+                                    <span class="fw-bold">@detail.AttendanceDate.ToString("dd/MM/yyyy")</span>
+                                </div>
+                                <div class="col-sm-6">
+                                    <span class="text-muted small d-block">Current Status</span>
+                                    <span class="badge bg-warning text-dark">PENDING</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Current Times Info -->
+                        <div class="row mb-4 text-center">
+                            <div class="col-6">
+                                <div class="border rounded p-2 bg-light">
+                                    <div class="text-muted small">Current Check-In</div>
+                                    <div class="fw-bold fs-5 text-success">
+                                        @(detail.CurrentCheckInTime?.ToString("HH:mm") ?? "-")
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="border rounded p-2 bg-light">
+                                    <div class="text-muted small">Current Check-Out</div>
+                                    <div class="fw-bold fs-5 text-danger">
+                                        @(detail.CurrentCheckOutTime?.ToString("HH:mm") ?? "-")
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form asp-action="Edit" method="post">
+                            <!-- Form Error Summary -->
+                            <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                            <!-- Set New Times -->
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <label asp-for="RequestedCheckInTime" class="form-label small fw-bold">Proposed Check-In Time</label>
+                                    <input type="datetime-local" asp-for="RequestedCheckInTime" class="form-control" />
+                                    <span asp-validation-for="RequestedCheckInTime" class="text-danger small"></span>
+                                    <div class="form-text small">Leave empty if unchanged. Must match @detail.AttendanceDate.ToString("dd/MM/yyyy").</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="RequestedCheckOutTime" class="form-label small fw-bold">Proposed Check-Out Time</label>
+                                    <input type="datetime-local" asp-for="RequestedCheckOutTime" class="form-control" />
+                                    <span asp-validation-for="RequestedCheckOutTime" class="text-danger small"></span>
+                                    <div class="form-text small">Leave empty if unchanged. Must match @detail.AttendanceDate.ToString("dd/MM/yyyy").</div>
+                                </div>
+                            </div>
+
+                            <!-- Reason -->
+                            <div class="mb-4">
+                                <label asp-for="Reason" class="form-label small fw-bold">Reason for Adjustment <span class="text-danger">*</span></label>
+                                <textarea asp-for="Reason" class="form-control" rows="3" required></textarea>
+                                <span asp-validation-for="Reason" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Form Footer -->
+                            <div class="d-flex justify-content-between">
+                                <a asp-action="MyRequests" class="btn btn-outline-secondary">Back to List</a>
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Save Changes</button>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger">Error loading adjustment request details.</div>
+                        <a asp-action="MyRequests" class="btn btn-secondary">Back to List</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

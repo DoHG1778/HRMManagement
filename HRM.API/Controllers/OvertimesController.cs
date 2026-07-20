@@ -1,10 +1,12 @@
-﻿using HRM.Business.DTOs.Overtimes;
+using HRM.Business.DTOs.Overtimes;
 using HRM.Business.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HRM.API.Controllers
 {
     [Route("api/overtimes")]
+    [Authorize]
     public class OvertimesController : BaseApiController
     {
         private readonly IOvertimeService _overtimeService;

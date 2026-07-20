@@ -1,0 +1,163 @@
+@model HRM.Business.DTOs.Attendances.CreateAttendanceAdjustmentRequestDto
+@{
+    ViewData["Title"] = "Create Attendance Adjustment Request";
+    var avail = ViewBag.AvailableAttendances as List<HRM.Business.DTOs.Attendances.AdjustableAttendanceDto> ?? new List<HRM.Business.DTOs.Attendances.AdjustableAttendanceDto>();
+}
+
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="MyRequests">My Adjustments</a></li>
+            <li class="breadcrumb-item active" aria-current="page">New Adjustment Request</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-plus-circle"></i> Create Attendance Adjustment Request</h5>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <!-- Month/Year Filter for Available Attendances -->
+                    <div class="bg-light p-3 rounded mb-4">
+                        <h6 class="fw-bold mb-2 small text-muted"><i class="bi bi-funnel"></i> Filter Available Dates</h6>
+                        <form method="get" action="" class="row g-2 align-items-end" id="filterForm">
+                            <div class="col-sm-5">
+                                <select name="month" class="form-select form-select-sm" onchange="document.getElementById('filterForm').submit()">
+                                    <option value="">Choose Month</option>
+                                    @for (int m = 1; m <= 12; m++)
+                                    {
+                                        <option value="@m" selected="@(ViewBag.CurrentMonth == m)">Month @m</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-sm-5">
+                                <select name="year" class="form-select form-select-sm" onchange="document.getElementById('filterForm').submit()">
+                                    <option value="">Choose Year</option>
+                                    @for (int y = DateTime.Now.Year - 3; y <= DateTime.Now.Year + 1; y++)
+                                    {
+                                        <option value="@y" selected="@(ViewBag.CurrentYear == y)">@y</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-sm-2 text-end">
+                                <a href="?" class="btn btn-outline-secondary btn-sm w-100">Reset</a>
+                            </div>
+                        </form>
+                    </div>
+
+                    <form asp-action="Create" method="post">
+                        <input type="hidden" name="month" value="@ViewBag.CurrentMonth" />
+                        <input type="hidden" name="year" value="@ViewBag.CurrentYear" />
+
+                        <!-- Form Error Summary -->
+                        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                        <!-- 1. Select Attendance -->
+                        <div class="mb-4">
+                            <label asp-for="AttendanceId" class="form-label small fw-bold">Select Date to Adjust <span class="text-danger">*</span></label>
+                            <select asp-for="AttendanceId" class="form-select" id="attendanceSelect" required>
+                                <option value="" data-in="-" data-out="-">-- Choose attendance date --</option>
+                                @foreach (var att in avail)
+                                {
+                                    var labelDate = att.AttendanceDate.ToString("dd/MM/yyyy");
+                                    var displayIn = att.CheckInTime?.ToString("HH:mm") ?? "No Check-in";
+                                    var displayOut = att.CheckOutTime?.ToString("HH:mm") ?? "No Check-out";
+                                    var inIso = att.CheckInTime?.ToString("yyyy-MM-ddTHH:mm") ?? "";
+                                    var outIso = att.CheckOutTime?.ToString("yyyy-MM-ddTHH:mm") ?? "";
+                                    
+                                    <option value="@att.AttendanceId" 
+                                            data-date="@att.AttendanceDate.ToString("yyyy-MM-dd")"
+                                            data-in="@displayIn" 
+                                            data-out="@displayOut"
+                                            data-in-iso="@inIso"
+                                            data-out-iso="@outIso">
+                                        @labelDate (@displayIn → @displayOut | @att.WorkingHours hrs)
+                                    </option>
+                                }
+                            </select>
+                            <span asp-validation-for="AttendanceId" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Display Current Times Info -->
+                        <div class="row mb-4 text-center">
+                            <div class="col-6">
+                                <div class="border rounded p-2 bg-light">
+                                    <div class="text-muted small">Current Check-In</div>
+                                    <div class="fw-bold fs-5 text-success" id="currCheckIn">-</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="border rounded p-2 bg-light">
+                                    <div class="text-muted small">Current Check-Out</div>
+                                    <div class="fw-bold fs-5 text-danger" id="currCheckOut">-</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Set New Times -->
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label asp-for="RequestedCheckInTime" class="form-label small fw-bold">Proposed Check-In Time</label>
+                                <input type="datetime-local" asp-for="RequestedCheckInTime" class="form-control" id="requestedIn" />
+                                <span asp-validation-for="RequestedCheckInTime" class="text-danger small"></span>
+                                <div class="form-text small">Leave empty if unchanged. Must match selected date.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="RequestedCheckOutTime" class="form-label small fw-bold">Proposed Check-Out Time</label>
+                                <input type="datetime-local" asp-for="RequestedCheckOutTime" class="form-control" id="requestedOut" />
+                                <span asp-validation-for="RequestedCheckOutTime" class="text-danger small"></span>
+                                <div class="form-text small">Leave empty if unchanged. Must match selected date.</div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Reason -->
+                        <div class="mb-4">
+                            <label asp-for="Reason" class="form-label small fw-bold">Reason for Adjustment <span class="text-danger">*</span></label>
+                            <textarea asp-for="Reason" class="form-control" rows="3" placeholder="Provide a detailed reason for this adjustment request..." required></textarea>
+                            <span asp-validation-for="Reason" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Form Footer -->
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="MyRequests" class="btn btn-outline-secondary">Back to List</a>
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Submit Request</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('attendanceSelect').addEventListener('change', function () {
+            const selectedOption = this.options[this.selectedIndex];
+            
+            // Set current time labels
+            document.getElementById('currCheckIn').innerText = selectedOption.getAttribute('data-in') || '-';
+            document.getElementById('currCheckOut').innerText = selectedOption.getAttribute('data-out') || '-';
+
+            // Auto-fill dates matching selected date
+            const dateStr = selectedOption.getAttribute('data-date');
+            const inIso = selectedOption.getAttribute('data-in-iso');
+            const outIso = selectedOption.getAttribute('data-out-iso');
+            
+            const reqInInput = document.getElementById('requestedIn');
+            const reqOutInput = document.getElementById('requestedOut');
+
+            if (dateStr) {
+                // If there's an existing check-in time, set input placeholder date to it, else select start of day
+                reqInInput.value = inIso || (dateStr + 'T08:00');
+                reqOutInput.value = outIso || (dateStr + 'T17:00');
+            } else {
+                reqInInput.value = '';
+                reqOutInput.value = '';
+            }
+        });
+    </script>
+}

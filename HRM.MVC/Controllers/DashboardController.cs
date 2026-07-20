@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Headers;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using HRM.Business.Common;
 using HRM.Business.DTOs.Dashboards;
@@ -92,14 +92,17 @@ namespace HRM.MVC.Controllers
             return View(result.Data);
         }
 
-        public async Task<IActionResult> Payroll(int payrollMonth, int payrollYear)
+        public async Task<IActionResult> Payroll(int? payrollMonth, int? payrollYear)
         {
             var client = CreateAuthorizedClient();
             if (client == null)
                 return RedirectToAction("Login", "Auth");
 
+            int queryMonth = payrollMonth ?? DateTime.Today.Month;
+            int queryYear = payrollYear ?? DateTime.Today.Year;
+
             var response = await client.GetAsync(
-                $"api/dashboard/payroll?payrollMonth={payrollMonth}&payrollYear={payrollYear}");
+                $"api/dashboard/payroll?payrollMonth={queryMonth}&payrollYear={queryYear}");
 
             var result =
                 await ApiResponseReader.ReadAsync<PayrollDashboardDto>(response);
@@ -111,7 +114,7 @@ namespace HRM.MVC.Controllers
             if (result?.Success != true)
             {
                 TempData["Error"] = result?.Message ?? "Cannot load dashboard.";
-                return View(new PayrollDashboardDto());
+                return View(new PayrollDashboardDto { PayrollMonth = queryMonth, PayrollYear = queryYear });
             }
 
             return View(result.Data);

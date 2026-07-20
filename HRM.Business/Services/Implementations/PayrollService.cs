@@ -28,10 +28,25 @@ namespace HRM.Business.Services.Implementations
             if (request.PayrollYear < 2000 || request.PayrollYear > 2100)
                 return ApiResponse<List<PayrollResponseDto>>.Fail("Payroll year must be valid.");
 
-            // Get active employees who have an active contract
+            var periodStart = new DateTime(request.PayrollYear, request.PayrollMonth, 1);
+            var periodEnd = periodStart.AddMonths(1).AddDays(-1);
+            var periodStartOnly = DateOnly.FromDateTime(periodStart);
+            var periodEndOnly = DateOnly.FromDateTime(periodEnd);
+
+            // Fetch contracts valid in this period
+            var validPeriodContracts = await _unitOfWork.Contracts.Query()
+                .Where(c => c.StartDate <= periodEndOnly && (c.EndDate == null || c.EndDate >= periodStartOnly))
+                .ToListAsync();
+
+            var validEmployeeIds = validPeriodContracts.Select(c => c.EmployeeId).Distinct().ToList();
+
+            // Get employees
             var employeeQuery = _unitOfWork.Employees.Query()
-                .Include(e => e.Contract)
-                .Where(e => e.EmploymentStatus == "ACTIVE" && e.Contract != null && e.Contract.Status == "ACTIVE");
+                .Include(e => e.EmployeeAssignments)
+                    .ThenInclude(ea => ea.Department)
+                .Include(e => e.EmployeeAssignments)
+                    .ThenInclude(ea => ea.Position)
+                .Where(e => e.EmploymentStatus == "ACTIVE");
 
             if (request.EmployeeId.HasValue)
             {
@@ -52,23 +67,41 @@ namespace HRM.Business.Services.Implementations
                 .ToListAsync();
 
             var newPayrolls = new List<Payroll>();
+            var skippedEmployees = new List<string>();
+
             foreach (var emp in activeEmployees)
             {
                 if (existingEmployeeIds.Contains(emp.EmployeeId))
                     continue;
+
+                var empContracts = validPeriodContracts.Where(c => c.EmployeeId == emp.EmployeeId).ToList();
+                if (!empContracts.Any())
+                {
+                    skippedEmployees.Add(emp.FullName);
+                    continue;
+                }
+
+                // Choose most recent contract starting in or before period
+                var contract = empContracts.OrderByDescending(c => c.StartDate).First();
+
+                var periodAssignment = emp.EmployeeAssignments
+                    .Where(ea => ea.StartDate <= periodEndOnly && (ea.EndDate == null || ea.EndDate >= periodStartOnly))
+                    .OrderByDescending(ea => ea.StartDate)
+                    .FirstOrDefault()
+                    ?? emp.EmployeeAssignment;
 
                 var payroll = new Payroll
                 {
                     EmployeeId = emp.EmployeeId,
                     PayrollMonth = request.PayrollMonth,
                     PayrollYear = request.PayrollYear,
-                    BaseSalary = emp.Contract?.Salary ?? 0,
+                    BaseSalary = contract.Salary,
                     TotalAllowance = 0,
                     TotalBonus = 0,
                     TotalOvertime = 0,
                     TotalDeduction = 0,
-                    GrossSalary = emp.Contract?.Salary ?? 0,
-                    NetSalary = emp.Contract?.Salary ?? 0,
+                    GrossSalary = contract.Salary,
+                    NetSalary = contract.Salary,
                     Status = "DRAFT",
                     GeneratedByUserId = currentUser.UserId,
                     CreatedAt = DateTime.Now
@@ -76,15 +109,30 @@ namespace HRM.Business.Services.Implementations
                 newPayrolls.Add(payroll);
             }
 
-            if (newPayrolls.Any())
+            await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                await _unitOfWork.Payrolls.AddRangeAsync(newPayrolls);
-                await _unitOfWork.SaveChangesAsync();
+                if (newPayrolls.Any())
+                {
+                    await _unitOfWork.Payrolls.AddRangeAsync(newPayrolls);
+                    await _unitOfWork.SaveChangesAsync();
+                }
+                await _unitOfWork.CommitTransactionAsync();
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                return ApiResponse<List<PayrollResponseDto>>.Fail("Error generating payrolls: " + ex.Message);
             }
 
             // Retrieve all payrolls for the period to return
             var query = _unitOfWork.Payrolls.Query()
                 .Include(p => p.Employee)
+                    .ThenInclude(e => e.EmployeeAssignments.Where(ea => ea.EndDate == null))
+                        .ThenInclude(ea => ea.Department)
+                .Include(p => p.Employee)
+                    .ThenInclude(e => e.EmployeeAssignments.Where(ea => ea.EndDate == null))
+                        .ThenInclude(ea => ea.Position)
                 .Include(p => p.GeneratedByUser)
                 .Include(p => p.ConfirmedByUser)
                 .Where(p => p.PayrollMonth == request.PayrollMonth && p.PayrollYear == request.PayrollYear);
@@ -102,7 +150,13 @@ namespace HRM.Business.Services.Implementations
             var allPayrolls = await query.ToListAsync();
             var dtos = allPayrolls.Select(MapToPayrollDto).ToList();
 
-            return ApiResponse<List<PayrollResponseDto>>.Ok(dtos, $"Generated payrolls successfully for period {request.PayrollMonth}/{request.PayrollYear}.");
+            string msg = $"Generated payrolls successfully for period {request.PayrollMonth}/{request.PayrollYear}.";
+            if (skippedEmployees.Any())
+            {
+                msg += $" (Skipped {skippedEmployees.Count} employee(s) without valid contract: {string.Join(", ", skippedEmployees)})";
+            }
+
+            return ApiResponse<List<PayrollResponseDto>>.Ok(dtos, msg);
         }
 
         public async Task<ApiResponse<List<PayrollResponseDto>>> CalculatePayrollAsync(
@@ -115,9 +169,13 @@ namespace HRM.Business.Services.Implementations
             if (request.OvertimeCoefficient <= 0 || request.StandardWorkingDays <= 0 || request.StandardWorkingHoursPerDay <= 0)
                 return ApiResponse<List<PayrollResponseDto>>.Fail("Overtime coefficient, standard working days, and standard working hours per day must be positive.");
 
+            var periodStart = new DateTime(request.PayrollYear, request.PayrollMonth, 1);
+            var periodEnd = periodStart.AddMonths(1).AddDays(-1);
+            var periodStartOnly = DateOnly.FromDateTime(periodStart);
+            var periodEndOnly = DateOnly.FromDateTime(periodEnd);
+
             var query = _unitOfWork.Payrolls.Query()
                 .Include(p => p.Employee)
-                    .ThenInclude(e => e.Contract)
                 .Include(p => p.PayrollDetails)
                 .Where(p => p.PayrollMonth == request.PayrollMonth &&
                             p.PayrollYear == request.PayrollYear &&
@@ -135,28 +193,35 @@ namespace HRM.Business.Services.Implementations
 
             var payrolls = await query.ToListAsync();
 
+            if (!payrolls.Any())
+            {
+                return ApiResponse<List<PayrollResponseDto>>.Fail("No DRAFT payrolls found to calculate for this period.");
+            }
+
             await _unitOfWork.BeginTransactionAsync();
             try
             {
                 foreach (var payroll in payrolls)
                 {
-                    // 1. Get base salary from active contract (or fallback to existing base salary)
-                    var emp = payroll.Employee;
-                    if (emp?.Contract != null && emp.Contract.Status == "ACTIVE")
+                    // 1. Get base salary from contract valid in this period
+                    var empContracts = await _unitOfWork.Contracts.Query()
+                        .Where(c => c.EmployeeId == payroll.EmployeeId &&
+                                     c.StartDate <= periodEndOnly &&
+                                     (c.EndDate == null || c.EndDate >= periodStartOnly))
+                        .ToListAsync();
+                    if (empContracts.Any())
                     {
-                        payroll.BaseSalary = emp.Contract.Salary;
+                        var contract = empContracts.OrderByDescending(c => c.StartDate).First();
+                        payroll.BaseSalary = contract.Salary;
                     }
 
                     // 2. Clear old automatic details
                     if (payroll.PayrollDetails != null && payroll.PayrollDetails.Any())
                     {
-                        var detailsToDelete = payroll.PayrollDetails
-                            .Where(d => d.ItemType == "ALLOWANCE" || d.ItemType == "BONUS" || d.ItemType == "DEDUCTION" || d.ItemType == "OVERTIME")
-                            .ToList();
-                        
-                        if (detailsToDelete.Any())
+                        var autoDetails = payroll.PayrollDetails.Where(d => d.SourceType == "SYSTEM" || d.SourceType == "OVERTIME").ToList();
+                        if (autoDetails.Any())
                         {
-                            _unitOfWork.PayrollDetails.DeleteRange(detailsToDelete);
+                            _unitOfWork.PayrollDetails.DeleteRange(autoDetails);
                         }
                     }
 
@@ -171,24 +236,24 @@ namespace HRM.Business.Services.Implementations
 
                     var newDetails = new List<PayrollDetail>();
                     decimal totalOvertime = 0;
+                    decimal hourlySalary = payroll.BaseSalary / request.StandardWorkingDays / request.StandardWorkingHoursPerDay;
 
-                    if (otRequests.Any())
+                    foreach (var ot in otRequests)
                     {
-                        decimal totalOvertimeHours = otRequests.Sum(ot => ot.TotalHours);
-                        decimal hourlySalary = payroll.BaseSalary / request.StandardWorkingDays / request.StandardWorkingHoursPerDay;
-                        decimal overtimeAmount = Math.Round(hourlySalary * request.OvertimeCoefficient * totalOvertimeHours, 2);
-
-                        if (overtimeAmount > 0)
+                        decimal otAmount = Math.Round(hourlySalary * request.OvertimeCoefficient * ot.TotalHours, 2);
+                        if (otAmount > 0)
                         {
                             newDetails.Add(new PayrollDetail
                             {
                                 PayrollId = payroll.PayrollId,
                                 ItemType = "OVERTIME",
-                                Amount = overtimeAmount,
-                                Description = $"Approved Overtime for {request.PayrollMonth}/{request.PayrollYear} ({totalOvertimeHours} hrs @ Coefficient {request.OvertimeCoefficient})",
+                                Amount = otAmount,
+                                Description = $"Approved Overtime on {ot.Otdate:yyyy-MM-dd} ({ot.TotalHours} hrs @ Coefficient {request.OvertimeCoefficient})",
+                                SourceType = "OVERTIME",
+                                SourceId = ot.Otid,
                                 CreatedAt = DateTime.Now
                             });
-                            totalOvertime = overtimeAmount;
+                            totalOvertime += otAmount;
                         }
                     }
 
@@ -201,6 +266,7 @@ namespace HRM.Business.Services.Implementations
                             ItemType = "ALLOWANCE",
                             Amount = request.DefaultAllowance,
                             Description = "Default Monthly Allowance",
+                            SourceType = "SYSTEM",
                             CreatedAt = DateTime.Now
                         });
                     }
@@ -213,6 +279,7 @@ namespace HRM.Business.Services.Implementations
                             ItemType = "BONUS",
                             Amount = request.DefaultBonus,
                             Description = "Default Monthly Bonus",
+                            SourceType = "SYSTEM",
                             CreatedAt = DateTime.Now
                         });
                     }
@@ -225,6 +292,7 @@ namespace HRM.Business.Services.Implementations
                             ItemType = "DEDUCTION",
                             Amount = request.DefaultDeduction,
                             Description = "Default Monthly Deduction",
+                            SourceType = "SYSTEM",
                             CreatedAt = DateTime.Now
                         });
                     }
@@ -234,15 +302,22 @@ namespace HRM.Business.Services.Implementations
                         await _unitOfWork.PayrollDetails.AddRangeAsync(newDetails);
                     }
 
-                    // 5. Update payroll totals
-                    payroll.TotalAllowance = request.DefaultAllowance > 0 ? request.DefaultAllowance : 0;
-                    payroll.TotalBonus = request.DefaultBonus > 0 ? request.DefaultBonus : 0;
-                    payroll.TotalDeduction = request.DefaultDeduction > 0 ? request.DefaultDeduction : 0;
-                    payroll.TotalOvertime = totalOvertime;
+                    // 5. Update payroll totals using all details (new automatic + existing manual)
+                    var allDetails = newDetails.Concat((payroll.PayrollDetails ?? new List<PayrollDetail>()).Where(d => d.SourceType == "MANUAL")).ToList();
 
-                    payroll.GrossSalary = payroll.BaseSalary + payroll.TotalAllowance + payroll.TotalBonus + payroll.TotalOvertime;
+                    payroll.TotalAllowance = allDetails.Where(d => d.ItemType == "ALLOWANCE").Sum(d => d.Amount);
+                    payroll.TotalBonus = allDetails.Where(d => d.ItemType == "BONUS").Sum(d => d.Amount);
+                    payroll.TotalOvertime = allDetails.Where(d => d.ItemType == "OVERTIME").Sum(d => d.Amount);
+                    payroll.TotalDeduction = allDetails.Where(d => d.ItemType == "DEDUCTION").Sum(d => d.Amount);
+
+                    decimal otherEarning = allDetails.Where(d => d.ItemType == "OTHER").Sum(d => d.Amount);
+
+                    payroll.GrossSalary = payroll.BaseSalary + payroll.TotalAllowance + payroll.TotalBonus + payroll.TotalOvertime + otherEarning;
                     payroll.NetSalary = payroll.GrossSalary - payroll.TotalDeduction;
                     if (payroll.NetSalary < 0) payroll.NetSalary = 0;
+
+                    payroll.Status = "DRAFT";
+                    payroll.UpdatedAt = DateTime.Now;
 
                     _unitOfWork.Payrolls.Update(payroll);
                 }
@@ -259,6 +334,11 @@ namespace HRM.Business.Services.Implementations
             // Reload calculated payrolls to return
             var updatedQuery = _unitOfWork.Payrolls.Query()
                 .Include(p => p.Employee)
+                    .ThenInclude(e => e.EmployeeAssignments.Where(ea => ea.EndDate == null))
+                        .ThenInclude(ea => ea.Department)
+                .Include(p => p.Employee)
+                    .ThenInclude(e => e.EmployeeAssignments.Where(ea => ea.EndDate == null))
+                        .ThenInclude(ea => ea.Position)
                 .Include(p => p.PayrollDetails)
                 .Include(p => p.GeneratedByUser)
                 .Include(p => p.ConfirmedByUser)
@@ -382,35 +462,102 @@ namespace HRM.Business.Services.Implementations
             var validTypes = new[] { "ALLOWANCE", "BONUS", "DEDUCTION", "OVERTIME", "OTHER" };
             foreach (var item in request.Items)
             {
-                if (item.Amount < 0)
-                    return ApiResponse<PayrollResponseDto>.Fail("Detail item amount cannot be negative.");
+                if (string.IsNullOrWhiteSpace(item.Description))
+                    return ApiResponse<PayrollResponseDto>.Fail("Detail item description cannot be empty.");
+
+                if (item.Amount <= 0)
+                    return ApiResponse<PayrollResponseDto>.Fail("Detail item amount must be positive.");
+
+                if (item.Amount > 1000000000000m)
+                    return ApiResponse<PayrollResponseDto>.Fail("Detail item amount exceeds maximum allowed value.");
 
                 if (!validTypes.Contains(item.ItemType.ToUpper()))
                     return ApiResponse<PayrollResponseDto>.Fail($"Invalid ItemType: '{item.ItemType}'. Valid types are: ALLOWANCE, BONUS, DEDUCTION, OVERTIME, OTHER.");
             }
 
+            // Protect automatic overtime and system details
+            var existingDetails = payroll.PayrollDetails.ToList();
+            var existingAutoDetails = existingDetails.Where(d => d.SourceType == "SYSTEM" || d.SourceType == "OVERTIME").ToList();
+            var existingManualDetails = existingDetails.Where(d => d.SourceType == "MANUAL").ToList();
+
+            foreach (var autoDetail in existingAutoDetails)
+            {
+                var matched = request.Items.FirstOrDefault(item =>
+                    item.ItemType.Equals(autoDetail.ItemType, StringComparison.OrdinalIgnoreCase) &&
+                    (item.Description ?? "").Equals(autoDetail.Description ?? "", StringComparison.OrdinalIgnoreCase) &&
+                    item.Amount == autoDetail.Amount &&
+                    (item.SourceType ?? "").Equals(autoDetail.SourceType ?? "", StringComparison.OrdinalIgnoreCase) &&
+                    item.SourceId == autoDetail.SourceId);
+
+                if (matched == null)
+                {
+                    return ApiResponse<PayrollResponseDto>.Fail("Automatic system and overtime details cannot be modified or deleted manually. Please recalculate payroll instead.");
+                }
+            }
+
+            // Prevent tampering / client forging auto details
+            foreach (var item in request.Items)
+            {
+                bool isAuto = item.SourceType == "SYSTEM" || item.SourceType == "OVERTIME";
+                if (isAuto)
+                {
+                    var match = existingAutoDetails.FirstOrDefault(autoDetail =>
+                        item.ItemType.Equals(autoDetail.ItemType, StringComparison.OrdinalIgnoreCase) &&
+                        (item.Description ?? "").Equals(autoDetail.Description ?? "", StringComparison.OrdinalIgnoreCase) &&
+                        item.Amount == autoDetail.Amount &&
+                        (item.SourceType ?? "").Equals(autoDetail.SourceType ?? "", StringComparison.OrdinalIgnoreCase) &&
+                        item.SourceId == autoDetail.SourceId);
+
+                    if (match == null)
+                    {
+                        return ApiResponse<PayrollResponseDto>.Fail("You are not allowed to assign SYSTEM or OVERTIME source types, or assign a SourceId manually.");
+                    }
+                }
+            }
+
+            string initialStatus = payroll.Status;
+
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                // Delete old details
-                if (payroll.PayrollDetails != null && payroll.PayrollDetails.Any())
+                // Delete old manual details
+                if (existingManualDetails.Any())
                 {
-                    _unitOfWork.PayrollDetails.DeleteRange(payroll.PayrollDetails);
+                    _unitOfWork.PayrollDetails.DeleteRange(existingManualDetails);
                 }
 
-                // Add new details
-                var newDetails = request.Items.Select(item => new PayrollDetail
+                // Prepare manual details from request
+                var newManualDetails = new List<PayrollDetail>();
+                foreach (var item in request.Items)
                 {
-                    PayrollId = payrollId,
-                    ItemType = item.ItemType.ToUpper(),
-                    Description = item.Description,
-                    Amount = item.Amount,
-                    SourceType = item.SourceType,
-                    SourceId = item.SourceId,
-                    CreatedAt = DateTime.Now
-                }).ToList();
+                    bool isAuto = existingAutoDetails.Any(autoDetail =>
+                        item.ItemType.Equals(autoDetail.ItemType, StringComparison.OrdinalIgnoreCase) &&
+                        (item.Description ?? "").Equals(autoDetail.Description ?? "", StringComparison.OrdinalIgnoreCase) &&
+                        item.Amount == autoDetail.Amount &&
+                        (item.SourceType ?? "").Equals(autoDetail.SourceType ?? "", StringComparison.OrdinalIgnoreCase) &&
+                        item.SourceId == autoDetail.SourceId);
 
-                await _unitOfWork.PayrollDetails.AddRangeAsync(newDetails);
+                    if (!isAuto)
+                    {
+                        newManualDetails.Add(new PayrollDetail
+                        {
+                            PayrollId = payrollId,
+                            ItemType = item.ItemType.ToUpper(),
+                            Description = item.Description,
+                            Amount = item.Amount,
+                            SourceType = "MANUAL",
+                            SourceId = null,
+                            CreatedAt = DateTime.Now
+                        });
+                    }
+                }
+
+                if (newManualDetails.Any())
+                {
+                    await _unitOfWork.PayrollDetails.AddRangeAsync(newManualDetails);
+                }
+
+                var newDetails = existingAutoDetails.Concat(newManualDetails).ToList();
 
                 // Recalculate totals
                 payroll.TotalAllowance = newDetails.Where(d => d.ItemType == "ALLOWANCE").Sum(d => d.Amount);
@@ -418,9 +565,14 @@ namespace HRM.Business.Services.Implementations
                 payroll.TotalOvertime = newDetails.Where(d => d.ItemType == "OVERTIME").Sum(d => d.Amount);
                 payroll.TotalDeduction = newDetails.Where(d => d.ItemType == "DEDUCTION").Sum(d => d.Amount);
 
-                payroll.GrossSalary = payroll.BaseSalary + payroll.TotalAllowance + payroll.TotalBonus + payroll.TotalOvertime;
+                decimal otherEarning = newDetails.Where(d => d.ItemType == "OTHER").Sum(d => d.Amount);
+
+                payroll.GrossSalary = payroll.BaseSalary + payroll.TotalAllowance + payroll.TotalBonus + payroll.TotalOvertime + otherEarning;
                 payroll.NetSalary = payroll.GrossSalary - payroll.TotalDeduction;
                 if (payroll.NetSalary < 0) payroll.NetSalary = 0;
+
+                payroll.Status = initialStatus;
+                payroll.UpdatedAt = DateTime.Now;
 
                 _unitOfWork.Payrolls.Update(payroll);
                 await _unitOfWork.SaveChangesAsync();
@@ -454,9 +606,9 @@ namespace HRM.Business.Services.Implementations
         {
             var query = _unitOfWork.Payrolls.Query()
                 .Include(p => p.Employee)
+                .Include(p => p.PayrollDetails)
                 .Where(p => p.PayrollMonth == request.PayrollMonth &&
-                            p.PayrollYear == request.PayrollYear &&
-                            p.Status == "DRAFT");
+                            p.PayrollYear == request.PayrollYear);
 
             if (request.EmployeeId.HasValue)
             {
@@ -471,38 +623,108 @@ namespace HRM.Business.Services.Implementations
             var payrolls = await query.ToListAsync();
 
             if (!payrolls.Any())
-                return ApiResponse<bool>.NotFound("No DRAFT payrolls found to confirm for this period.");
+                return ApiResponse<bool>.NotFound("No payrolls found to confirm for this period and filters.");
 
+            foreach (var payroll in payrolls)
+            {
+                if (payroll.Status == "CONFIRMED" || payroll.Status == "PAID")
+                {
+                    continue; // Skip already confirmed/paid in bulk
+                }
+
+                if (payroll.Status != "DRAFT")
+                {
+                    return ApiResponse<bool>.Fail($"Payroll for Employee {payroll.Employee?.FullName ?? payroll.EmployeeId.ToString()} has invalid status '{payroll.Status}'. Only DRAFT payrolls can be confirmed.");
+                }
+
+                if (payroll.UpdatedAt == null)
+                {
+                    return ApiResponse<bool>.Fail("Payroll has not been calculated. Please calculate payroll first.");
+                }
+
+                if (payroll.GrossSalary <= 0 || payroll.NetSalary < 0)
+                {
+                    return ApiResponse<bool>.Fail($"Payroll for Employee {payroll.Employee?.FullName ?? payroll.EmployeeId.ToString()} has invalid calculated values (Gross: {payroll.GrossSalary}, Net: {payroll.NetSalary}). Please Calculate Payroll first.");
+                }
+
+                // Check details totals match
+                decimal totalEarnings = payroll.PayrollDetails
+                    .Where(d => d.ItemType == "ALLOWANCE" || d.ItemType == "BONUS" || d.ItemType == "OVERTIME" || d.ItemType == "OTHER")
+                    .Sum(d => d.Amount);
+
+                decimal totalDeductions = payroll.PayrollDetails
+                    .Where(d => d.ItemType == "DEDUCTION")
+                    .Sum(d => d.Amount);
+
+                decimal expectedGross = payroll.BaseSalary + totalEarnings;
+                decimal expectedNet = expectedGross - totalDeductions;
+                if (expectedNet < 0) expectedNet = 0;
+
+                if (Math.Abs(expectedGross - payroll.GrossSalary) > 0.02m)
+                {
+                    return ApiResponse<bool>.Fail($"Payroll Gross Salary ({payroll.GrossSalary}) does not match Base Salary and details sum ({expectedGross}) for Employee {payroll.Employee?.FullName}. Please Recalculate.");
+                }
+
+                if (Math.Abs(expectedNet - payroll.NetSalary) > 0.02m)
+                {
+                    return ApiResponse<bool>.Fail($"Payroll Net Salary ({payroll.NetSalary}) does not match Gross and deductions sum ({expectedNet}) for Employee {payroll.Employee?.FullName}. Please Recalculate.");
+                }
+
+                // Check for new approved OT requests not included in Payroll Details
+                var approvedOts = await _unitOfWork.OvertimeRequests.Query()
+                    .Where(ot => ot.EmployeeId == payroll.EmployeeId &&
+                                 ot.Status == "APPROVED" &&
+                                 !ot.IsTransferredToPayroll &&
+                                 ot.Otdate.Month == payroll.PayrollMonth &&
+                                 ot.Otdate.Year == payroll.PayrollYear)
+                    .ToListAsync();
+
+                var calculatedOtIds = payroll.PayrollDetails
+                    .Where(d => d.SourceType == "OVERTIME" && d.SourceId.HasValue)
+                    .Select(d => d.SourceId!.Value)
+                    .ToList();
+
+                var hasNewOt = approvedOts.Any(ot => !calculatedOtIds.Contains(ot.Otid));
+                if (hasNewOt)
+                {
+                    return ApiResponse<bool>.Fail($"New approved Overtime requests exist for Employee {payroll.Employee?.FullName} that are not in the payroll details. Please Recalculate Payroll first.");
+                }
+            }
+
+            var confirmedCount = 0;
             await _unitOfWork.BeginTransactionAsync();
             try
             {
                 foreach (var payroll in payrolls)
                 {
-                    if (payroll.GrossSalary < 0 || payroll.NetSalary < 0)
-                    {
-                        await _unitOfWork.RollbackTransactionAsync();
-                        return ApiResponse<bool>.Fail($"Payroll ID {payroll.PayrollId} has invalid calculations (negative gross/net salary).");
-                    }
+                    if (payroll.Status != "DRAFT")
+                        continue;
 
                     payroll.Status = "CONFIRMED";
                     payroll.ConfirmedByUserId = currentUser.UserId;
                     payroll.ConfirmedAt = DateTime.Now;
+                    payroll.UpdatedAt = DateTime.Now;
 
                     _unitOfWork.Payrolls.Update(payroll);
+                    confirmedCount++;
 
-                    // Update related OvertimeRequests to IsTransferredToPayroll = true
-                    var otRequests = await _unitOfWork.OvertimeRequests.Query()
-                        .Where(ot => ot.EmployeeId == payroll.EmployeeId &&
-                                     ot.Status == "APPROVED" &&
-                                     !ot.IsTransferredToPayroll &&
-                                     ot.Otdate.Month == request.PayrollMonth &&
-                                     ot.Otdate.Year == request.PayrollYear)
-                        .ToListAsync();
+                    // Mark only OT requests that actually exist in details
+                    var otIdsToTransfer = payroll.PayrollDetails
+                        .Where(d => d.SourceType == "OVERTIME" && d.SourceId.HasValue)
+                        .Select(d => d.SourceId!.Value)
+                        .ToList();
 
-                    foreach (var ot in otRequests)
+                    if (otIdsToTransfer.Any())
                     {
-                        ot.IsTransferredToPayroll = true;
-                        _unitOfWork.OvertimeRequests.Update(ot);
+                        var otsToUpdate = await _unitOfWork.OvertimeRequests.Query()
+                            .Where(ot => otIdsToTransfer.Contains(ot.Otid))
+                            .ToListAsync();
+
+                        foreach (var ot in otsToUpdate)
+                        {
+                            ot.IsTransferredToPayroll = true;
+                            _unitOfWork.OvertimeRequests.Update(ot);
+                        }
                     }
                 }
 
@@ -516,29 +738,96 @@ namespace HRM.Business.Services.Implementations
             }
 
             // Try sending system notifications to employees
-            var recipientUserIds = payrolls
-                .Where(p => p.Employee?.UserId != null)
-                .Select(p => p.Employee.UserId!.Value)
-                .ToList();
-
-            if (recipientUserIds.Any())
+            if (confirmedCount > 0)
             {
-                try
+                var recipientUserIds = payrolls
+                    .Where(p => p.Status == "CONFIRMED" && p.Employee?.UserId != null)
+                    .Select(p => p.Employee.UserId!.Value)
+                    .Distinct()
+                    .ToList();
+
+                if (recipientUserIds.Any())
                 {
-                    await _notificationService.SendSystemNotificationAsync(
-                        "Payslip Released",
-                        $"Your payslip for {request.PayrollMonth}/{request.PayrollYear} is ready for viewing.",
-                        "PAYROLL",
-                        recipientUserIds
-                    );
-                }
-                catch
-                {
-                    // Ignore notification failures so it doesn't break the main flow
+                    try
+                    {
+                        await _notificationService.SendSystemNotificationAsync(
+                            "Payslip Released",
+                            $"Your payslip for {request.PayrollMonth}/{request.PayrollYear} is ready for viewing.",
+                            "PAYROLL",
+                            recipientUserIds
+                        );
+                    }
+                    catch
+                    {
+                        // Ignore notification failures so it doesn't break the main flow
+                    }
                 }
             }
 
-            return ApiResponse<bool>.Ok(true, $"Confirmed {payrolls.Count} payrolls successfully.");
+            return ApiResponse<bool>.Ok(true, $"Confirmed {confirmedCount} payrolls successfully.");
+        }
+
+        public async Task<ApiResponse<bool>> PayPayrollAsync(
+            CurrentUser currentUser,
+            ConfirmPayrollRequestDto request)
+        {
+            if (!currentUser.IsAdmin() && !currentUser.IsPayroll())
+            {
+                return ApiResponse<bool>.Forbidden("You do not have permission to mark payrolls as paid.");
+            }
+
+            var query = _unitOfWork.Payrolls.Query()
+                .Include(p => p.Employee)
+                .Where(p => p.PayrollMonth == request.PayrollMonth &&
+                            p.PayrollYear == request.PayrollYear);
+
+            if (request.EmployeeId.HasValue)
+            {
+                query = query.Where(p => p.EmployeeId == request.EmployeeId.Value);
+            }
+
+            if (request.DepartmentId.HasValue)
+            {
+                query = query.Where(p => p.Employee.EmployeeAssignments.Any(ea => ea.DepartmentId == request.DepartmentId.Value && ea.EndDate == null));
+            }
+
+            var payrolls = await query.ToListAsync();
+
+            if (!payrolls.Any())
+                return ApiResponse<bool>.NotFound("No payrolls found to pay for this period and filters.");
+
+            var paidCount = 0;
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                foreach (var payroll in payrolls)
+                {
+                    if (payroll.Status != "CONFIRMED")
+                        continue;
+
+                    payroll.Status = "PAID";
+                    payroll.UpdatedAt = DateTime.Now;
+
+                    _unitOfWork.Payrolls.Update(payroll);
+                    paidCount++;
+                }
+
+                if (paidCount == 0)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return ApiResponse<bool>.Fail("No CONFIRMED payrolls found to mark as paid for this period and filters.");
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                return ApiResponse<bool>.Fail("Error marking payroll as paid: " + ex.Message);
+            }
+
+            return ApiResponse<bool>.Ok(true, $"Marked {paidCount} payroll(s) as paid successfully.");
         }
 
         public async Task<ApiResponse<PayrollResponseDto>> GetMyPayslipAsync(
@@ -656,7 +945,7 @@ namespace HRM.Business.Services.Implementations
                 ConfirmedByUsername = entity.ConfirmedByUser?.Username,
                 CreatedAt = entity.CreatedAt,
                 ConfirmedAt = entity.ConfirmedAt,
-                UpdatedAt = null,
+                UpdatedAt = entity.UpdatedAt,
                 PayrollDetails = entity.PayrollDetails?.Select(d => new PayrollDetailResponseDto
                 {
                     PayrollDetailId = d.PayrollDetailId,
@@ -666,6 +955,7 @@ namespace HRM.Business.Services.Implementations
                     Amount = d.Amount,
                     SourceType = d.SourceType,
                     SourceId = d.SourceId,
+                    IsManual = d.SourceType == "MANUAL",
                     CreatedAt = d.CreatedAt
                 }).ToList() ?? new List<PayrollDetailResponseDto>()
             };

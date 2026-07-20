@@ -1,4 +1,4 @@
-﻿namespace HRM.Business.DTOs.Attendances
+namespace HRM.Business.DTOs.Attendances
 {
     public class AttendanceAdjustmentResponseDto
     {
@@ -29,5 +29,15 @@
         public DateTime CreatedAt { get; set; }
 
         public DateTime? UpdatedAt { get; set; }
+
+        public DateOnly AttendanceDate { get; set; }
+
+        public DateTime? CurrentCheckInTime { get; set; }
+
+        public DateTime? CurrentCheckOutTime { get; set; }
+
+        public string? EmployeeCode { get; set; }
+
+        public string? DepartmentName { get; set; }
     }
 }
