@@ -1,0 +1,216 @@
+@page
+@model HRM.Razor.Pages.Payroll.IndexModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Danh sách bảng lương";
+}
+
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/payroll.css" asp-append-version="true" />
+
+<div class="page-breadcrumb">
+    Tiền lương &gt; <span>Danh sách bảng lương</span>
+</div>
+
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+        <h1 class="page-title mb-1">Danh sách bảng lương</h1>
+        <p class="page-subtitle mb-0">Quản lý các bảng lương hàng tháng của doanh nghiệp</p>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a asp-page="/Payroll/Generate" class="btn btn-outline">
+            <i class="bi bi-plus-circle me-1"></i> Tạo bảng lương tháng
+        </a>
+        <a asp-page="/Payroll/Calculate" class="btn btn-primary">
+            <i class="bi bi-calculator me-1"></i> Tính lương theo kỳ
+        </a>
+    </div>
+</div>
+
+<!-- Statistic Cards -->
+<div class="row g-3 mb-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+    <div class="card p-3 d-flex align-items-center flex-row gap-3">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background-color: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+            <i class="bi bi-file-earmark-spreadsheet"></i>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size: 0.8rem; font-weight: 600;">Tổng số bảng lương</div>
+            <div style="font-size: 1.4rem; font-weight: 700; color: #0f172a;">@Model.TotalItems</div>
+        </div>
+    </div>
+
+    <div class="card p-3 d-flex align-items-center flex-row gap-3">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background-color: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+            <i class="bi bi-pencil-square"></i>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size: 0.8rem; font-weight: 600;">Trạng thái DRAFT</div>
+            <div style="font-size: 1.4rem; font-weight: 700; color: #0f172a;">@Model.DraftCount</div>
+        </div>
+    </div>
+
+    <div class="card p-3 d-flex align-items-center flex-row gap-3">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background-color: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+            <i class="bi bi-check-all"></i>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size: 0.8rem; font-weight: 600;">Đã xác nhận (CONFIRMED)</div>
+            <div style="font-size: 1.4rem; font-weight: 700; color: #0f172a;">@Model.ConfirmedCount</div>
+        </div>
+    </div>
+
+    <div class="card p-3 d-flex align-items-center flex-row gap-3">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background-color: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+            <i class="bi bi-cash-coin"></i>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size: 0.8rem; font-weight: 600;">Tổng Net trang này</div>
+            <div style="font-size: 1.25rem; font-weight: 700; color: #166534;">@Model.TotalNetAmount.ToString("N0") ₫</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="card mb-4" style="padding: 1.25rem;">
+    <form method="get" class="d-flex flex-wrap align-items-center gap-3">
+        <div style="width: 120px;">
+            <select asp-for="Month" class="form-control">
+                <option value="">Tất cả tháng</option>
+                @for (int m = 1; m <= 12; m++)
+                {
+                    <option value="@m">Tháng @m</option>
+                }
+            </select>
+        </div>
+
+        <div style="width: 130px;">
+            <select asp-for="Year" class="form-control">
+                @for (int y = 2024; y <= 2026; y++)
+                {
+                    <option value="@y">Năm @y</option>
+                }
+            </select>
+        </div>
+
+        <div style="width: 200px;">
+            <select asp-for="DepartmentId" asp-items="Model.DepartmentOptions" class="form-control"></select>
+        </div>
+
+        <div style="width: 170px;">
+            <select asp-for="Status" class="form-control">
+                <option value="">Tất cả trạng thái</option>
+                <option value="DRAFT">Nháp (DRAFT)</option>
+                <option value="CONFIRMED">Đã chốt (CONFIRMED)</option>
+                <option value="PAID">Đã chi trả (PAID)</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="height: 42px;">
+            <i class="bi bi-funnel me-1"></i> Lọc
+        </button>
+        <a asp-page="/Payroll/Index" class="btn btn-outline" style="height: 42px;">Đặt lại</a>
+    </form>
+</div>
+
+<!-- Table Payroll List -->
+<div class="card" style="padding: 0; overflow: hidden;">
+    <div class="table-responsive">
+        <table class="table mb-0" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+            <thead style="background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left;">
+                <tr>
+                    <th style="padding: 1rem 1.25rem; width: 50px;">STT</th>
+                    <th style="padding: 1rem 1.25rem;">Nhân viên</th>
+                    <th style="padding: 1rem 1.25rem;">Phòng ban</th>
+                    <th style="padding: 1rem 1.25rem;">Kỳ lương</th>
+                    <th style="padding: 1rem 1.25rem; text-align: right;">Lương cơ bản</th>
+                    <th style="padding: 1rem 1.25rem; text-align: right;">Tổng thu nhập</th>
+                    <th style="padding: 1rem 1.25rem; text-align: right;">Khấu trừ</th>
+                    <th style="padding: 1rem 1.25rem; text-align: right;">Thực nhận (Net)</th>
+                    <th style="padding: 1rem 1.25rem; text-align: center;">Trạng thái</th>
+                    <th style="padding: 1rem 1.25rem; text-align: right;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Payrolls != null && Model.Payrolls.Any())
+                {
+                    int index = (Model.PageNumber - 1) * 10 + 1;
+                    foreach (var item in Model.Payrolls)
+                    {
+                        var statusBadgeClass = item.Status switch
+                        {
+                            "CONFIRMED" => "badge-confirmed",
+                            "PAID" => "badge-paid",
+                            _ => "badge-draft"
+                        };
+                        var statusText = item.Status switch
+                        {
+                            "CONFIRMED" => "Đã chốt",
+                            "PAID" => "Đã chi trả",
+                            _ => "Nháp (DRAFT)"
+                        };
+
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td style="padding: 1rem 1.25rem; color: #64748b;">@index</td>
+                            <td style="padding: 1rem 1.25rem; font-weight: 700; color: #0f172a;">
+                                @item.EmployeeCode - @item.EmployeeName
+                            </td>
+                            <td style="padding: 1rem 1.25rem; color: #475569;">
+                                @(item.DepartmentName ?? "Chưa phân công")
+                            </td>
+                            <td style="padding: 1rem 1.25rem; font-weight: 600; color: #2563eb;">
+                                Tháng @item.PayrollMonth/@item.PayrollYear
+                            </td>
+                            <td style="padding: 1rem 1.25rem; text-align: right;">@item.BaseSalary.ToString("N0") ₫</td>
+                            <td style="padding: 1rem 1.25rem; text-align: right; color: #166534; font-weight: 600;">@item.GrossSalary.ToString("N0") ₫</td>
+                            <td style="padding: 1rem 1.25rem; text-align: right; color: #dc2626;">@item.TotalDeduction.ToString("N0") ₫</td>
+                            <td style="padding: 1rem 1.25rem; text-align: right; font-weight: 700; color: #0f172a;">@item.NetSalary.ToString("N0") ₫</td>
+                            <td style="padding: 1rem 1.25rem; text-align: center;">
+                                <span class="@statusBadgeClass" style="font-size: 0.75rem;">@statusText</span>
+                            </td>
+                            <td style="padding: 1rem 1.25rem; text-align: right;">
+                                <a asp-page="/Payroll/Details" asp-route-id="@item.PayrollId" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" title="Xem & Chỉnh sửa chi tiết">
+                                    <i class="bi bi-eye"></i> Chi tiết
+                                </a>
+                            </td>
+                        </tr>
+                        index++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="10" class="text-center text-muted" style="padding: 3rem 1rem;">
+                            <i class="bi bi-inbox" style="font-size: 2rem; color: #cbd5e1; display: block; margin-bottom: 0.5rem;"></i>
+                            Không tìm thấy bảng lương nào trong kỳ được chọn.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <div class="d-flex align-items-center justify-content-between p-3 border-top">
+            <div class="text-muted" style="font-size: 0.85rem;">
+                Hiển thị trang <strong>@Model.PageNumber</strong> / <strong>@Model.TotalPages</strong> (Tổng @Model.TotalItems bản ghi)
+            </div>
+            <div class="d-flex gap-1">
+                @if (Model.HasPreviousPage)
+                {
+                    <a asp-page="/Payroll/Index" asp-route-PageNumber="@(Model.PageNumber - 1)" asp-route-Month="@Model.Month" asp-route-Year="@Model.Year" asp-route-DepartmentId="@Model.DepartmentId" asp-route-Status="@Model.Status" class="btn btn-outline btn-sm">Trước</a>
+                }
+                @for (int p = 1; p <= Model.TotalPages; p++)
+                {
+                    <a asp-page="/Payroll/Index" asp-route-PageNumber="@p" asp-route-Month="@Model.Month" asp-route-Year="@Model.Year" asp-route-DepartmentId="@Model.DepartmentId" asp-route-Status="@Model.Status" class="btn btn-sm @(p == Model.PageNumber ? "btn-primary" : "btn-outline")">@p</a>
+                }
+                @if (Model.HasNextPage)
+                {
+                    <a asp-page="/Payroll/Index" asp-route-PageNumber="@(Model.PageNumber + 1)" asp-route-Month="@Model.Month" asp-route-Year="@Model.Year" asp-route-DepartmentId="@Model.DepartmentId" asp-route-Status="@Model.Status" class="btn btn-outline btn-sm">Sau</a>
+                }
+            </div>
+        </div>
+    }
+</div>

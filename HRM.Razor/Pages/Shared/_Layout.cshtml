@@ -48,9 +48,13 @@
                     <i class="bi bi-clock-history me-2"></i>
                     <span>Chấm công</span>
                 </a>
-                <a class="nav-item" asp-page="/Index">
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "AttendanceAdjustment" ? "active" : "")" asp-page="/AttendanceAdjustments/Index">
                     <i class="bi bi-sliders me-2"></i>
                     <span>Điều chỉnh chấm công</span>
+                </a>
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "AttendanceAdjustmentApproval" ? "active" : "")" asp-page="/AttendanceAdjustments/Approvals">
+                    <i class="bi bi-check2-square me-2"></i>
+                    <span>Duyệt điều chỉnh</span>
                 </a>
 
                 <div class="nav-section-title">NGHỈ PHÉP</div>
@@ -75,9 +79,29 @@
                 </a>
 
                 <div class="nav-section-title">TIỀN LƯƠNG</div>
-                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Payroll" ? "active" : "")" asp-page="/Index">
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Payroll" ? "active" : "")" asp-page="/Payroll/Index">
                     <i class="bi bi-cash-stack me-2"></i>
-                    <span>Phiếu lương</span>
+                    <span>Danh sách bảng lương</span>
+                </a>
+                <a class="nav-item" asp-page="/Payroll/Generate">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    <span>Tạo bảng lương tháng</span>
+                </a>
+                <a class="nav-item" asp-page="/Payroll/Calculate">
+                    <i class="bi bi-calculator me-2"></i>
+                    <span>Tính lương theo kỳ</span>
+                </a>
+                <a class="nav-item" asp-page="/Payroll/Confirm">
+                    <i class="bi bi-lock me-2"></i>
+                    <span>Chốt bảng lương</span>
+                </a>
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "MyPayslip" ? "active" : "")" asp-page="/Payslips/Index">
+                    <i class="bi bi-receipt me-2"></i>
+                    <span>Phiếu lương cá nhân</span>
+                </a>
+                <a class="nav-item" asp-page="/Payroll/Reports">
+                    <i class="bi bi-bar-chart-line me-2"></i>
+                    <span>Báo cáo lương</span>
                 </a>
 
                 <div class="nav-section-title">THÔNG TIN CÁ NHÂN</div>

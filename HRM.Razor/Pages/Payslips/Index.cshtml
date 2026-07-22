@@ -1,0 +1,209 @@
+@page
+@model HRM.Razor.Pages.Payslips.IndexModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Phiếu lương cá nhân";
+}
+
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/payroll.css" asp-append-version="true" />
+
+<div class="page-breadcrumb no-print">
+    Tiền lương &gt; <span>Phiếu lương cá nhân</span>
+</div>
+
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3 no-print">
+    <div>
+        <h1 class="page-title mb-1">Phiếu lương cá nhân</h1>
+        <p class="page-subtitle mb-0">Thông tin chi tiết thu nhập và khấu trừ trong tháng</p>
+    </div>
+
+    <!-- Filter Month/Year -->
+    <form method="get" class="d-flex align-items-center gap-2">
+        <select asp-for="Month" class="form-control" style="width: 120px;" onchange="this.form.submit()">
+            @for (int m = 1; m <= 12; m++)
+            {
+                <option value="@m">Tháng @m</option>
+            }
+        </select>
+
+        <select asp-for="Year" class="form-control" style="width: 120px;" onchange="this.form.submit()">
+            @for (int y = 2024; y <= 2026; y++)
+            {
+                <option value="@y">Năm @y</option>
+            }
+        </select>
+    </form>
+</div>
+
+@if (Model.Payslip != null)
+{
+    <!-- Profile & Summary Header (Matching Mockup UC34) -->
+    <div class="card mb-4 print-area" style="padding: 1.75rem;">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 border-bottom pb-3">
+            <div class="d-flex align-items-center gap-3">
+                <div style="width: 64px; height: 64px; border-radius: 50%; background-color: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.5rem;">
+                    @(Model.Payslip.EmployeeName.Length > 0 ? Model.Payslip.EmployeeName.Substring(0, 1).ToUpper() : "E")
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <h2 class="mb-0" style="font-size: 1.3rem; font-weight: 700; color: #0f172a;">@Model.Payslip.EmployeeName</h2>
+                        <span class="badge bg-success" style="font-size: 0.75rem;">Đang làm việc</span>
+                    </div>
+                    <div class="text-muted" style="font-size: 0.88rem;">
+                        Mã NV: <strong>@Model.Payslip.EmployeeCode</strong> | Chức vụ: <strong>@(Model.Payslip.PositionName ?? "Nhân viên")</strong> | Phòng ban: <strong>@(Model.Payslip.DepartmentName ?? "Công ty")</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-end">
+                <div class="text-muted" style="font-size: 0.8rem;">Kỳ lương</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: #2563eb;">Tháng @Model.Payslip.PayrollMonth.ToString("D2")/@Model.Payslip.PayrollYear</div>
+            </div>
+        </div>
+
+        <!-- 4 Summary Boxes -->
+        <div class="row g-3 mb-2" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div class="p-3" style="background-color: #f0fdf4; border-radius: 12px; border: 1px solid #bbf7d0;">
+                <div class="text-muted" style="font-size: 0.8rem; font-weight: 600; color: #166534;">Tổng thu nhập (Gross)</div>
+                <div style="font-size: 1.3rem; font-weight: 700; color: #166534;">@Model.Payslip.GrossSalary.ToString("N0") VNĐ</div>
+            </div>
+
+            <div class="p-3" style="background-color: #fef2f2; border-radius: 12px; border: 1px solid #fecaca;">
+                <div class="text-muted" style="font-size: 0.8rem; font-weight: 600; color: #991b1b;">Tổng khấu trừ</div>
+                <div style="font-size: 1.3rem; font-weight: 700; color: #991b1b;">@Model.Payslip.TotalDeduction.ToString("N0") VNĐ</div>
+            </div>
+
+            <div class="p-3" style="background-color: #eff6ff; border-radius: 12px; border: 1px solid #bfdbfe;">
+                <div class="text-muted" style="font-size: 0.8rem; font-weight: 600; color: #1e40af;">Thực lĩnh (Net)</div>
+                <div style="font-size: 1.35rem; font-weight: 800; color: #1d4ed8;">@Model.Payslip.NetSalary.ToString("N0") VNĐ</div>
+            </div>
+
+            <div class="p-3" style="background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <div class="text-muted" style="font-size: 0.8rem; font-weight: 600;">Ngày thanh toán dự kiến</div>
+                <div style="font-size: 1.15rem; font-weight: 700; color: #334155;">05/@((Model.Payslip.PayrollMonth % 12 + 1).ToString("D2"))/@(Model.Payslip.PayrollMonth == 12 ? Model.Payslip.PayrollYear + 1 : Model.Payslip.PayrollYear)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3-Column Detailed Breakdown (Matching Mockup UC34) -->
+    <div class="payroll-3col-grid mb-4 print-area">
+        <!-- Col 1: Thu nhập -->
+        <div class="payroll-detail-card">
+            <h5 class="mb-3 border-bottom pb-2" style="font-size: 1rem; font-weight: 700; color: #166534;">
+                1. Thu nhập
+            </h5>
+
+            <div class="payroll-detail-row">
+                <span>Lương cơ bản</span>
+                <strong>@Model.Payslip.BaseSalary.ToString("N0")</strong>
+            </div>
+
+            @if (Model.Payslip.PayrollDetails != null)
+            {
+                foreach (var detail in Model.Payslip.PayrollDetails.Where(d => d.ItemType == "ALLOWANCE" || d.ItemType == "BONUS" || d.ItemType == "OVERTIME" || d.ItemType == "OTHER"))
+                {
+                    var label = detail.ItemType switch
+                    {
+                        "ALLOWANCE" => "Phụ cấp",
+                        "BONUS" => "Thưởng",
+                        "OVERTIME" => "Làm thêm giờ (OT)",
+                        _ => "Thu nhập khác"
+                    };
+
+                    <div class="payroll-detail-row">
+                        <span>@label (@detail.Description)</span>
+                        <strong>@detail.Amount.ToString("N0")</strong>
+                    </div>
+                }
+            }
+
+            <div class="d-flex justify-content-between mt-3 pt-2 border-top" style="font-weight: 700; color: #166534;">
+                <span>Tổng thu nhập</span>
+                <span>@Model.Payslip.GrossSalary.ToString("N0")</span>
+            </div>
+        </div>
+
+        <!-- Col 2: Khấu trừ -->
+        <div class="payroll-detail-card">
+            <h5 class="mb-3 border-bottom pb-2" style="font-size: 1rem; font-weight: 700; color: #991b1b;">
+                2. Khấu trừ
+            </h5>
+
+            @if (Model.Payslip.PayrollDetails != null && Model.Payslip.PayrollDetails.Any(d => d.ItemType == "DEDUCTION"))
+            {
+                foreach (var detail in Model.Payslip.PayrollDetails.Where(d => d.ItemType == "DEDUCTION"))
+                {
+                    <div class="payroll-detail-row">
+                        <span>@detail.Description</span>
+                        <strong class="text-danger">@detail.Amount.ToString("N0")</strong>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="payroll-detail-row text-muted">
+                    <span>Khấu trừ nghĩa vụ</span>
+                    <strong>0</strong>
+                </div>
+            }
+
+            <div class="d-flex justify-content-between mt-3 pt-2 border-top" style="font-weight: 700; color: #991b1b;">
+                <span>Tổng khấu trừ</span>
+                <span class="text-danger">@Model.Payslip.TotalDeduction.ToString("N0")</span>
+            </div>
+        </div>
+
+        <!-- Col 3: Thông tin thanh toán -->
+        <div class="payroll-detail-card">
+            <h5 class="mb-3 border-bottom pb-2" style="font-size: 1rem; font-weight: 700; color: #1e40af;">
+                3. Thông tin thanh toán
+            </h5>
+
+            <div class="payroll-detail-row">
+                <span class="text-muted">Số tài khoản</span>
+                <strong>1903 5678 9999</strong>
+            </div>
+
+            <div class="payroll-detail-row">
+                <span class="text-muted">Ngân hàng</span>
+                <strong>Techcombank</strong>
+            </div>
+
+            <div class="payroll-detail-row">
+                <span class="text-muted">Chủ tài khoản</span>
+                <strong>@Model.Payslip.EmployeeName.ToUpper()</strong>
+            </div>
+
+            <div class="mt-4 p-3 style-net-box" style="background-color: #eff6ff; border-radius: 12px; border: 1px solid #bfdbfe;">
+                <div class="text-muted" style="font-size: 0.8rem; font-weight: 600;">Thực lĩnh</div>
+                <div style="font-size: 1.4rem; font-weight: 800; color: #1d4ed8;">@Model.Payslip.NetSalary.ToString("N0")</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions & Disclaimer (Matching Mockup UC34) -->
+    <div class="d-flex align-items-center justify-content-between no-print mb-5">
+        <div class="text-muted" style="font-size: 0.82rem; line-height: 1.5;">
+            <i class="bi bi-info-circle me-1"></i> Đây là phiếu lương điện tử, không cần ký tên và đóng dấu.<br />
+            Vui lòng liên hệ phòng Nhân sự nếu có thắc mắc về thông tin trên phiếu lương.
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline" onclick="window.print()">
+                <i class="bi bi-printer me-1"></i> In phiếu lương
+            </button>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Empty State -->
+    <div class="card p-5 text-center" style="margin-top: 2rem;">
+        <i class="bi bi-file-earmark-lock" style="font-size: 3.5rem; color: #cbd5e1; display: block; margin-bottom: 1rem;"></i>
+        <h4 style="font-weight: 700; color: #334155;">Chưa có phiếu lương</h4>
+        <p class="text-muted" style="max-width: 480px; margin: 0 auto 1.5rem auto;">
+            @(Model.ErrorText ?? $"Chưa có phiếu lương được chốt cho kỳ Tháng {Model.Month}/{Model.Year}. Vui lòng thử chọn tháng khác.")
+        </p>
+    </div>
+}

@@ -1,0 +1,256 @@
+@page
+@model HRM.Razor.Pages.AttendanceAdjustments.IndexModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Yêu cầu điều chỉnh chấm công";
+}
+
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/attendance-adjustment.css" asp-append-version="true" />
+
+<div class="page-breadcrumb">
+    Chấm công &gt; <span>Điều chỉnh chấm công</span>
+</div>
+
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+        <h1 class="page-title mb-1">Yêu cầu điều chỉnh chấm công</h1>
+        <p class="page-subtitle mb-0">Tạo và theo dõi các yêu cầu điều chỉnh thời gian chấm công của bạn</p>
+    </div>
+
+    <a asp-page="/AttendanceAdjustments/Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> Tạo yêu cầu điều chỉnh
+    </a>
+</div>
+
+<!-- Personal Summary Metric Cards (Matching Mockup UC19) -->
+<div class="row g-3 mb-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+    <div class="card p-3 d-flex align-items-center flex-row gap-3">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background-color: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+            <i class="bi bi-people"></i>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size: 0.78rem; font-weight: 600;">Tổng yêu cầu</div>
+            <div style="font-size: 1.25rem; font-weight: 700; color: #0f172a;">@Model.TotalCount</div>
+        </div>
+    </div>
+
+    <div class="card p-3 d-flex align-items-center flex-row gap-3">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background-color: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+            <i class="bi bi-clock-history"></i>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size: 0.78rem; font-weight: 600;">Chờ duyệt</div>
+            <div style="font-size: 1.25rem; font-weight: 700; color: #d97706;">@Model.PendingCount</div>
+        </div>
+    </div>
+
+    <div class="card p-3 d-flex align-items-center flex-row gap-3">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background-color: #dcfce7; color: #166534; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+            <i class="bi bi-check-circle"></i>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size: 0.78rem; font-weight: 600;">Đã duyệt</div>
+            <div style="font-size: 1.25rem; font-weight: 700; color: #166534;">@Model.ApprovedCount</div>
+        </div>
+    </div>
+
+    <div class="card p-3 d-flex align-items-center flex-row gap-3">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background-color: #fef2f2; color: #991b1b; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+            <i class="bi bi-x-circle"></i>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size: 0.78rem; font-weight: 600;">Bị từ chối</div>
+            <div style="font-size: 1.25rem; font-weight: 700; color: #991b1b;">@Model.RejectedCount</div>
+        </div>
+    </div>
+
+    <div class="card p-3 d-flex align-items-center flex-row gap-3">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background-color: #f1f5f9; color: #64748b; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+            <i class="bi bi-dash-circle"></i>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size: 0.78rem; font-weight: 600;">Đã hủy</div>
+            <div style="font-size: 1.25rem; font-weight: 700; color: #64748b;">@Model.CancelledCount</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="card mb-4" style="padding: 1.25rem;">
+    <form method="get" class="d-flex flex-wrap align-items-center gap-3">
+        <div style="width: 130px;">
+            <select asp-for="Month" class="form-control">
+                <option value="">Tất cả tháng</option>
+                @for (int m = 1; m <= 12; m++)
+                {
+                    <option value="@m">Tháng @m</option>
+                }
+            </select>
+        </div>
+
+        <div style="width: 130px;">
+            <select asp-for="Year" class="form-control">
+                @for (int y = 2024; y <= 2026; y++)
+                {
+                    <option value="@y">Năm @y</option>
+                }
+            </select>
+        </div>
+
+        <div style="width: 170px;">
+            <select asp-for="Status" class="form-control">
+                <option value="">Tất cả trạng thái</option>
+                <option value="PENDING">Chờ duyệt (PENDING)</option>
+                <option value="APPROVED">Đã duyệt (APPROVED)</option>
+                <option value="REJECTED">Từ chối (REJECTED)</option>
+                <option value="CANCELLED">Đã hủy (CANCELLED)</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="height: 42px;">
+            <i class="bi bi-funnel me-1"></i> Lọc
+        </button>
+        <a asp-page="/AttendanceAdjustments/Index" class="btn btn-outline" style="height: 42px;">Đặt lại</a>
+    </form>
+</div>
+
+<!-- Table Adjustments List (Matching Mockup UC19) -->
+<div class="card" style="padding: 0; overflow: hidden;">
+    <div class="table-responsive">
+        <table class="table mb-0" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+            <thead style="background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left;">
+                <tr>
+                    <th style="padding: 0.85rem 1rem; width: 50px;">STT</th>
+                    <th style="padding: 0.85rem 1rem;">Ngày chấm công</th>
+                    <th style="padding: 0.85rem 1rem;">Giờ vào (gốc)</th>
+                    <th style="padding: 0.85rem 1rem;">Giờ ra (gốc)</th>
+                    <th style="padding: 0.85rem 1rem;">Giờ vào (đề xuất)</th>
+                    <th style="padding: 0.85rem 1rem;">Giờ ra (đề xuất)</th>
+                    <th style="padding: 0.85rem 1rem;">Lý do</th>
+                    <th style="padding: 0.85rem 1rem;">Ngày gửi</th>
+                    <th style="padding: 0.85rem 1rem; text-align: center;">Trạng thái</th>
+                    <th style="padding: 0.85rem 1rem; text-align: center;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Adjustments != null && Model.Adjustments.Any())
+                {
+                    int index = 1;
+                    foreach (var item in Model.Adjustments)
+                    {
+                        var statusBadgeClass = item.Status switch
+                        {
+                            "APPROVED" => "badge-approved",
+                            "REJECTED" => "badge-rejected",
+                            "CANCELLED" => "badge-cancelled",
+                            _ => "badge-pending"
+                        };
+                        var statusText = item.Status switch
+                        {
+                            "APPROVED" => "Đã duyệt",
+                            "REJECTED" => "Bị từ chối",
+                            "CANCELLED" => "Đã hủy",
+                            _ => "Chờ duyệt"
+                        };
+
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td style="padding: 0.85rem 1rem; color: #64748b;">@index</td>
+                            <td style="padding: 0.85rem 1rem; font-weight: 700; color: #0f172a;">
+                                @item.AttendanceDate.ToString("dd/MM/yyyy")
+                            </td>
+                            <td style="padding: 0.85rem 1rem; color: #64748b;">
+                                @(item.OriginalCheckInTime.HasValue ? item.OriginalCheckInTime.Value.ToString("HH:mm") : "--:--")
+                            </td>
+                            <td style="padding: 0.85rem 1rem; color: #64748b;">
+                                @(item.OriginalCheckOutTime.HasValue ? item.OriginalCheckOutTime.Value.ToString("HH:mm") : "--:--")
+                            </td>
+                            <td style="padding: 0.85rem 1rem; font-weight: 600; color: #2563eb;">
+                                @(item.RequestedCheckInTime.HasValue ? item.RequestedCheckInTime.Value.ToString("HH:mm") : "--:--")
+                            </td>
+                            <td style="padding: 0.85rem 1rem; font-weight: 600; color: #2563eb;">
+                                @(item.RequestedCheckOutTime.HasValue ? item.RequestedCheckOutTime.Value.ToString("HH:mm") : "--:--")
+                            </td>
+                            <td style="padding: 0.85rem 1rem; max-width: 220px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                @item.Reason
+                            </td>
+                            <td style="padding: 0.85rem 1rem; color: #64748b; font-size: 0.8rem;">
+                                @item.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                            </td>
+                            <td style="padding: 0.85rem 1rem; text-align: center;">
+                                <span class="@statusBadgeClass" style="font-size: 0.75rem;">@statusText</span>
+                            </td>
+                            <td style="padding: 0.85rem 1rem; text-align: center;">
+                                <div class="d-flex align-items-center justify-content-center gap-1">
+                                    <a asp-page="/AttendanceAdjustments/Details" asp-route-id="@item.AdjustmentId" class="btn btn-outline" style="padding: 0.25rem 0.45rem; font-size: 0.8rem;" title="Xem chi tiết">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    @if (item.Status == "PENDING")
+                                    {
+                                        <a asp-page="/AttendanceAdjustments/Edit" asp-route-id="@item.AdjustmentId" class="btn btn-outline text-primary" style="padding: 0.25rem 0.45rem; font-size: 0.8rem;" title="Chỉnh sửa">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline text-danger" style="padding: 0.25rem 0.45rem; font-size: 0.8rem;" title="Hủy" onclick="openCancelModal(@item.AdjustmentId, '@item.AttendanceDate.ToString("dd/MM/yyyy")')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                        index++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="10" class="text-center text-muted" style="padding: 3rem 1rem;">
+                            <i class="bi bi-inbox" style="font-size: 2rem; color: #cbd5e1; display: block; margin-bottom: 0.5rem;"></i>
+                            Bạn chưa có yêu cầu điều chỉnh chấm công nào.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Hủy yêu cầu (Matching Mockup UC19) -->
+<div class="modal fade" id="cancelAdjustmentModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: none; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
+            <div class="modal-header" style="background-color: #fff7ed; border-bottom: 1px solid #ffedd5; padding: 1.25rem 1.5rem;">
+                <h5 class="modal-header-title d-flex align-items-center gap-2" id="cancelModalLabel" style="font-size: 1.1rem; font-weight: 700; color: #c2410c; margin: 0;">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Xác nhận hủy yêu cầu điều chỉnh
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <p>Bạn có chắc chắn muốn hủy yêu cầu điều chỉnh chấm công cho ngày <strong id="cancelDateText">--/--/----</strong>?</p>
+                <div class="alert alert-warning" style="font-size: 0.85rem; margin: 0;">
+                    <i class="bi bi-info-circle me-1"></i> Sau khi hủy, yêu cầu này sẽ không thể chỉnh sửa hoặc gửi duyệt lại.
+                </div>
+                <form method="post" asp-page-handler="Cancel" id="cancelForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="cancelAdjustmentId" />
+                </form>
+            </div>
+            <div class="modal-footer" style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 1rem 1.5rem;">
+                <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Không, quay lại</button>
+                <button type="button" class="btn btn-danger" onclick="document.getElementById('cancelForm').submit();">
+                    <i class="bi bi-x-circle me-1"></i> Xác nhận hủy
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openCancelModal(id, dateStr) {
+            document.getElementById('cancelAdjustmentId').value = id;
+            document.getElementById('cancelDateText').innerText = dateStr;
+            var modal = new bootstrap.Modal(document.getElementById('cancelAdjustmentModal'));
+            modal.show();
+        }
+    </script>
+}
