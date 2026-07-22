@@ -18,8 +18,8 @@
             <div class="sidebar-brand">
                 <i class="bi bi-people-fill me-2" style="color: #3b82f6;"></i> HRM<span>Quản trị nhân sự</span>
             </div>
-            
-            <nav class="sidebar-nav">
+
+            <nav class="sidebar-nav" id="sidebar-nav">
                 <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Dashboard" ? "active" : "")" asp-page="/Index">
                     <i class="bi bi-house-door me-2"></i>
                     <span>Tổng quan</span>
@@ -79,19 +79,19 @@
                 </a>
 
                 <div class="nav-section-title">TIỀN LƯƠNG</div>
-                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Payroll" ? "active" : "")" asp-page="/Payroll/Index">
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "PayrollIndex" ? "active" : "")" asp-page="/Payroll/Index">
                     <i class="bi bi-cash-stack me-2"></i>
                     <span>Danh sách bảng lương</span>
                 </a>
-                <a class="nav-item" asp-page="/Payroll/Generate">
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "PayrollGenerate" ? "active" : "")" asp-page="/Payroll/Generate">
                     <i class="bi bi-plus-circle me-2"></i>
                     <span>Tạo bảng lương tháng</span>
                 </a>
-                <a class="nav-item" asp-page="/Payroll/Calculate">
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "PayrollCalculate" ? "active" : "")" asp-page="/Payroll/Calculate">
                     <i class="bi bi-calculator me-2"></i>
                     <span>Tính lương theo kỳ</span>
                 </a>
-                <a class="nav-item" asp-page="/Payroll/Confirm">
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "PayrollConfirm" ? "active" : "")" asp-page="/Payroll/Confirm">
                     <i class="bi bi-lock me-2"></i>
                     <span>Chốt bảng lương</span>
                 </a>
@@ -99,7 +99,7 @@
                     <i class="bi bi-receipt me-2"></i>
                     <span>Phiếu lương cá nhân</span>
                 </a>
-                <a class="nav-item" asp-page="/Payroll/Reports">
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "PayrollReports" ? "active" : "")" asp-page="/Payroll/Reports">
                     <i class="bi bi-bar-chart-line me-2"></i>
                     <span>Báo cáo lương</span>
                 </a>
@@ -152,8 +152,6 @@
                     @if (User.Identity?.IsAuthenticated == true)
                     {
                         var username = User.Identity.Name ?? "User";
-                        var roles = User.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).ToList();
-                        var primaryRole = roles.FirstOrDefault() ?? "Nhân viên";
 
                         <a asp-page="/Profile/Index" class="d-flex align-items-center text-decoration-none me-2">
                             <div class="user-avatar me-2">
@@ -161,7 +159,6 @@
                             </div>
                             <div class="user-info">
                                 <span class="user-name">@username</span>
-                                <span class="user-role">@primaryRole</span>
                             </div>
                         </a>
 
@@ -195,6 +192,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="~/js/auth.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

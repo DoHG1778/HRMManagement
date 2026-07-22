@@ -5,37 +5,30 @@
     --color-primary: #2563eb;
     --color-primary-hover: #1d4ed8;
     --color-primary-light: #eff6ff;
-    
     --color-sidebar-bg: #0f172a;
     --color-sidebar-hover: #1e293b;
     --color-sidebar-active: #3b82f6;
     --color-sidebar-text: #94a3b8;
     --color-sidebar-text-active: #ffffff;
-    
     --color-bg-body: #f8fafc;
     --color-card-bg: #ffffff;
     --color-border: #e2e8f0;
-    
     --color-text-main: #0f172a;
     --color-text-muted: #64748b;
     --color-text-white: #ffffff;
-
     --color-success: #10b981;
     --color-warning: #f59e0b;
     --color-danger: #ef4444;
     --color-info: #06b6d4;
-
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-
     /* Radii & Spacing */
     --radius-sm: 6px;
     --radius-md: 10px;
     --radius-lg: 16px;
     --radius-full: 9999px;
-
     --sidebar-width: 260px;
     --header-height: 64px;
 }
@@ -86,10 +79,10 @@ body {
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.sidebar-brand span {
-    color: var(--color-primary);
-    margin-left: 0.25rem;
-}
+    .sidebar-brand span {
+        color: var(--color-primary);
+        margin-left: 0.25rem;
+    }
 
 .sidebar-nav {
     flex: 1;
@@ -118,22 +111,22 @@ body {
     transition: all 0.2s ease;
 }
 
-.nav-item:hover {
-    background-color: var(--color-sidebar-hover);
-    color: var(--color-text-white);
-}
+    .nav-item:hover {
+        background-color: var(--color-sidebar-hover);
+        color: var(--color-text-white);
+    }
 
-.nav-item.active {
-    background-color: var(--color-primary);
-    color: var(--color-text-white);
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
-}
+    .nav-item.active {
+        background-color: var(--color-primary);
+        color: var(--color-text-white);
+        box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+    }
 
-.nav-item svg {
-    width: 20px;
-    height: 20px;
-    margin-right: 0.75rem;
-}
+    .nav-item svg {
+        width: 20px;
+        height: 20px;
+        margin-right: 0.75rem;
+    }
 
 /* Main Content Area */
 .app-main {
@@ -228,10 +221,50 @@ body {
     .app-sidebar {
         transform: translateX(-100%);
     }
-    .app-sidebar.show {
-        transform: translateX(0);
-    }
+
+        .app-sidebar.show {
+            transform: translateX(0);
+        }
+
     .app-main {
         margin-left: 0;
     }
 }
+
+/* Preserve sidebar position and keep navigation independently scrollable. */
+.app-sidebar {
+    overflow: hidden;
+}
+
+.sidebar-nav {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+}
+
+.header-user .user-info {
+    display: flex;
+    align-items: center;
+}
+
+.header-user .user-name {
+    white-space: nowrap;
+}
+
+
+/* Ensure sidebar navigation links are always clickable above decorative layers. */
+.sidebar-nav {
+    position: relative;
+    z-index: 1;
+}
+
+    .sidebar-nav .nav-item {
+        position: relative;
+        z-index: 2;
+        pointer-events: auto;
+    }
+
+        .sidebar-nav .nav-item::before,
+        .sidebar-nav .nav-item::after {
+            pointer-events: none;
+        }
