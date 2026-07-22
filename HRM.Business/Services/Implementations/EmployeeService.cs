@@ -360,6 +360,18 @@ namespace HRM.Business.Services.Implementations
             }
         }
 
+        public async Task<ApiResponse<List<EmployeeAssignmentResponseDto>>> GetAssignmentHistoryAsync(
+            CurrentUser currentUser,
+            int employeeId)
+        {
+            if (!await CanViewEmployeeDetailAsync(currentUser, employeeId))
+                return ApiResponse<List<EmployeeAssignmentResponseDto>>.Forbidden("You are not allowed to view assignment history.");
+
+            var assignments = await _unitOfWork.Employees.GetAssignmentHistoryAsync(employeeId);
+            return ApiResponse<List<EmployeeAssignmentResponseDto>>.Ok(
+                assignments.Select(MapAssignmentToDto).ToList());
+        }
+
         private async Task<ApiResponse<EmployeeResponseDto>> ValidateCreateEmployeeAsync(CreateEmployeeRequestDto request)
         {
             if (request == null)

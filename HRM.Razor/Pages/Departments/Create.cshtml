@@ -1,0 +1,77 @@
+@page
+@model HRM.Razor.Pages.Departments.CreateModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Thêm phòng ban mới";
+}
+
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
+
+<div class="page-breadcrumb">
+    Nhân sự &gt; Phòng ban &gt; <span>Thêm phòng ban</span>
+</div>
+
+<div class="page-title-block">
+    <h1 class="page-title">Thêm phòng ban mới</h1>
+    <p class="page-subtitle">Nhập thông tin phòng ban mới và chỉ định người quản lý (Trưởng phòng ban).</p>
+</div>
+
+<div class="employee-grid-container">
+    <div class="card" style="padding: 2rem;">
+        <form method="post" class="auth-form">
+            @Html.AntiForgeryToken()
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger" role="alert">
+                    <div asp-validation-summary="All" style="margin: 0; padding: 0; list-style: none;"></div>
+                </div>
+            }
+
+            <div class="form-section-title">
+                <i class="bi bi-building"></i> Thông tin phòng ban
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Input.DepartmentName" class="form-label"></label>
+                <input asp-for="Input.DepartmentName" class="form-control" placeholder="VD: Phòng Công nghệ thông tin" autofocus />
+                <span asp-validation-for="Input.DepartmentName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Input.ManagerEmployeeId" class="form-label"></label>
+                <select asp-for="Input.ManagerEmployeeId" asp-items="Model.ManagerOptions" class="form-control"></select>
+                <span asp-validation-for="Input.ManagerEmployeeId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Input.Description" class="form-label"></label>
+                <textarea asp-for="Input.Description" class="form-control" rows="3" placeholder="Mô tả chức năng, nhiệm vụ của phòng ban..."></textarea>
+                <span asp-validation-for="Input.Description" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-end gap-2" style="margin-top: 2rem; border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                <a asp-page="/Departments/Index" class="btn btn-outline" style="min-width: 110px;">Hủy</a>
+                <button type="submit" class="btn btn-primary" style="min-width: 160px;">
+                    <i class="bi bi-check-circle-fill me-1"></i> Tạo phòng ban
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div>
+        <div class="side-panel-card">
+            <div class="panel-header">
+                <i class="bi bi-info-circle"></i>
+                <span>Lưu ý bổ sung</span>
+            </div>
+            <p style="font-size: 0.85rem; color: #64748b; line-height: 1.6; margin: 0;">
+                Tên phòng ban là duy nhất trong toàn hệ thống. Trưởng phòng ban được chỉ định phải là nhân viên đang trong trạng thái <strong>ACTIVE</strong>.
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

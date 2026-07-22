@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - HRM Management</title>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation (Navy Blue matching Image 2) -->
+        <aside class="app-sidebar" id="app-sidebar">
+            <div class="sidebar-brand">
+                <i class="bi bi-people-fill me-2" style="color: #3b82f6;"></i> HRM<span>Quản trị nhân sự</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Dashboard" ? "active" : "")" asp-page="/Index">
+                    <i class="bi bi-house-door me-2"></i>
+                    <span>Tổng quan</span>
+                </a>
+
+                <div class="nav-section-title">NHÂN SỰ</div>
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Employees" ? "active" : "")" asp-page="/Employees/Index">
+                    <i class="bi bi-person-lines-fill me-2"></i>
+                    <span>Hồ sơ nhân viên</span>
+                </a>
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Departments" ? "active" : "")" asp-page="/Departments/Index">
+                    <i class="bi bi-building me-2"></i>
+                    <span>Phòng ban</span>
+                </a>
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Positions" ? "active" : "")" asp-page="/Positions/Index">
+                    <i class="bi bi-award me-2"></i>
+                    <span>Chức vụ</span>
+                </a>
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "EmployeeAssignments" ? "active" : "")" asp-page="/EmployeeAssignments/Assign">
+                    <i class="bi bi-arrow-left-right me-2"></i>
+                    <span>Phân công & Điều chuyển</span>
+                </a>
+
+                <div class="nav-section-title">CHẤM CÔNG</div>
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Attendance" ? "active" : "")" asp-page="/Index">
+                    <i class="bi bi-clock-history me-2"></i>
+                    <span>Chấm công</span>
+                </a>
+                <a class="nav-item" asp-page="/Index">
+                    <i class="bi bi-sliders me-2"></i>
+                    <span>Điều chỉnh chấm công</span>
+                </a>
+
+                <div class="nav-section-title">NGHỈ PHÉP</div>
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Leave" ? "active" : "")" asp-page="/Index">
+                    <i class="bi bi-calendar-event me-2"></i>
+                    <span>Nghỉ phép</span>
+                </a>
+                <a class="nav-item" asp-page="/Index">
+                    <i class="bi bi-calendar-check me-2"></i>
+                    <span>Số dư phép</span>
+                </a>
+
+                <div class="nav-section-title">TĂNG CA</div>
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Overtime" ? "active" : "")" asp-page="/Index">
+                    <i class="bi bi-alarm me-2"></i>
+                    <span>Tăng ca</span>
+                </a>
+
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "KPI" ? "active" : "")" asp-page="/Index" style="margin-top: 0.75rem;">
+                    <i class="bi bi-speedometer2 me-2"></i>
+                    <span>KPI cá nhân</span>
+                </a>
+
+                <div class="nav-section-title">TIỀN LƯƠNG</div>
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Payroll" ? "active" : "")" asp-page="/Index">
+                    <i class="bi bi-cash-stack me-2"></i>
+                    <span>Phiếu lương</span>
+                </a>
+
+                <div class="nav-section-title">THÔNG TIN CÁ NHÂN</div>
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Profile" ? "active" : "")" asp-page="/Profile/Index">
+                    <i class="bi bi-person-badge me-2"></i>
+                    <span>Hồ sơ cá nhân</span>
+                </a>
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "ChangePassword" ? "active" : "")" asp-page="/Account/ChangePassword">
+                    <i class="bi bi-key me-2"></i>
+                    <span>Đổi mật khẩu</span>
+                </a>
+
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Notifications" ? "active" : "")" asp-page="/Index" style="margin-top: 0.75rem;">
+                    <i class="bi bi-bell me-2"></i>
+                    <span>Thông báo</span>
+                </a>
+            </nav>
+
+            <div style="padding: 1rem; border-top: 1px solid rgba(255,255,255,0.08);">
+                <button class="nav-item" style="background: none; border: none; width: 100%; cursor: pointer;">
+                    <i class="bi bi-chevron-double-left me-2"></i>
+                    <span>Thu gọn</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <div class="app-main">
+            <!-- Topbar (White Navbar matching Image 2) -->
+            <header class="app-header">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-outline" style="border: none; padding: 0.25rem 0.5rem;" id="toggle-sidebar">
+                        <i class="bi bi-list" style="font-size: 1.4rem;"></i>
+                    </button>
+
+                    <div style="position: relative; width: 280px;">
+                        <input type="text" class="form-control" placeholder="Tìm kiếm nhanh..." style="height: 38px; padding-right: 2.2rem; font-size: 0.85rem;" />
+                        <i class="bi bi-search" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); color: #94a3b8;"></i>
+                    </div>
+                </div>
+
+                <div class="header-user">
+                    <div style="position: relative; margin-right: 1rem; cursor: pointer;">
+                        <i class="bi bi-bell" style="font-size: 1.25rem; color: #64748b;"></i>
+                        <span class="badge badge-danger" style="position: absolute; top: -5px; right: -8px; padding: 2px 5px; font-size: 0.65rem; border-radius: 50%;">3</span>
+                    </div>
+
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        var username = User.Identity.Name ?? "User";
+                        var roles = User.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).ToList();
+                        var primaryRole = roles.FirstOrDefault() ?? "Nhân viên";
+
+                        <a asp-page="/Profile/Index" class="d-flex align-items-center text-decoration-none me-2">
+                            <div class="user-avatar me-2">
+                                @(username.Substring(0, 1).ToUpper())
+                            </div>
+                            <div class="user-info">
+                                <span class="user-name">@username</span>
+                                <span class="user-role">@primaryRole</span>
+                            </div>
+                        </a>
+
+                        <!-- POST Form Logout -->
+                        <form method="post" asp-page="/Account/Logout" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline" title="Đăng xuất" style="padding: 0.4rem 0.6rem; border-color: #e2e8f0; color: #ef4444;">
+                                <i class="bi bi-box-arrow-right"></i>
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a asp-page="/Account/Login" class="btn btn-primary">Đăng nhập</a>
+                    }
+                </div>
+            </header>
+
+            <main class="page-container">
+                <partial name="_AlertMessage" />
+                @RenderBody()
+            </main>
+
+            <footer class="app-footer">
+                &copy; 2026 HRM Management System. All rights reserved.
+            </footer>
+        </div>
+    </div>
+
+    <partial name="_LoadingPartial" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="~/js/auth.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,344 @@
+@page "{id:int}"
+@model HRM.Razor.Pages.Employees.EditModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = $"Chỉnh sửa hồ sơ - {Model.Input.FullName}";
+
+    var currentStatus = Model.EmployeeDetail.EmploymentStatus;
+
+    var statusBadgeClass = currentStatus switch
+    {
+        "ACTIVE" => "badge-status-active",
+        "ON_LEAVE" => "badge-status-onleave",
+        "RESIGNED" => "badge-status-resigned",
+        "TERMINATED" => "badge-status-terminated",
+        _ => "badge-status-active"
+    };
+
+    var statusText = currentStatus switch
+    {
+        "ACTIVE" => "Đang làm việc",
+        "ON_LEAVE" => "Đang nghỉ",
+        "RESIGNED" => "Đã nghỉ việc",
+        "TERMINATED" => "Đã chấm dứt",
+        _ => currentStatus
+    };
+}
+
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
+
+<div class="page-breadcrumb">
+    Nhân sự &gt; Hồ sơ nhân viên &gt; <span>Chỉnh sửa hồ sơ</span>
+</div>
+
+<!-- Header Card Tóm tắt Hồ sơ -->
+<div class="profile-summary-header">
+    <div class="d-flex align-items-center gap-3">
+        <div class="profile-avatar-box">
+            @(Model.Input.FullName.Substring(0, 1).ToUpper())
+        </div>
+        <div>
+            <h2 class="mb-1" style="font-size: 1.35rem; font-weight: 700; color: #0f172a;">@Model.Input.FullName</h2>
+            <div class="d-flex align-items-center gap-3 text-muted" style="font-size: 0.85rem;">
+                <span>Mã NV: <strong>@Model.Input.EmployeeCode</strong></span>
+                <span>&bull;</span>
+                <span>Email: @Model.Input.Email</span>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <span class="badge-status @statusBadgeClass" style="font-size: 0.9rem; padding: 0.4rem 1rem;">
+            <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i> @statusText
+        </span>
+    </div>
+</div>
+
+<div class="employee-grid-container">
+    <!-- Cột Trái: Form Chỉnh sửa Hồ sơ -->
+    <div class="card" style="padding: 2rem;">
+        <form method="post" class="auth-form" id="edit-employee-form">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Input.EmployeeId" />
+            <input type="hidden" asp-for="Input.EmployeeCode" />
+            <input type="hidden" asp-for="Input.SelectedRole" id="HiddenSelectedRole" />
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger" role="alert">
+                    <div asp-validation-summary="All" style="margin: 0; padding: 0; list-style: none;"></div>
+                </div>
+            }
+
+            <!-- Nhóm 1: Thông tin cơ bản -->
+            <div class="form-section-title">
+                <i class="bi bi-person-vcard"></i> Thông tin cơ bản
+            </div>
+
+            <div class="form-row-2col">
+                <div class="form-group">
+                    <label asp-for="Input.EmployeeCode" class="form-label"></label>
+                    <input asp-for="Input.EmployeeCode" class="form-control" disabled style="background-color: #f1f5f9; cursor: not-allowed;" />
+                    <span class="text-muted" style="font-size: 0.75rem;">(Mã nhân viên không thể chỉnh sửa)</span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Input.FullName" class="form-label"></label>
+                    <input asp-for="Input.FullName" class="form-control" placeholder="Nhập họ và tên đầy đủ" />
+                    <span asp-validation-for="Input.FullName" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-row-2col">
+                <div class="form-group">
+                    <label asp-for="Input.Gender" class="form-label"></label>
+                    <select asp-for="Input.Gender" class="form-control">
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                        <option value="Khác">Khác</option>
+                    </select>
+                    <span asp-validation-for="Input.Gender" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Input.DateOfBirth" class="form-label"></label>
+                    <input asp-for="Input.DateOfBirth" type="date" class="form-control" />
+                    <span asp-validation-for="Input.DateOfBirth" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-row-2col">
+                <div class="form-group">
+                    <label asp-for="Input.Cccd" class="form-label"></label>
+                    <input asp-for="Input.Cccd" class="form-control" placeholder="Nhập số CCCD / CMND" />
+                    <span asp-validation-for="Input.Cccd" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Input.AvatarUrl" class="form-label"></label>
+                    <input asp-for="Input.AvatarUrl" class="form-control" placeholder="https://..." />
+                    <span asp-validation-for="Input.AvatarUrl" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- Nhóm 2: Thông tin liên hệ -->
+            <div class="form-section-title" style="margin-top: 1.5rem;">
+                <i class="bi bi-telephone-inbound"></i> Thông tin liên hệ
+            </div>
+
+            <div class="form-row-2col">
+                <div class="form-group">
+                    <label asp-for="Input.Email" class="form-label"></label>
+                    <input asp-for="Input.Email" type="email" class="form-control" placeholder="nguyenvana@company.com" />
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Input.Phone" class="form-label"></label>
+                    <input asp-for="Input.Phone" class="form-control" placeholder="0901234567" />
+                    <span asp-validation-for="Input.Phone" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Input.Address" class="form-label"></label>
+                <input asp-for="Input.Address" class="form-control" placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố" />
+                <span asp-validation-for="Input.Address" class="text-danger"></span>
+            </div>
+
+            <!-- Nhóm 3: Thông tin công việc -->
+            <div class="form-section-title" style="margin-top: 1.5rem;">
+                <i class="bi bi-briefcase"></i> Thông tin công việc
+            </div>
+
+            <div class="form-row-2col">
+                <div class="form-group">
+                    <label asp-for="Input.HireDate" class="form-label"></label>
+                    <input asp-for="Input.HireDate" type="date" class="form-control" />
+                    <span asp-validation-for="Input.HireDate" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Input.ManagerId" class="form-label"></label>
+                    <select asp-for="Input.ManagerId" asp-items="Model.ManagerOptions" class="form-control"></select>
+                    <span asp-validation-for="Input.ManagerId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="d-flex align-items-center justify-content-end gap-2" style="margin-top: 2rem; border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                <a asp-page="/Employees/Index" class="btn btn-outline" style="min-width: 110px;">Hủy</a>
+                <button type="submit" class="btn btn-primary" style="min-width: 180px;">
+                    <i class="bi bi-floppy-fill me-1"></i> Cập nhật hồ sơ
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Cột Phải: Card Phân quyền & Panel Quản lý trạng thái -->
+    <div>
+        <!-- Card Phân quyền Vai trò Hệ thống (Khớp Ảnh Thiết kế) -->
+        <div class="role-assignment-card">
+            <h3 class="role-assignment-title">
+                <i class="bi bi-shield-lock me-1" style="color: #2563eb;"></i> Phân quyền
+            </h3>
+
+            <div class="form-label" style="font-weight: 700; margin-bottom: 0.75rem;">Vai trò *</div>
+
+            <div class="role-option-list">
+                <!-- System Administrator -->
+                <div class="role-option-item">
+                    <div class="role-option-left">
+                        <input type="radio" name="RoleOption" id="edit-role-admin" value="Admin" @(Model.Input.SelectedRole == "Admin" ? "checked" : "") @(!Model.IsAdmin ? "disabled" : "") />
+                        <label for="edit-role-admin" class="role-option-label @(!Model.IsAdmin ? "text-muted" : "")">System Administrator</label>
+                    </div>
+                    <span class="role-badge role-badge-admin">Quản trị hệ thống</span>
+                </div>
+
+                <!-- HR Staff -->
+                <div class="role-option-item">
+                    <div class="role-option-left">
+                        <input type="radio" name="RoleOption" id="edit-role-hr" value="HR" @(Model.Input.SelectedRole == "HR" ? "checked" : "") @(!Model.IsAdmin ? "disabled" : "") />
+                        <label for="edit-role-hr" class="role-option-label @(!Model.IsAdmin ? "text-muted" : "")">HR Staff</label>
+                    </div>
+                    <span class="role-badge role-badge-hr">Nhân sự</span>
+                </div>
+
+                <!-- Department Manager -->
+                <div class="role-option-item">
+                    <div class="role-option-left">
+                        <input type="radio" name="RoleOption" id="edit-role-manager" value="Manager" @(Model.Input.SelectedRole == "Manager" ? "checked" : "") @(!Model.IsAdmin ? "disabled" : "") />
+                        <label for="edit-role-manager" class="role-option-label @(!Model.IsAdmin ? "text-muted" : "")">Department Manager</label>
+                    </div>
+                    <span class="role-badge role-badge-manager">Trưởng phòng</span>
+                </div>
+
+                <!-- Payroll Officer -->
+                <div class="role-option-item">
+                    <div class="role-option-left">
+                        <input type="radio" name="RoleOption" id="edit-role-payroll" value="Payroll" @(Model.Input.SelectedRole == "Payroll" ? "checked" : "") @(!Model.IsAdmin ? "disabled" : "") />
+                        <label for="edit-role-payroll" class="role-option-label @(!Model.IsAdmin ? "text-muted" : "")">Payroll Officer</label>
+                    </div>
+                    <span class="role-badge role-badge-payroll">Kế toán lương</span>
+                </div>
+
+                <!-- Employee -->
+                <div class="role-option-item" style="background-color: #f8fafc; border-radius: 8px;">
+                    <div class="role-option-left">
+                        <input type="radio" name="RoleOption" id="edit-role-employee" value="Employee" @(Model.Input.SelectedRole == "Employee" ? "checked" : "") />
+                        <label for="edit-role-employee" class="role-option-label" style="color: #2563eb;">Employee</label>
+                    </div>
+                    <span class="role-badge role-badge-employee">Nhân viên</span>
+                </div>
+            </div>
+
+            <!-- Ghi chú phân quyền -->
+            <div class="role-info-note-box">
+                <i class="bi bi-info-circle-fill"></i>
+                <div>
+                    @if (Model.IsAdmin)
+                    {
+                        <span><strong>Lưu ý:</strong> Admin có quyền thay đổi phân bổ vai trò quản trị hệ thống phù hợp cho người dùng này.</span>
+                    }
+                    else
+                    {
+                        <span><strong>Lưu ý:</strong> Vai trò hệ thống của nhân viên mặc định là <strong>Employee (Nhân viên)</strong>. Việc nâng cấp lên vai trò HR Staff hoặc Admin phải do Admin thực hiện.</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Quản lý trạng thái -->
+        <div class="side-panel-card">
+            <div class="panel-header">
+                <i class="bi bi-person-badge"></i>
+                <span>Trạng thái làm việc</span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-muted" style="font-size: 0.8rem;">Trạng thái hiện tại:</label>
+                <div>
+                    <span class="badge-status @statusBadgeClass" style="font-size: 0.85rem;">@statusText</span>
+                </div>
+            </div>
+
+            <form method="post" asp-page-handler="ChangeStatus" id="status-change-form">
+                @Html.AntiForgeryToken()
+                <div class="form-group mb-3">
+                    <label class="form-label" style="font-weight: 600;">Thay đổi trạng thái:</label>
+                    <select id="TargetStatusSelect" name="targetStatus" class="form-control mb-2">
+                        <option value="ACTIVE" selected="@(currentStatus == "ACTIVE")">Đang làm việc (ACTIVE)</option>
+                        <option value="ON_LEAVE" selected="@(currentStatus == "ON_LEAVE")">Đang nghỉ (ON_LEAVE)</option>
+                        <option value="RESIGNED" selected="@(currentStatus == "RESIGNED")">Đã nghỉ việc (RESIGNED)</option>
+                        <option value="TERMINATED" selected="@(currentStatus == "TERMINATED")">Đã chấm dứt (TERMINATED)</option>
+                    </select>
+                </div>
+
+                <button type="button" id="btn-open-status-modal" class="btn btn-outline" style="width: 100%; border-color: #2563eb; color: #2563eb;">
+                    <i class="bi bi-arrow-repeat me-1"></i> Cập nhật trạng thái
+                </button>
+            </form>
+        </div>
+
+        <!-- Panel Thông tin phân công (Read-only) -->
+        <div class="side-panel-card">
+            <div class="panel-header">
+                <i class="bi bi-building"></i>
+                <span>Phân công & Phòng ban</span>
+            </div>
+
+            <div class="info-status-list">
+                <div class="info-status-item">
+                    <div class="info-left">
+                        <i class="bi bi-diagram-3"></i>
+                        <div class="info-text">
+                            <h6>Phòng ban</h6>
+                            <p>@(Model.EmployeeDetail.DepartmentName ?? "Chưa phân công")</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-status-item">
+                    <div class="info-left">
+                        <i class="bi bi-award"></i>
+                        <div class="info-text">
+                            <h6>Chức vụ</h6>
+                            <p>@(Model.EmployeeDetail.PositionName ?? "Chưa phân công")</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-status-item">
+                    <div class="info-left">
+                        <i class="bi bi-clock-history"></i>
+                        <div class="info-text">
+                            <h6>Cập nhật lần cuối</h6>
+                            <p>@(Model.EmployeeDetail.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? Model.EmployeeDetail.CreatedAt.ToString("dd/MM/yyyy HH:mm"))</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xác nhận chuyển trạng thái RESIGNED/TERMINATED -->
+<partial name="Partials/_StatusChangeModal" />
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/employee.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const roleRadios = document.querySelectorAll('input[name="RoleOption"]');
+            const hiddenInput = document.getElementById('HiddenSelectedRole');
+            roleRadios.forEach(radio => {
+                radio.addEventListener('change', function () {
+                    if (this.checked && hiddenInput) {
+                        hiddenInput.value = this.value;
+                    }
+                });
+            });
+        });
+    </script>
+}

@@ -1,4 +1,4 @@
-﻿using HRM.Business.Common;
+using HRM.Business.Common;
 using HRM.Business.DTOs.Employees;
 
 namespace HRM.Business.Services.Interfaces
@@ -43,5 +43,9 @@ namespace HRM.Business.Services.Interfaces
             CurrentUser currentUser,
             int employeeId,
             TransferEmployeeRequestDto request);
+
+        Task<ApiResponse<List<EmployeeAssignmentResponseDto>>> GetAssignmentHistoryAsync(
+            CurrentUser currentUser,
+            int employeeId);
     }
 }

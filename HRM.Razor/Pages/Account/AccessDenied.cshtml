@@ -1,0 +1,27 @@
+@page
+@model HRM.Razor.Pages.Account.AccessDeniedModel
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Từ chối truy cập";
+}
+
+<div class="login-page-wrapper">
+    <div class="login-right-panel" style="width: 100%;">
+        <div class="login-card text-center" style="max-width: 480px;">
+            <div class="lock-badge-icon" style="background-color: #fef2f2; color: #ef4444; width: 64px; height: 64px; font-size: 2rem;">
+                <i class="bi bi-shield-slash-fill"></i>
+            </div>
+
+            <h2 style="font-size: 1.6rem; font-weight: 800; color: #0f172a; margin-top: 1rem;">Không có quyền truy cập</h2>
+            <p style="color: #64748b; font-size: 0.925rem; margin-top: 0.5rem; line-height: 1.6;">
+                Tài khoản của bạn hiện tại không có đủ quyền hạn để truy cập tài nguyên hoặc chức năng này.
+            </p>
+
+            <div style="margin-top: 2rem; display: flex; gap: 0.75rem; justify-content: center;">
+                <a asp-page="/Index" class="btn btn-primary" style="height: 44px; padding: 0 1.5rem; font-weight: 600;">
+                    <i class="bi bi-house-door me-2"></i> Quay lại Trang chủ
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,138 @@
+@page
+@model HRM.Razor.Pages.Account.LoginModel
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Đăng nhập hệ thống";
+}
+
+<div class="login-page-wrapper">
+    <div class="login-split-container">
+        <!-- Cột Trái - Nền Navy & Giới thiệu tính năng (Khớp Ảnh 1) -->
+        <div class="login-left-panel">
+            <div class="brand-header">
+                <div class="brand-icon-box">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div class="brand-title-group">
+                    <h2>HRM</h2>
+                    <p>Quản trị nhân sự</p>
+                </div>
+            </div>
+
+            <div class="login-hero-content">
+                <h1 class="hero-headline">Giải pháp quản trị nhân sự<br />hiện đại và toàn diện</h1>
+                <p class="hero-subhead">Tối ưu quy trình, nâng cao hiệu suất và xây dựng môi trường làm việc hiệu quả.</p>
+
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <div class="feature-icon-circle icon-blue">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h4>Chấm công</h4>
+                            <p>Theo dõi thời gian làm việc chính xác</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon-circle icon-green">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h4>Nghỉ phép</h4>
+                            <p>Quản lý đơn từ và lịch nghỉ dễ dàng</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon-circle icon-purple">
+                            <i class="bi bi-wallet2"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h4>Bảng lương</h4>
+                            <p>Tính lương tự động, minh bạch và nhanh chóng</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="login-footer-copy">
+                &copy; 2026 HRM Management. All rights reserved.
+            </div>
+        </div>
+
+        <!-- Cột Phải - Card Đăng nhập Form (Khớp Ảnh 1) -->
+        <div class="login-right-panel">
+            <div class="login-card">
+                <div class="login-card-header">
+                    <div class="lock-badge-icon">
+                        <i class="bi bi-lock-fill"></i>
+                    </div>
+                    <h3>Đăng nhập hệ thống</h3>
+                    <p>Chào mừng bạn quay lại</p>
+                </div>
+
+                <form method="post" class="auth-form">
+                    @Html.AntiForgeryToken()
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <div asp-validation-summary="All" class="text-danger" style="margin: 0; padding: 0; list-style: none;"></div>
+                        </div>
+                    }
+
+                    <div class="form-group">
+                        <label asp-for="Input.UsernameOrEmail" class="form-label"></label>
+                        <div class="input-icon-group">
+                            <i class="bi bi-person input-icon-left"></i>
+                            <input asp-for="Input.UsernameOrEmail" class="form-control form-control-with-icon" placeholder="Nhập tên đăng nhập hoặc email" autofocus />
+                        </div>
+                        <span asp-validation-for="Input.UsernameOrEmail" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Input.Password" class="form-label"></label>
+                        <div class="input-icon-group">
+                            <i class="bi bi-lock input-icon-left"></i>
+                            <input asp-for="Input.Password" class="form-control form-control-with-icon" id="LoginPassword" placeholder="Nhập mật khẩu" />
+                            <button type="button" class="btn-toggle-password" data-target="LoginPassword" title="Hiện/Ẩn mật khẩu">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="login-options-row">
+                        <div class="d-flex align-items-center gap-2">
+                            <input asp-for="Input.RememberMe" type="checkbox" id="RememberMe" class="form-check-input" style="width: 18px; height: 18px; cursor: pointer;" />
+                            <label for="RememberMe" class="form-label" style="margin: 0; cursor: pointer;">Ghi nhớ đăng nhập</label>
+                        </div>
+                        <span class="forgot-password-link" title="Tính năng được bảo vệ bởi Admin">Quên mật khẩu?</span>
+                    </div>
+
+                    <button type="submit" class="btn-login-submit">
+                        <span>Đăng nhập</span>
+                    </button>
+
+                    <div class="divider-text">
+                        <span>hoặc</span>
+                    </div>
+
+                    <div class="supported-roles-box">
+                        <i class="bi bi-shield-check" style="font-size: 1.1rem; color: #2563eb;"></i>
+                        <span>Hỗ trợ các vai trò: Nhân viên, Trưởng phòng, HR, Payroll, Admin</span>
+                    </div>
+                </form>
+            </div>
+
+            <div class="d-block d-md-none text-center mt-3 text-muted" style="font-size: 0.8rem;">
+                &copy; 2026 HRM Management
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

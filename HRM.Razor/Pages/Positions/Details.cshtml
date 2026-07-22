@@ -1,0 +1,83 @@
+@page "{id:int}"
+@model HRM.Razor.Pages.Positions.DetailsModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = $"Chi tiết - {Model.Position.PositionName}";
+
+    bool canManage = User.IsInRole("Admin") || User.IsInRole("HR") || User.IsInRole("HR Staff") || User.IsInRole("System Administrator");
+}
+
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
+
+<div class="page-breadcrumb">
+    Nhân sự &gt; Chức vụ &gt; <span>Chi tiết chức vụ</span>
+</div>
+
+<div class="card mb-4" style="padding: 1.75rem;">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div style="width: 64px; height: 64px; border-radius: 16px; background-color: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                <i class="bi bi-award"></i>
+            </div>
+            <div>
+                <h2 class="mb-1" style="font-size: 1.4rem; font-weight: 700; color: #0f172a;">@Model.Position.PositionName</h2>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge-status @(Model.Position.IsActive ? "badge-status-active" : "badge-status-resigned")">
+                        @(Model.Position.IsActive ? "Đang hoạt động" : "Ngừng sử dụng")
+                    </span>
+                    <span class="text-muted" style="font-size: 0.85rem;">&bull; Số nhân viên đang giữ vị trí: <strong>@Model.Position.EmployeeCount</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a asp-page="/Positions/Index" class="btn btn-outline">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại
+            </a>
+            @if (canManage)
+            {
+                <a asp-page="/Positions/Edit" asp-route-id="@Model.Position.PositionId" class="btn btn-primary">
+                    <i class="bi bi-pencil me-1"></i> Chỉnh sửa
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row g-4" style="display: grid; grid-template-columns: 1fr 340px; gap: 1.25rem;">
+    <div class="card" style="padding: 1.5rem;">
+        <div class="form-section-title mb-3">
+            <i class="bi bi-info-circle"></i> Thông tin chức vụ
+        </div>
+        <div class="d-flex flex-column gap-3" style="font-size: 0.9rem;">
+            <div class="d-flex justify-content-between border-bottom pb-2">
+                <span class="text-muted">Tên chức vụ:</span>
+                <strong>@Model.Position.PositionName</strong>
+            </div>
+            <div class="d-flex justify-content-between border-bottom pb-2">
+                <span class="text-muted">Số nhân viên active:</span>
+                <strong>@Model.Position.EmployeeCount người</strong>
+            </div>
+            <div class="d-flex justify-content-between border-bottom pb-2">
+                <span class="text-muted">Mô tả:</span>
+                <span style="max-width: 300px; text-align: right;">@(Model.Position.Description ?? "Không có mô tả")</span>
+            </div>
+            <div class="d-flex justify-content-between border-bottom pb-2">
+                <span class="text-muted">Ngày khởi tạo:</span>
+                <strong>@Model.Position.CreatedAt.ToString("dd/MM/yyyy HH:mm")</strong>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div class="side-panel-card">
+            <div class="panel-header">
+                <i class="bi bi-people"></i>
+                <span>Tóm tắt nhân sự</span>
+            </div>
+            <p style="font-size: 0.85rem; color: #64748b; line-height: 1.6; margin: 0;">
+                Hiện tại có <strong>@Model.Position.EmployeeCount</strong> nhân viên đang giữ vị trí <strong>@Model.Position.PositionName</strong>.
+            </p>
+        </div>
+    </div>
+</div>

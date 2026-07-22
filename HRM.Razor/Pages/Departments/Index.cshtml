@@ -1,0 +1,178 @@
+@page
+@model HRM.Razor.Pages.Departments.IndexModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Quản lý phòng ban";
+}
+
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
+
+<div class="page-breadcrumb">
+    Nhân sự &gt; <span>Phòng ban</span>
+</div>
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title mb-1">Quản lý phòng ban</h1>
+        <p class="page-subtitle mb-0">Tạo mới, cập nhật và quản lý cơ cấu các phòng ban trong tổ chức</p>
+    </div>
+
+    <a asp-page="/Departments/Create" class="btn btn-primary">
+        <i class="bi bi-plus-circle-fill me-1"></i> Thêm phòng ban
+    </a>
+</div>
+
+<!-- Statistic Cards (Matching Mockup 1) -->
+<div class="row g-3 mb-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+    <div class="card p-3 d-flex align-items-center flex-row gap-3">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background-color: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+            <i class="bi bi-building"></i>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size: 0.8rem; font-weight: 600;">Tổng số phòng ban</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">@Model.TotalDepartments</div>
+        </div>
+    </div>
+
+    <div class="card p-3 d-flex align-items-center flex-row gap-3">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background-color: #d1fae5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+            <i class="bi bi-check-circle"></i>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size: 0.8rem; font-weight: 600;">Đang hoạt động</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">@Model.ActiveDepartments</div>
+        </div>
+    </div>
+
+    <div class="card p-3 d-flex align-items-center flex-row gap-3">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background-color: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+            <i class="bi bi-dash-circle"></i>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size: 0.8rem; font-weight: 600;">Đã ngừng sử dụng</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">@Model.InactiveDepartments</div>
+        </div>
+    </div>
+
+    <div class="card p-3 d-flex align-items-center flex-row gap-3">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background-color: #f3e8ff; color: #7e22ce; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+            <i class="bi bi-person-exclamation"></i>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size: 0.8rem; font-weight: 600;">Chưa có quản lý</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">@Model.NoManagerDepartments</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="card mb-4" style="padding: 1.25rem;">
+    <form method="get" class="d-flex flex-wrap align-items-center gap-3">
+        <div style="flex: 1; min-width: 240px; position: relative;">
+            <input type="text" asp-for="Keyword" class="form-control" placeholder="Tìm kiếm tên phòng ban, mô tả..." style="padding-right: 2.2rem;" />
+            <i class="bi bi-search" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); color: #94a3b8;"></i>
+        </div>
+
+        <div style="width: 200px;">
+            <select asp-for="IsActive" class="form-control">
+                <option value="">Tất cả trạng thái</option>
+                <option value="true">Đang hoạt động</option>
+                <option value="false">Ngừng sử dụng</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="height: 42px;">
+            <i class="bi bi-funnel me-1"></i> Lọc
+        </button>
+        <a asp-page="/Departments/Index" class="btn btn-outline" style="height: 42px;">Đặt lại</a>
+    </form>
+</div>
+
+<!-- Department Table -->
+<div class="card" style="padding: 0; overflow: hidden;">
+    <div class="table-responsive">
+        <table class="table mb-0" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+            <thead style="background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left;">
+                <tr>
+                    <th style="padding: 1rem 1.25rem; width: 60px;">STT</th>
+                    <th style="padding: 1rem 1.25rem;">Tên phòng ban</th>
+                    <th style="padding: 1rem 1.25rem;">Quản lý phòng ban</th>
+                    <th style="padding: 1rem 1.25rem; text-align: center;">Số nhân viên</th>
+                    <th style="padding: 1rem 1.25rem;">Trạng thái</th>
+                    <th style="padding: 1rem 1.25rem;">Ngày tạo</th>
+                    <th style="padding: 1rem 1.25rem; text-align: right;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Departments != null && Model.Departments.Any())
+                {
+                    int index = 1;
+                    foreach (var dept in Model.Departments)
+                    {
+                        var statusClass = dept.IsActive ? "badge-status-active" : "badge-status-resigned";
+                        var statusText = dept.IsActive ? "Đang hoạt động" : "Ngừng sử dụng";
+
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td style="padding: 1rem 1.25rem; color: #64748b;">@index</td>
+                            <td style="padding: 1rem 1.25rem; font-weight: 700; color: #0f172a;">
+                                @dept.DepartmentName
+                                @if (!string.IsNullOrEmpty(dept.Description))
+                                {
+                                    <div class="text-muted" style="font-weight: 400; font-size: 0.8rem; margin-top: 0.2rem;">@dept.Description</div>
+                                }
+                            </td>
+                            <td style="padding: 1rem 1.25rem;">
+                                @if (!string.IsNullOrEmpty(dept.ManagerName))
+                                {
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div style="width: 28px; height: 28px; border-radius: 50%; background-color: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem;">
+                                            @(dept.ManagerName.Substring(0, 1).ToUpper())
+                                        </div>
+                                        <span>@dept.ManagerName</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted" style="font-style: italic;">Chưa bổ nhiệm</span>
+                                }
+                            </td>
+                            <td style="padding: 1rem 1.25rem; text-align: center; font-weight: 700;">
+                                <span class="badge" style="background-color: #f1f5f9; color: #334155; padding: 0.35rem 0.75rem; border-radius: 12px;">@dept.EmployeeCount</span>
+                            </td>
+                            <td style="padding: 1rem 1.25rem;">
+                                <span class="badge-status @statusClass">@statusText</span>
+                            </td>
+                            <td style="padding: 1rem 1.25rem; color: #64748b;">@dept.CreatedAt.ToString("dd/MM/yyyy")</td>
+                            <td style="padding: 1rem 1.25rem; text-align: right;">
+                                <div class="d-inline-flex gap-1">
+                                    <a asp-page="/Departments/Details" asp-route-id="@dept.DepartmentId" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" title="Xem chi tiết">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a asp-page="/Departments/Edit" asp-route-id="@dept.DepartmentId" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" title="Chỉnh sửa">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="post" asp-page-handler="ToggleStatus" asp-route-id="@dept.DepartmentId" asp-route-targetIsActive="@(!dept.IsActive)" class="d-inline" onsubmit="return confirm('@(dept.IsActive ? $"Xác nhận ngừng sử dụng phòng ban {dept.DepartmentName}?" : $"Xác nhận kích hoạt lại phòng ban {dept.DepartmentName}?")');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline @(dept.IsActive ? "text-danger" : "text-success")" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" title="@(dept.IsActive ? "Ngừng sử dụng" : "Kích hoạt lại")">
+                                            <i class="bi @(dept.IsActive ? "bi-power" : "bi-check-circle")"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        index++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted" style="padding: 3rem 1rem;">
+                            <i class="bi bi-inbox" style="font-size: 2rem; color: #cbd5e1; display: block; margin-bottom: 0.5rem;"></i>
+                            Không tìm thấy phòng ban nào.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

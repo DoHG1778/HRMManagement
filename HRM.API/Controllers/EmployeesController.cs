@@ -94,5 +94,14 @@ namespace HRM.API.Controllers
             var result = await _employeeService.TransferEmployeeAsync(currentUser, employeeId, request);
             return HandleResponse(result);
         }
+
+        [HttpGet("{employeeId:int}/assignments")]
+        [Authorize(Roles = "Admin,HR,HR Staff,Manager,Department Manager,System Administrator")]
+        public async Task<IActionResult> GetAssignmentHistory(int employeeId)
+        {
+            var currentUser = GetCurrentUser();
+            var result = await _employeeService.GetAssignmentHistoryAsync(currentUser, employeeId);
+            return HandleResponse(result);
+        }
     }
 }

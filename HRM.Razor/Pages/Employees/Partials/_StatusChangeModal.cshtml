@@ -1,0 +1,28 @@
+<div id="status-change-modal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-icon-danger">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">
+            Xác nhận thay đổi trạng thái làm việc?
+        </h3>
+
+        <p style="font-size: 0.875rem; color: #64748b; line-height: 1.5; margin-bottom: 1.25rem;">
+            Bạn đang yêu cầu chuyển trạng thái của nhân viên sang 
+            <strong id="target-status-text" class="text-danger">Đã nghỉ việc / Chấm dứt</strong>.
+            <br /><br />
+            <span style="color: #ef4444; font-weight: 600;">⚠ Cảnh báo:</span> Hành động này có thể ảnh hưởng trực tiếp đến dữ liệu chấm công, đơn xin nghỉ phép, tăng ca (OT), hợp đồng lao động và đánh giá KPI của nhân viên.
+        </p>
+
+        <form method="post" asp-page-handler="ChangeStatus" id="status-modal-form">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="targetStatus" id="TargetStatusHidden" value="" />
+
+            <div class="d-flex align-items-center justify-content-end gap-2" style="margin-top: 1.5rem;">
+                <button type="button" id="btn-close-status-modal" class="btn btn-outline" style="min-width: 100px;">Hủy bỏ</button>
+                <button type="submit" class="btn btn-danger" style="min-width: 140px;">Xác nhận thay đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
