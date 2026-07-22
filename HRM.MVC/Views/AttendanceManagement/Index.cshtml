@@ -3,184 +3,263 @@
 @model PagedResult<AttendanceResponseDto>
 
 @{
-    ViewData["Title"] = "My Attendance";
+    ViewData["Title"] = "Attendance";
     var todayRecord = ViewBag.TodayRecord as AttendanceResponseDto;
     var filter = ViewBag.Filter as AttendanceFilterDto ?? new AttendanceFilterDto();
-    
+
     bool canCheckIn = todayRecord == null;
     bool canCheckOut = todayRecord != null && !todayRecord.CheckOutTime.HasValue;
     bool alreadyCheckedOut = todayRecord != null && todayRecord.CheckOutTime.HasValue;
 }
 
-<div class="container mt-4">
-    <div class="row">
-        <!-- Check-in/Out Action Card -->
-        <div class="col-md-4">
-            <div class="card shadow mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-clock"></i> Today's Attendance</h5>
-                </div>
-                <div class="card-body text-center py-4">
-                    <h3 id="live-clock" class="display-6 mb-3">00:00:00</h3>
-                    <p class="text-muted">@DateTime.Now.ToString("dddd, dd MMMM yyyy")</p>
-                    
-                    <hr />
+<div class="container-fluid px-4 py-3" style="background-color: #f8f9fa; min-height: 100vh;">
+    <!-- Title Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Attendance</h2>
+            <div class="d-flex align-items-center gap-2 text-muted">
+                <span>@DateTime.Now.ToString("dddd, dd/MM/yyyy")</span>
+                <span class="badge bg-success-subtle text-success px-2 py-1">Working Day</span>
+            </div>
+        </div>
+        <div class="text-end">
+            <h3 id="live-clock" class="fw-bold mb-0" style="color: #0d6efd;">00:00:00</h3>
+        </div>
+    </div>
 
-                    @if (canCheckIn)
+    <!-- Attendance Action Card -->
+    <div class="card border-0 shadow-sm mb-4 rounded-3">
+        <div class="card-body p-4">
+            <div class="row align-items-center">
+                <!-- Status & Info -->
+                <div class="col-lg-3 border-end">
+                    <p class="text-muted small mb-2 text-uppercase fw-bold">Attendance Status</p>
+                    @if (alreadyCheckedOut)
                     {
-                        <form asp-action="CheckIn" method="post">
-                            <button type="submit" class="btn btn-success btn-lg w-100 py-3 mb-2">
-                                <i class="bi bi-box-arrow-in-right"></i> CHECK IN
-                            </button>
-                            <small class="text-muted">Start your work session</small>
-                        </form>
-                    }
-                    else if (canCheckOut)
-                    {
-                        <div class="alert alert-info mb-3">
-                            Checked in at: <strong>@todayRecord.CheckInTime?.ToString("HH:mm:ss")</strong>
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="p-1 bg-secondary rounded-circle"></span>
+                            <span class="fw-bold text-secondary">Finished</span>
                         </div>
-                        <form asp-action="CheckOut" method="post">
-                            <button type="submit" class="btn btn-danger btn-lg w-100 py-3 mb-2">
-                                <i class="bi bi-box-arrow-left"></i> CHECK OUT
-                            </button>
-                            <small class="text-muted">End your work session</small>
-                        </form>
+                        <p class="small text-muted mb-0">You have completed your work for today.</p>
                     }
-                    else if (alreadyCheckedOut)
+                    else if (todayRecord != null)
                     {
-                        <div class="alert alert-success">
-                            <h5 class="alert-heading">Completed!</h5>
-                            <p class="mb-0">In: @todayRecord.CheckInTime?.ToString("HH:mm")</p>
-                            <p class="mb-0">Out: @todayRecord.CheckOutTime?.ToString("HH:mm")</p>
-                            <hr>
-                            <p class="mb-0">Hours: <strong>@todayRecord.WorkingHours</strong></p>
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="p-1 bg-success rounded-circle animate-pulse"></span>
+                            <span class="fw-bold text-success">Working</span>
                         </div>
-                        <button class="btn btn-secondary btn-lg w-100 disabled" disabled>
-                            FINISHED TODAY
-                        </button>
+                        <p class="small text-muted mb-0">You checked in at <strong>@todayRecord.CheckInTime?.ToString("HH:mm")</strong></p>
                     }
+                    else
+                    {
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="p-1 bg-warning rounded-circle"></span>
+                            <span class="fw-bold text-warning">Not Started</span>
+                        </div>
+                        <p class="small text-muted mb-0">Please check in to start your work day.</p>
+                    }
+                </div>
+
+                <!-- Check-in Time -->
+                <div class="col-lg-2 text-center border-end">
+                    <p class="text-muted small mb-1">Check In</p>
+                    <h4 class="fw-bold mb-1">@(todayRecord?.CheckInTime?.ToString("HH:mm") ?? "--:--")</h4>
+                    @if (todayRecord != null)
+                    {
+                        <span class="text-success small"><i class="bi bi-check-circle-fill"></i> @(todayRecord.Status == "LATE" ? "Late" : "On Time")</span>
+                    }
+                </div>
+
+                <!-- Check-out Time -->
+                <div class="col-lg-2 text-center">
+                    <p class="text-muted small mb-1">Check Out</p>
+                    <h4 class="fw-bold mb-1">@(todayRecord?.CheckOutTime?.ToString("HH:mm") ?? "--:--")</h4>
+                    @if (alreadyCheckedOut)
+                    {
+                        <span class="text-muted small">Recorded</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted small">Not yet</span>
+                    }
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="col-lg-5 ps-4">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <form asp-action="CheckIn" method="post">
+                                <button type="submit" class="btn btn-success w-100 py-3 rounded-3 fw-bold d-flex flex-column align-items-center gap-1 @(canCheckIn ? "" : "disabled")" @(canCheckIn ? "" : "disabled")>
+                                    <i class="bi bi-box-arrow-in-right fs-4"></i>
+                                    <span>Check In</span>
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-6">
+                            <form asp-action="CheckOut" method="post">
+                                <button type="submit" class="btn btn-danger w-100 py-3 rounded-3 fw-bold d-flex flex-column align-items-center gap-1 @(canCheckOut ? "" : "disabled")" @(canCheckOut ? "" : "disabled")>
+                                    <i class="bi bi-box-arrow-left fs-4"></i>
+                                    <span>Check Out</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Summary Card -->
-            <div class="card shadow border-left-info">
+    <!-- Alert Messages -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- History & Table Section -->
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-3 border-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0 text-dark">Attendance History</h5>
+                <form asp-action="Index" method="get" class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-1">
+                        <small class="text-muted fw-bold">Start:</small>
+                        <input type="date" name="FromDate" class="form-control form-control-sm border-light" value="@filter.FromDate?.ToString("yyyy-MM-dd")">
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        <small class="text-muted fw-bold">End:</small>
+                        <input type="date" name="ToDate" class="form-control form-control-sm border-light" value="@filter.ToDate?.ToString("yyyy-MM-dd")">
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        <small class="text-muted fw-bold">Status:</small>
+                        <select name="Status" class="form-select form-select-sm border-light" style="width: 110px;">
+                            <option value="">All</option>
+                            <option value="PRESENT" selected="@(filter.Status == "PRESENT")">On Time</option>
+                            <option value="LATE" selected="@(filter.Status == "LATE")">Late</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm px-3">Filter</button>
+                </form>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr class="text-muted small">
+                            <th class="ps-4">Date</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Total Hours</th>
+                            <th class="pe-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Items != null && Model.Items.Any())
+                        {
+                            foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td class="ps-4 fw-medium">@item.AttendanceDate.ToString("dddd, dd/MM/yyyy")</td>
+                                    <td class="text-success fw-bold">@(item.CheckInTime?.ToString("HH:mm") ?? "--:--")</td>
+                                    <td class="text-danger fw-bold">@(item.CheckOutTime?.ToString("HH:mm") ?? "--:--")</td>
+                                    <td>@item.WorkingHours h</td>
+                                    <td class="pe-4">
+                                        @if (item.Status == "PRESENT")
+                                        {
+                                            <span class="badge bg-success-subtle text-success px-2 py-1">On Time</span>
+                                        }
+                                        else if (item.Status == "LATE")
+                                        {
+                                            <span class="badge bg-warning-subtle text-warning px-2 py-1">Late</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark px-2 py-1">@item.Status</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">No attendance history found.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        @if (Model.TotalPages > 1)
+        {
+            <div class="card-footer bg-white border-0 py-3">
+                <nav>
+                    <ul class="pagination pagination-sm justify-content-center mb-0">
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link shadow-none" asp-action="Index" asp-route-pageNumber="@i" asp-route-fromDate="@filter.FromDate" asp-route-toDate="@filter.ToDate">@i</a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+
+    <!-- Rule Summary -->
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-3 border-start border-4 border-info">
                 <div class="card-body">
-                    <h6 class="text-info font-weight-bold text-uppercase mb-1">Status Summary</h6>
-                    <ul class="list-group list-group-flush small">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Standard Shift
-                            <span class="badge bg-light text-dark border">08:00 - 17:00</span>
+                    <h6 class="text-info fw-bold text-uppercase small mb-2">Work Rules</h6>
+                    <ul class="list-unstyled small mb-0">
+                        <li class="d-flex justify-content-between mb-1">
+                            <span>Standard Shift:</span>
+                            <span class="fw-bold">08:00 - 17:00</span>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Grace Period
-                            <span class="badge bg-light text-dark border">8:30 AM</span>
+                        <li class="d-flex justify-content-between">
+                            <span>Late Grace Period:</span>
+                            <span class="fw-bold">Before 8:30 AM</span>
                         </li>
                     </ul>
                 </div>
             </div>
         </div>
-
-        <!-- History List -->
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 text-dark">Personal Attendance History</h5>
-                </div>
-                <div class="card-body">
-                    @if (TempData["Success"] != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show">
-                            @TempData["Success"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    }
-                    @if (TempData["Error"] != null)
-                    {
-                        <div class="alert alert-danger alert-dismissible fade show">
-                            @TempData["Error"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    }
-
-                    <form asp-action="Index" method="get" class="row g-2 mb-4">
-                        <div class="col-md-4">
-                            <input type="date" name="FromDate" class="form-control form-control-sm" value="@filter.FromDate?.ToString("yyyy-MM-dd")" placeholder="From Date">
-                        </div>
-                        <div class="col-md-4">
-                            <input type="date" name="ToDate" class="form-control form-control-sm" value="@filter.ToDate?.ToString("yyyy-MM-dd")" placeholder="To Date">
-                        </div>
-                        <div class="col-md-3">
-                            <button type="submit" class="btn btn-outline-secondary btn-sm w-100">Filter</button>
-                        </div>
-                    </form>
-
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Check In</th>
-                                    <th>Check Out</th>
-                                    <th>Hours</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (Model.Items != null && Model.Items.Any())
-                                {
-                                    foreach (var item in Model.Items)
-                                    {
-                                        <tr>
-                                            <td>@item.AttendanceDate.ToString("dd/MM/yyyy")</td>
-                                            <td>@item.CheckInTime?.ToString("HH:mm:ss")</td>
-                                            <td>@item.CheckOutTime?.ToString("HH:mm:ss")</td>
-                                            <td><strong>@item.WorkingHours</strong></td>
-                                            <td>
-                                                @if (item.Status == "PRESENT")
-                                                {
-                                                    <span class="badge bg-success">Present</span>
-                                                }
-                                                else if (item.Status == "LATE")
-                                                {
-                                                    <span class="badge bg-warning text-dark">Late</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-secondary">@item.Status</span>
-                                                }
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                                else
-                                {
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted py-4">No records found.</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-
-                    @if (Model.TotalPages > 1)
-                    {
-                        <nav class="mt-3">
-                            <ul class="pagination pagination-sm justify-content-center">
-                                @for (int i = 1; i <= Model.TotalPages; i++)
-                                {
-                                    <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                                        <a class="page-link" asp-action="Index" asp-route-pageNumber="@i" asp-route-fromDate="@filter.FromDate" asp-route-toDate="@filter.ToDate">@i</a>
-                                    </li>
-                                }
-                            </ul>
-                        </nav>
-                    }
-                </div>
-            </div>
-        </div>
     </div>
 </div>
+
+<style>
+    .animate-pulse {
+        animation: pulse-animation 2s infinite;
+    }
+
+    @@keyframes pulse-animation {
+        0% { box-shadow: 0 0 0 0px rgba(40, 167, 69, 0.4); }
+        100% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+    }
+    
+    .table thead th {
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .btn-success { background-color: #28a745; border: none; }
+    .btn-danger { background-color: #dc3545; border: none; }
+    .btn-success:hover { background-color: #218838; }
+    .btn-danger:hover { background-color: #c82333; }
+</style>
 
 @section Scripts {
     <script>

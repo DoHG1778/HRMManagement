@@ -3,65 +3,73 @@
 @model PagedResult<AttendanceResponseDto>
 
 @{
-    ViewData["Title"] = "Attendance Management";
+    ViewData["Title"] = "Attendance Sheet";
     var filter = ViewBag.Filter as AttendanceFilterDto ?? new AttendanceFilterDto();
 }
 
-<div class="container-fluid mt-4">
-    <div class="card shadow">
-        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 text-primary font-weight-bold">
-                <i class="bi bi-calendar-check-fill me-2"></i>Employee Attendance Sheet
-            </h5>
+<div class="container-fluid px-4 py-3" style="background-color: #f8f9fa; min-height: 100vh;">
+    <!-- Title Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Attendance Sheet</h2>
+            <div class="d-flex align-items-center gap-2 text-muted">
+                <span>Management View</span>
+                <span class="badge bg-primary-subtle text-primary px-2 py-1">System Records</span>
+            </div>
         </div>
-        <div class="card-body">
-            <!-- Filter Section -->
-            <form asp-action="Sheet" method="get" class="row g-3 mb-4">
-                <div class="col-md-3">
-                    <label class="form-label small">Search Name/Code</label>
-                    <input type="text" name="Keyword" class="form-control form-control-sm" 
-                           value="@filter.Keyword" placeholder="Employee name or code...">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small">From Date</label>
-                    <input type="date" name="FromDate" class="form-control form-control-sm" 
-                           value="@filter.FromDate?.ToString("yyyy-MM-dd")">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small">To Date</label>
-                    <input type="date" name="ToDate" class="form-control form-control-sm" 
-                           value="@filter.ToDate?.ToString("yyyy-MM-dd")">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small">Status</label>
-                    <select name="Status" class="form-select form-select-sm">
-                        <option value="">All Status</option>
-                        <option value="PRESENT" selected="@(filter.Status == "PRESENT")">Present</option>
-                        <option value="LATE" selected="@(filter.Status == "LATE")">Late</option>
-                        <option value="ABSENT" selected="@(filter.Status == "ABSENT")">Absent</option>
-                    </select>
-                </div>
-                <div class="col-md-3 d-flex align-items-end gap-2">
-                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
-                        <i class="bi bi-search"></i> Filter
-                    </button>
-                    <a asp-action="Sheet" class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-arrow-clockwise"></i> Reset
-                    </a>
-                </div>
-            </form>
+    </div>
 
+    <!-- Filter & Table Section -->
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-3 border-0">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-3">
+                    <h5 class="fw-bold mb-0 text-dark">Employee Records</h5>
+                </div>
+                <div class="col-md-9">
+                    <form asp-action="Sheet" method="get" class="d-flex flex-wrap justify-content-md-end align-items-center gap-3">
+                        <!-- Keyword Search -->
+                        <div class="d-flex align-items-center gap-1">
+                            <small class="text-muted fw-bold">Search:</small>
+                            <input type="text" name="Keyword" class="form-control form-control-sm border-light" 
+                                   style="width: 150px;" placeholder="Name or Code..." value="@filter.Keyword">
+                        </div>
+                        <!-- Date Range -->
+                        <div class="d-flex align-items-center gap-1">
+                            <small class="text-muted fw-bold">Start:</small>
+                            <input type="date" name="FromDate" class="form-control form-control-sm border-light" value="@filter.FromDate?.ToString("yyyy-MM-dd")">
+                        </div>
+                        <div class="d-flex align-items-center gap-1">
+                            <small class="text-muted fw-bold">End:</small>
+                            <input type="date" name="ToDate" class="form-control form-control-sm border-light" value="@filter.ToDate?.ToString("yyyy-MM-dd")">
+                        </div>
+                        <!-- Status -->
+                        <div class="d-flex align-items-center gap-1">
+                            <small class="text-muted fw-bold">Status:</small>
+                            <select name="Status" class="form-select form-select-sm border-light" style="width: 110px;">
+                                <option value="">All</option>
+                                <option value="PRESENT" selected="@(filter.Status == "PRESENT")">On Time</option>
+                                <option value="LATE" selected="@(filter.Status == "LATE")">Late</option>
+                                <option value="ABSENT" selected="@(filter.Status == "ABSENT")">Absent</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm px-3">Filter</button>
+                        <a asp-action="Sheet" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise"></i></a>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle border">
-                    <thead class="table-light text-nowrap">
-                        <tr>
-                            <th>Code</th>
-                            <th>Employee Name</th>
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr class="text-muted small">
+                            <th class="ps-4">Employee</th>
                             <th>Date</th>
                             <th>Check In</th>
                             <th>Check Out</th>
-                            <th>Hours</th>
-                            <th>Status</th>
+                            <th>Total Hours</th>
+                            <th class="pe-4">Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -70,28 +78,32 @@
                             foreach (var item in Model.Items)
                             {
                                 <tr>
-                                    <td><span class="badge bg-light text-dark border">@item.EmployeeCode</span></td>
-                                    <td class="fw-bold text-dark">@item.EmployeeName</td>
-                                    <td>@item.AttendanceDate.ToString("dd/MM/yyyy")</td>
-                                    <td>@(item.CheckInTime?.ToString("HH:mm:ss") ?? "--:--:--")</td>
-                                    <td>@(item.CheckOutTime?.ToString("HH:mm:ss") ?? "--:--:--")</td>
-                                    <td><strong>@item.WorkingHours</strong></td>
-                                    <td>
+                                    <td class="ps-4">
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-bold text-dark">@item.EmployeeName</span>
+                                            <small class="text-muted">@item.EmployeeCode</small>
+                                        </div>
+                                    </td>
+                                    <td class="fw-medium">@item.AttendanceDate.ToString("dddd, dd/MM/yyyy")</td>
+                                    <td class="text-success fw-bold">@(item.CheckInTime?.ToString("HH:mm") ?? "--:--")</td>
+                                    <td class="text-danger fw-bold">@(item.CheckOutTime?.ToString("HH:mm") ?? "--:--")</td>
+                                    <td>@item.WorkingHours h</td>
+                                    <td class="pe-4">
                                         @if (item.Status == "PRESENT")
                                         {
-                                            <span class="badge bg-success-subtle text-success border border-success">Present</span>
+                                            <span class="badge bg-success-subtle text-success px-2 py-1">On Time</span>
                                         }
                                         else if (item.Status == "LATE")
                                         {
-                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning">Late</span>
+                                            <span class="badge bg-warning-subtle text-warning px-2 py-1">Late</span>
                                         }
                                         else if (item.Status == "ABSENT")
                                         {
-                                            <span class="badge bg-danger-subtle text-danger border border-danger">Absent</span>
+                                            <span class="badge bg-danger-subtle text-danger px-2 py-1">Absent</span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-secondary">@item.Status</span>
+                                            <span class="badge bg-light text-dark px-2 py-1">@item.Status</span>
                                         }
                                     </td>
                                 </tr>
@@ -100,52 +112,40 @@
                         else
                         {
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-5">
-                                    <i class="bi bi-info-circle me-1"></i> No attendance records match your criteria.
-                                </td>
+                                <td colspan="6" class="text-center py-5 text-muted">No attendance records found.</td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
-
-            <!-- Pagination -->
-            @if (Model.TotalPages > 1)
-            {
-                <nav class="mt-4">
-                    <ul class="pagination pagination-sm justify-content-center">
-                        <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
-                            <a class="page-link" asp-action="Sheet" 
-                               asp-route-pageNumber="@(Model.PageNumber - 1)" 
-                               asp-route-keyword="@filter.Keyword"
-                               asp-route-fromDate="@filter.FromDate"
-                               asp-route-toDate="@filter.ToDate"
-                               asp-route-status="@filter.Status">Previous</a>
-                        </li>
-
+        </div>
+        @if (Model.TotalPages > 1)
+        {
+            <div class="card-footer bg-white border-0 py-3">
+                <nav>
+                    <ul class="pagination pagination-sm justify-content-center mb-0">
                         @for (int i = 1; i <= Model.TotalPages; i++)
                         {
                             <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                                <a class="page-link" asp-action="Sheet" 
-                                   asp-route-pageNumber="@i"
+                                <a class="page-link shadow-none" asp-action="Sheet" 
+                                   asp-route-pageNumber="@i" 
                                    asp-route-keyword="@filter.Keyword"
-                                   asp-route-fromDate="@filter.FromDate"
+                                   asp-route-fromDate="@filter.FromDate" 
                                    asp-route-toDate="@filter.ToDate"
                                    asp-route-status="@filter.Status">@i</a>
                             </li>
                         }
-
-                        <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
-                            <a class="page-link" asp-action="Sheet" 
-                               asp-route-pageNumber="@(Model.PageNumber + 1)"
-                               asp-route-keyword="@filter.Keyword"
-                               asp-route-fromDate="@filter.FromDate"
-                               asp-route-toDate="@filter.ToDate"
-                               asp-route-status="@filter.Status">Next</a>
-                        </li>
                     </ul>
                 </nav>
-            }
-        </div>
+            </div>
+        }
     </div>
 </div>
+
+<style>
+    .table thead th {
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+</style>
