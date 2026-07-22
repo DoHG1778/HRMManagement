@@ -20,9 +20,9 @@
     font-size: 0.9rem;
 }
 
-.wizard-step-item.active {
-    color: #2563eb;
-}
+    .wizard-step-item.active {
+        color: #2563eb;
+    }
 
 .wizard-step-number {
     width: 32px;
@@ -75,9 +75,9 @@
     font-size: 0.88rem;
 }
 
-.payroll-detail-row:last-child {
-    border-bottom: none;
-}
+    .payroll-detail-row:last-child {
+        border-bottom: none;
+    }
 
 .badge-draft {
     background-color: #fef3c7;
@@ -108,7 +108,13 @@
 
 /* Print CSS for Payslips (UC34) */
 @media print {
-    .sidebar, .topbar, .page-breadcrumb, .no-print, nav, footer {
+
+    .sidebar,
+    .topbar,
+    .page-breadcrumb,
+    .no-print,
+    nav,
+    footer {
         display: none !important;
     }
 
@@ -127,5 +133,192 @@
         border: none !important;
         box-shadow: none !important;
         margin-bottom: 1rem !important;
+    }
+}
+/* ===== Payroll UI fixes ===== */
+
+/* Keep every amount and the VND symbol on one line. */
+.table th[style*="text-align: right"],
+.table td[style*="text-align: right"],
+.payroll-money,
+.payroll-money-cell {
+    white-space: nowrap;
+    word-break: keep-all;
+}
+
+/* Shared responsive filter bar. */
+.payroll-filter-row {
+    display: flex;
+    align-items: end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+    .payroll-filter-row > div {
+        flex: 0 1 auto;
+        min-width: 120px;
+    }
+
+    .payroll-filter-row .form-control,
+    .payroll-filter-row .form-select,
+    .payroll-filter-row .btn {
+        height: 42px;
+    }
+
+    .payroll-filter-row .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+    }
+
+/* Calculation settings layout. */
+.payroll-settings-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(160px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+    .payroll-settings-grid > div:nth-child(6) {
+        grid-column: 1 / span 1;
+    }
+
+.payroll-defaults-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+    .payroll-settings-grid .form-control,
+    .payroll-defaults-grid .form-control {
+        width: 100%;
+        height: 42px;
+    }
+
+    .payroll-settings-grid .form-label,
+    .payroll-defaults-grid .form-label {
+        min-height: 22px;
+        margin-bottom: 0.45rem;
+    }
+
+/* Confirm summary: keep label and status badge separate. */
+.payroll-confirm-summary {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(160px, 1fr));
+    gap: 1.25rem;
+    align-items: center;
+}
+
+    .payroll-confirm-summary > div {
+        min-width: 0;
+    }
+
+    .payroll-confirm-summary .badge-draft,
+    .payroll-confirm-summary .badge-confirmed,
+    .payroll-confirm-summary .badge-paid {
+        display: inline-flex;
+        align-items: center;
+        width: max-content;
+        max-width: 100%;
+        margin-top: 0.4rem;
+        white-space: nowrap;
+    }
+
+/* Warning content wraps by phrase, never by individual word. */
+.payroll-warning {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    line-height: 1.6;
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+    .payroll-warning strong,
+    .payroll-warning span {
+        white-space: normal;
+    }
+
+/* Report tabs stay directly above the table. */
+.payroll-report-tabs {
+    padding: 0 !important;
+}
+
+    .payroll-report-tabs .nav-tabs {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin: 0;
+        padding: 0.5rem 1rem 0 !important;
+    }
+
+    .payroll-report-tabs .nav-item {
+        margin: 0;
+    }
+
+    .payroll-report-tabs .nav-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 46px;
+        margin: 0;
+        background: transparent;
+        border-radius: 8px 8px 0 0;
+        white-space: nowrap;
+    }
+
+        .payroll-report-tabs .nav-link.active {
+            color: #2563eb !important;
+            background: #eff6ff;
+            border-bottom: 3px solid #2563eb !important;
+        }
+
+#reportTabContent,
+#reportTabContent .tab-pane {
+    margin: 0;
+    padding: 0;
+}
+
+    #reportTabContent .tab-pane:not(.active) {
+        display: none;
+    }
+
+/* Responsive behavior. */
+@media (max-width: 1200px) {
+    .payroll-settings-grid {
+        grid-template-columns: repeat(3, minmax(160px, 1fr));
+    }
+
+    .payroll-confirm-summary {
+        grid-template-columns: repeat(3, minmax(160px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .payroll-filter-row {
+        align-items: stretch;
+    }
+
+        .payroll-filter-row > div,
+        .payroll-filter-row .btn {
+            width: 100% !important;
+            flex: 1 1 100%;
+        }
+
+    .payroll-settings-grid,
+    .payroll-defaults-grid,
+    .payroll-confirm-summary {
+        grid-template-columns: 1fr;
+    }
+
+        .payroll-settings-grid > div:nth-child(6) {
+            grid-column: auto;
+        }
+
+    .payroll-report-tabs .nav-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
     }
 }
