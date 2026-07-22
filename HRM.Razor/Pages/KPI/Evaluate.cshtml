@@ -1,0 +1,411 @@
+﻿@page
+@model HRM.Razor.Pages.KPI.EvaluateModel
+
+@{
+    ViewData["Title"] = "Đánh giá KPI";
+    ViewData["ActivePage"] = "KPI";
+}
+
+<div class="page-header mb-4">
+    <div>
+        <h1>
+            <i class="bi bi-clipboard-check me-2"></i>
+            Đánh giá KPI nhân viên
+        </h1>
+
+        <p class="text-muted mb-0">
+            Theo dõi và đánh giá kết quả thực hiện KPI của nhân viên
+        </p>
+    </div>
+</div>
+
+<!-- Bộ lọc -->
+<div class="card mb-4">
+    <div class="card-body">
+
+        <form method="get" class="row g-3 align-items-end">
+
+            <div class="col-md-4">
+                <label class="form-label">
+                    Trạng thái
+                </label>
+
+                <select asp-for="Status" class="form-select">
+                    <option value="">Tất cả</option>
+
+                    <option value="ASSIGNED">
+                        Đã giao
+                    </option>
+
+                    <option value="IN_PROGRESS">
+                        Đang thực hiện
+                    </option>
+
+                    <option value="COMPLETED">
+                        Hoàn thành
+                    </option>
+
+                    <option value="EVALUATED">
+                        Đã đánh giá
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-md-auto">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search me-1"></i>
+                    Lọc
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+
+@if (Model.Assignments.Items == null ||
+     !Model.Assignments.Items.Any())
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+
+            <i class="bi bi-clipboard-x"
+                   style="font-size: 3rem; color: #94a3b8;">
+            </i>
+
+            <h5 class="mt-3">
+                Chưa có KPI cần đánh giá
+            </h5>
+
+            <p class="text-muted">
+                Hiện tại chưa có KPI nào được giao cho nhân viên.
+            </p>
+
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+
+        @foreach (var assignment in Model.Assignments.Items)
+        {
+            <div class="col-md-6 col-xl-4">
+
+                <div class="card h-100 shadow-sm">
+
+                    <div class="card-body">
+
+                        <!-- Header -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+
+                            <div>
+
+                                <h5 class="card-title mb-1">
+                                    @(assignment.Kpiname ?? "KPI chưa có tên")
+                                </h5>
+
+                                <small class="text-muted">
+                                    KPI ID: @assignment.Kpiid
+                                </small>
+
+                            </div>
+
+                            <span class="badge bg-primary">
+                                @assignment.Status
+                            </span>
+
+                        </div>
+
+
+                        <!-- Employee -->
+                        <div class="mb-3">
+
+                            <small class="text-muted d-block">
+                                Nhân viên
+                            </small>
+
+                            <strong>
+                                @(assignment.EmployeeName ?? "Chưa có tên")
+                            </strong>
+
+                            <small class="text-muted d-block">
+                                @(assignment.EmployeeCode ?? "")
+                            </small>
+
+                        </div>
+
+
+                        <!-- Progress -->
+                        <div class="mb-3">
+
+                            <div class="d-flex justify-content-between mb-1">
+
+                                <span>
+                                    Tiến độ
+                                </span>
+
+                                <strong>
+                                    @assignment.ProgressPercent.ToString("0.00")%
+                                </strong>
+
+                            </div>
+
+                            <div class="progress" style="height: 10px;">
+
+                                <div class="progress-bar"
+                                     style="width: @assignment.ProgressPercent%;">
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Statistics -->
+                        <div class="row g-2 mb-3">
+
+                            <div class="col-6">
+
+                                <div class="border rounded p-2">
+
+                                    <small class="text-muted d-block">
+                                        Mục tiêu
+                                    </small>
+
+                                    <strong>
+                                        @(assignment.TargetValue?.ToString("0.00") ?? "0.00")
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-6">
+
+                                <div class="border rounded p-2">
+
+                                    <small class="text-muted d-block">
+                                        Thực tế
+                                    </small>
+
+                                    <strong>
+                                        @(assignment.ActualValue?.ToString("0.00") ?? "0.00")
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Employee comment -->
+                        @if (!string.IsNullOrWhiteSpace(assignment.EmployeeComment))
+                        {
+                            <div class="alert alert-light border small">
+
+                                <strong>
+                                    Nhận xét nhân viên:
+                                </strong>
+
+                                <br />
+
+                                @assignment.EmployeeComment
+
+                            </div>
+                        }
+
+
+                        <!-- Manager evaluation result -->
+                        @if (assignment.ManagerScore.HasValue)
+                        {
+                            <div class="alert alert-success">
+
+                                <strong>
+                                    Điểm Manager:
+                                </strong>
+
+                                @assignment.ManagerScore.Value.ToString("0.00")
+
+                                @if (!string.IsNullOrWhiteSpace(assignment.ManagerComment))
+                                {
+                                    <hr />
+
+                                    <small>
+                                        @assignment.ManagerComment
+                                    </small>
+                                }
+
+                            </div>
+                        }
+
+
+                        <!-- Evaluate button -->
+                        <button type="button"
+                                class="btn btn-outline-primary w-100 evaluate-kpi-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#evaluateKpiModal"
+                                data-assignment-id="@assignment.AssignmentId"
+                                data-manager-score="@(assignment.ManagerScore ?? 0)"
+                                data-manager-comment="@assignment.ManagerComment">
+
+                            <i class="bi bi-clipboard-check me-1"></i>
+
+                            @(assignment.ManagerScore.HasValue
+                                ? "Cập nhật đánh giá"
+                                : "Đánh giá KPI")
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+}
+
+
+<!-- Modal đánh giá KPI -->
+<div class="modal fade"
+     id="evaluateKpiModal"
+     tabindex="-1"
+     aria-hidden="true">
+
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+
+                    <i class="bi bi-clipboard-check me-2"></i>
+
+                    Đánh giá KPI nhân viên
+
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+
+            <form method="post"
+                  asp-page-handler="Evaluate">
+
+                <div class="modal-body">
+
+                    <input type="hidden"
+                           id="AssignmentId"
+                           name="AssignmentId" />
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Điểm đánh giá
+                        </label>
+
+                        <input type="number"
+                               step="0.01"
+                               min="0"
+                               max="100"
+                               id="ManagerScore"
+                               name="ManagerScore"
+                               class="form-control"
+                               required />
+
+                        <small class="text-muted">
+                            Nhập điểm từ 0 đến 100
+                        </small>
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Nhận xét của Manager
+                        </label>
+
+                        <textarea id="ManagerComment"
+                              name="ManagerComment"
+                              class="form-control"
+                              rows="4"
+                                  placeholder="Nhập nhận xét về kết quả KPI...">
+                        </textarea>
+
+                    </div>
+
+                </div>
+
+
+                <div class="modal-footer">
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+
+                        Hủy
+
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-primary">
+
+                        <i class="bi bi-check-lg me-1"></i>
+
+                        Lưu đánh giá
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const buttons =
+                document.querySelectorAll(".evaluate-kpi-btn");
+
+            buttons.forEach(function (button) {
+
+                button.addEventListener("click", function () {
+
+                    document.getElementById("AssignmentId").value =
+                        this.dataset.assignmentId;
+
+                    document.getElementById("ManagerScore").value =
+                        this.dataset.managerScore;
+
+                    document.getElementById("ManagerComment").value =
+                        this.dataset.managerComment || "";
+
+                });
+
+            });
+
+        });
+
+    </script>
+
+}

@@ -1,0 +1,470 @@
+﻿@page
+@model HRM.Razor.Pages.KPI.IndexModel
+
+@{
+    ViewData["Title"] = "KPI cá nhân";
+    ViewData["ActivePage"] = "KPI";
+}
+
+<div class="page-header mb-4">
+    <div>
+        <h1>
+            <i class="bi bi-speedometer2 me-2"></i>
+            KPI cá nhân
+        </h1>
+
+        <p class="text-muted mb-0">
+            Theo dõi và cập nhật tiến độ KPI của bạn
+        </p>
+    </div>
+</div>
+
+<!-- Bộ lọc -->
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+
+        <form method="get" class="row g-3 align-items-end">
+
+            <div class="col-md-4">
+                <label asp-for="Status" class="form-label">
+                    Trạng thái
+                </label>
+
+                <select asp-for="Status" class="form-select">
+
+                    <option value="">
+                        Tất cả
+                    </option>
+
+                    <option value="ASSIGNED">
+                        Đã giao
+                    </option>
+
+                    <option value="IN_PROGRESS">
+                        Đang thực hiện
+                    </option>
+
+                    <option value="COMPLETED">
+                        Hoàn thành
+                    </option>
+
+                    <option value="EVALUATED">
+                        Đã đánh giá
+                    </option>
+
+                </select>
+            </div>
+
+            <div class="col-md-auto">
+
+                <button type="submit"
+                        class="btn btn-primary">
+
+                    <i class="bi bi-search me-1"></i>
+                    Lọc
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+
+@if (Model.Assignments?.Items == null ||
+     !Model.Assignments.Items.Any())
+{
+    <div class="card shadow-sm">
+
+        <div class="card-body text-center py-5">
+
+            <i class="bi bi-clipboard-x"
+                   style="font-size: 3rem; color: #94a3b8;">
+            </i>
+
+            <h5 class="mt-3">
+                Chưa có KPI nào được giao
+            </h5>
+
+            <p class="text-muted mb-0">
+                Hiện tại bạn chưa được giao KPI.
+            </p>
+
+        </div>
+
+    </div>
+}
+else
+{
+    <div class="row g-4">
+
+        @foreach (var assignment in Model.Assignments.Items)
+        {
+            var progress = assignment.ProgressPercent;
+
+            var statusText = assignment.Status switch
+            {
+                "ASSIGNED" => "Đã giao",
+                "IN_PROGRESS" => "Đang thực hiện",
+                "COMPLETED" => "Hoàn thành",
+                "EVALUATED" => "Đã đánh giá",
+                _ => assignment.Status
+            };
+
+            var statusClass = assignment.Status switch
+            {
+                "ASSIGNED" => "bg-secondary",
+                "IN_PROGRESS" => "bg-primary",
+                "COMPLETED" => "bg-success",
+                "EVALUATED" => "bg-info",
+                _ => "bg-secondary"
+            };
+
+            <div class="col-md-6 col-xl-4">
+
+                <div class="card h-100 shadow-sm">
+
+                    <div class="card-body d-flex flex-column">
+
+                        <!-- Header -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+
+                            <div>
+
+                                <h5 class="card-title mb-1">
+
+                                    @(assignment.Kpiname ??
+                                        "KPI chưa có tên")
+
+                                </h5>
+
+                                <small class="text-muted">
+
+                                    KPI ID: @assignment.Kpiid
+
+                                </small>
+
+                            </div>
+
+                            <span class="badge @statusClass">
+
+                                @statusText
+
+                            </span>
+
+                        </div>
+
+
+                        <!-- Progress -->
+                        <div class="mb-3">
+
+                            <div class="d-flex justify-content-between mb-1">
+
+                                <span>
+                                    Tiến độ
+                                </span>
+
+                                <strong>
+                                    @progress.ToString("0.00")%
+                                </strong>
+
+                            </div>
+
+                            <div class="progress"
+                                 style="height: 10px;">
+
+                                <div class="progress-bar"
+                                     role="progressbar"
+                                     style="width: @progress%;"
+                                     aria-valuenow="@progress"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Statistics -->
+                        <div class="row g-2 mb-3">
+
+                            <div class="col-6">
+
+                                <div class="border rounded p-2">
+
+                                    <small class="text-muted d-block">
+
+                                        Mục tiêu
+
+                                    </small>
+
+                                    <strong>
+
+                                        @(assignment.TargetValue
+                                            ?.ToString("0.00") ?? "0.00")
+
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-6">
+
+                                <div class="border rounded p-2">
+
+                                    <small class="text-muted d-block">
+
+                                        Thực tế
+
+                                    </small>
+
+                                    <strong>
+
+                                        @(assignment.ActualValue
+                                            ?.ToString("0.00") ?? "0.00")
+
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Date -->
+                        <div class="small text-muted mb-3">
+
+                            <i class="bi bi-calendar-event me-1"></i>
+
+                            @(assignment.StartDate?.ToString("dd/MM/yyyy")
+                                ?? "--/--/----")
+
+                            -
+
+                            @(assignment.EndDate?.ToString("dd/MM/yyyy")
+                                ?? "--/--/----")
+
+                        </div>
+
+
+                        <!-- Update button -->
+                        <button type="button"
+                                class="btn btn-outline-primary w-100 mt-auto update-kpi-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#updateProgressModal"
+                                data-assignment-id="@assignment.AssignmentId"
+                                data-actual-value="@(assignment.ActualValue ?? 0)"
+                                data-progress="@assignment.ProgressPercent"
+                                data-comment="@assignment.EmployeeComment"
+                                data-self-score="@(assignment.EmployeeSelfScore ?? 0)">
+
+                            <i class="bi bi-pencil-square me-1"></i>
+
+                            Cập nhật tiến độ
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+}
+
+
+<!-- Modal duy nhất -->
+<div class="modal fade"
+     id="updateProgressModal"
+     tabindex="-1"
+     aria-labelledby="updateProgressModalLabel"
+     aria-hidden="true">
+
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title"
+                    id="updateProgressModalLabel">
+
+                    <i class="bi bi-pencil-square me-2"></i>
+
+                    Cập nhật tiến độ KPI
+
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Đóng">
+                </button>
+
+            </div>
+
+
+            <form method="post"
+                  asp-page-handler="UpdateProgress">
+
+                <div class="modal-body">
+
+                    <input type="hidden"
+                           id="AssignmentId"
+                           name="AssignmentId" />
+
+
+                    <div class="mb-3">
+
+                        <label for="ActualValue"
+                               class="form-label">
+
+                            Giá trị thực tế
+
+                        </label>
+
+                        <input type="number"
+                               step="0.01"
+                               min="0"
+                               id="ActualValue"
+                               name="ActualValue"
+                               class="form-control"
+                               required />
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label for="ProgressPercent"
+                               class="form-label">
+
+                            Tiến độ (%)
+
+                        </label>
+
+                        <input type="number"
+                               step="0.01"
+                               min="0"
+                               max="100"
+                               id="ProgressPercent"
+                               name="ProgressPercent"
+                               class="form-control"
+                               required />
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label for="EmployeeComment"
+                               class="form-label">
+
+                            Nhận xét
+
+                        </label>
+
+                        <textarea id="EmployeeComment"
+                                  name="EmployeeComment"
+                                  class="form-control"
+                                  rows="3"></textarea>
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label for="EmployeeSelfScore"
+                               class="form-label">
+
+                            Điểm tự đánh giá
+
+                        </label>
+
+                        <input type="number"
+                               step="0.01"
+                               min="0"
+                               id="EmployeeSelfScore"
+                               name="EmployeeSelfScore"
+                               class="form-control" />
+
+                    </div>
+
+                </div>
+
+
+                <div class="modal-footer">
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+
+                        Hủy
+
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-primary">
+
+                        <i class="bi bi-check-lg me-1"></i>
+
+                        Lưu tiến độ
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const buttons =
+                document.querySelectorAll(".update-kpi-btn");
+
+            buttons.forEach(function (button) {
+
+                button.addEventListener("click", function () {
+
+                    document.getElementById("AssignmentId").value =
+                        this.dataset.assignmentId;
+
+                    document.getElementById("ActualValue").value =
+                        this.dataset.actualValue || 0;
+
+                    document.getElementById("ProgressPercent").value =
+                        this.dataset.progress || 0;
+
+                    document.getElementById("EmployeeComment").value =
+                        this.dataset.comment || "";
+
+                    document.getElementById("EmployeeSelfScore").value =
+                        this.dataset.selfScore || 0;
+
+                });
+
+            });
+
+        });
+
+    </script>
+
+}
