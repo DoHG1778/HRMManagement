@@ -1,0 +1,160 @@
+@page "{id:int}"
+@model HRM.Razor.Pages.Employees.DetailsModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = $"Chi tiết hồ sơ - {Model.Employee.FullName}";
+
+    var currentStatus = Model.Employee.EmploymentStatus;
+
+    var statusBadgeClass = currentStatus switch
+    {
+        "ACTIVE" => "badge-status-active",
+        "ON_LEAVE" => "badge-status-onleave",
+        "RESIGNED" => "badge-status-resigned",
+        "TERMINATED" => "badge-status-terminated",
+        _ => "badge-status-active"
+    };
+
+    var statusText = currentStatus switch
+    {
+        "ACTIVE" => "Đang làm việc",
+        "ON_LEAVE" => "Đang nghỉ",
+        "RESIGNED" => "Đã nghỉ việc",
+        "TERMINATED" => "Đã chấm dứt",
+        _ => currentStatus
+    };
+}
+
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
+
+<div class="page-breadcrumb">
+    Nhân sự &gt; Hồ sơ nhân viên &gt; <span>Chi tiết nhân viên</span>
+</div>
+
+<!-- Header Card Tóm tắt Hồ sơ nhân viên (Bám sát thiết kế mockup) -->
+<div class="card mb-4" style="padding: 1.75rem;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-4">
+            <div style="width: 84px; height: 84px; border-radius: 50%; background-color: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 2.25rem; font-weight: 700; border: 3px solid #dbeafe;">
+                @if (!string.IsNullOrEmpty(Model.Employee.AvatarUrl))
+                {
+                    <img src="@Model.Employee.AvatarUrl" alt="@Model.Employee.FullName" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />
+                }
+                else
+                {
+                    @(string.IsNullOrEmpty(Model.Employee.FullName) ? "U" : Model.Employee.FullName.Substring(0, 1).ToUpper())
+                }
+            </div>
+
+            <div>
+                <div class="d-flex align-items-center gap-3 mb-1">
+                    <h2 class="mb-0" style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">@Model.Employee.FullName</h2>
+                    <span class="badge-status @statusBadgeClass">@statusText</span>
+                </div>
+                <div class="text-muted mb-2" style="font-size: 0.9rem;">
+                    <strong>@Model.Employee.EmployeeCode</strong> &bull; @(Model.Employee.PositionName ?? "Chưa phân công chức vụ")
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center gap-4 text-muted" style="font-size: 0.85rem;">
+                    <div><i class="bi bi-building me-1"></i> @(Model.Employee.DepartmentName ?? "Chưa phân công phòng ban")</div>
+                    <div><i class="bi bi-person-badge me-1"></i> Quản lý: <strong>@(Model.Employee.ManagerName ?? "Không có")</strong></div>
+                    <div><i class="bi bi-calendar-check me-1"></i> Ngày vào làm: @Model.Employee.HireDate.ToString("dd/MM/yyyy")</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <a asp-page="/Employees/Index" class="btn btn-outline">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
+            </a>
+            @if (Model.CanEdit)
+            {
+                @if (Model.Employee.DepartmentId.HasValue || Model.Employee.PositionId.HasValue)
+                {
+                    <a asp-page="/EmployeeAssignments/Transfer" asp-route-employeeId="@Model.Employee.EmployeeId" class="btn btn-outline">
+                        <i class="bi bi-arrow-left-right me-1"></i> Điều chuyển
+                    </a>
+                }
+                else
+                {
+                    <a asp-page="/EmployeeAssignments/Assign" asp-route-employeeId="@Model.Employee.EmployeeId" class="btn btn-outline">
+                        <i class="bi bi-person-plus me-1"></i> Gán phòng ban
+                    </a>
+                }
+                <a asp-page="/Employees/Edit" asp-route-id="@Model.Employee.EmployeeId" class="btn btn-primary">
+                    <i class="bi bi-pencil me-1"></i> Chỉnh sửa
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Lưới 3 Card Thông tin Chi tiết (Bám sát ảnh thiết kế) -->
+<div class="row g-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem;">
+    <!-- Card 1: Thông tin cá nhân -->
+    <div class="card" style="padding: 1.5rem;">
+        <div class="form-section-title mb-3">
+            <i class="bi bi-person-vcard"></i> Thông tin cá nhân
+        </div>
+        <div class="d-flex flex-column gap-3" style="font-size: 0.9rem;">
+            <div class="d-flex justify-content-between border-bottom pb-2">
+                <span class="text-muted"><i class="bi bi-calendar3 me-2"></i>Ngày sinh:</span>
+                <strong>@(Model.Employee.DateOfBirth.HasValue ? Model.Employee.DateOfBirth.Value.ToString("dd/MM/yyyy") : "-")</strong>
+            </div>
+            <div class="d-flex justify-content-between border-bottom pb-2">
+                <span class="text-muted"><i class="bi bi-gender-ambiguous me-2"></i>Giới tính:</span>
+                <strong>@Model.Employee.Gender</strong>
+            </div>
+            <div class="d-flex justify-content-between border-bottom pb-2">
+                <span class="text-muted"><i class="bi bi-card-heading me-2"></i>Số CCCD / CMND:</span>
+                <strong>@(Model.Employee.Cccd ?? "-")</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 2: Thông tin liên hệ -->
+    <div class="card" style="padding: 1.5rem;">
+        <div class="form-section-title mb-3">
+            <i class="bi bi-telephone-inbound"></i> Thông tin liên hệ
+        </div>
+        <div class="d-flex flex-column gap-3" style="font-size: 0.9rem;">
+            <div class="d-flex justify-content-between border-bottom pb-2">
+                <span class="text-muted"><i class="bi bi-envelope me-2"></i>Email công ty:</span>
+                <strong class="text-primary">@Model.Employee.Email</strong>
+            </div>
+            <div class="d-flex justify-content-between border-bottom pb-2">
+                <span class="text-muted"><i class="bi bi-telephone me-2"></i>Số điện thoại:</span>
+                <strong>@(Model.Employee.Phone ?? "-")</strong>
+            </div>
+            <div class="d-flex justify-content-between border-bottom pb-2">
+                <span class="text-muted"><i class="bi bi-geo-alt me-2"></i>Địa chỉ hiện tại:</span>
+                <strong style="text-align: right; max-width: 200px;">@(Model.Employee.Address ?? "-")</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 3: Thông tin công việc -->
+    <div class="card" style="padding: 1.5rem;">
+        <div class="form-section-title mb-3">
+            <i class="bi bi-briefcase"></i> Thông tin công việc
+        </div>
+        <div class="d-flex flex-column gap-3" style="font-size: 0.9rem;">
+            <div class="d-flex justify-content-between border-bottom pb-2">
+                <span class="text-muted"><i class="bi bi-building me-2"></i>Phòng ban:</span>
+                <strong>@(Model.Employee.DepartmentName ?? "Chưa phân công")</strong>
+            </div>
+            <div class="d-flex justify-content-between border-bottom pb-2">
+                <span class="text-muted"><i class="bi bi-award me-2"></i>Chức vụ:</span>
+                <strong>@(Model.Employee.PositionName ?? "Chưa phân công")</strong>
+            </div>
+            <div class="d-flex justify-content-between border-bottom pb-2">
+                <span class="text-muted"><i class="bi bi-person-badge me-2"></i>Quản lý trực tiếp:</span>
+                <strong>@(Model.Employee.ManagerName ?? "Không có")</strong>
+            </div>
+            <div class="d-flex justify-content-between border-bottom pb-2">
+                <span class="text-muted"><i class="bi bi-person-circle me-2"></i>Tài khoản liên kết:</span>
+                <strong>@(Model.Employee.Username ?? "Chưa tạo tài khoản")</strong>
+            </div>
+        </div>
+    </div>
+</div>

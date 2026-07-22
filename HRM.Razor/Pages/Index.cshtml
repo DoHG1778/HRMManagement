@@ -1,0 +1,36 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Trang chủ Quản trị";
+}
+
+<div class="page-title-block">
+    <h1 class="page-title">Bảng điều khiển Quản trị HRM.Razor</h1>
+    <p class="page-subtitle">Hệ thống giao diện Razor Pages độc lập hoàn toàn</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Trạng thái Nền tảng Frontend</h2>
+        <span class="badge @(Model.IsApiConnected ? "badge-success" : "badge-warning")">
+            @(Model.IsApiConnected ? "Đã kết nối API" : "Cần kiểm tra API")
+        </span>
+    </div>
+    
+    <p class="mb-3">@Model.ApiStatusMessage</p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+        <div class="card" style="margin-bottom: 0;">
+            <h3>Kiến trúc</h3>
+            <p class="text-muted">ASP.NET Core Razor Pages (.NET 8.0)</p>
+        </div>
+        <div class="card" style="margin-bottom: 0;">
+            <h3>Xác thực</h3>
+            <p class="text-muted">Cookie Auth + Server-side JWT Session</p>
+        </div>
+        <div class="card" style="margin-bottom: 0;">
+            <h3>Backend API</h3>
+            <p class="text-muted">HRM.API (Typed ApiClient)</p>
+        </div>
+    </div>
+</div>

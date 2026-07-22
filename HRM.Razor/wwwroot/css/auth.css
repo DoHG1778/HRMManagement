@@ -1,0 +1,599 @@
+/* HRM.Razor - Complete Authentication CSS (Image 1 & Image 2 design) */
+
+:root {
+    --hrm-primary: #2563eb;
+    --hrm-primary-dark: #1d4ed8;
+    --hrm-navy: #0b1528;
+    --hrm-navy-card: rgba(255, 255, 255, 0.05);
+    --hrm-background: #f8fafc;
+    --hrm-text: #0f172a;
+    --hrm-muted: #64748b;
+    --hrm-border: #e2e8f0;
+    --hrm-danger: #ef4444;
+    --hrm-success: #10b981;
+    --hrm-radius: 12px;
+    --hrm-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* ==========================================================================
+   MÀN HÌNH ĐĂNG NHẬP (IMAGE 1)
+   ========================================================================== */
+
+.login-page-wrapper {
+    min-height: 100vh;
+    display: flex;
+    background-color: var(--hrm-navy);
+}
+
+/* 2-Column Split */
+.login-split-container {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+}
+
+/* Cột Trái - Nền Navy */
+.login-left-panel {
+    flex: 1;
+    background: linear-gradient(145deg, #0b1528 0%, #1e293b 100%);
+    color: #ffffff;
+    padding: 3.5rem 4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+}
+
+.login-left-panel::after {
+    content: '';
+    position: absolute;
+    bottom: -100px;
+    right: -100px;
+    width: 350px;
+    height: 350px;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.brand-header {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+}
+
+.brand-icon-box {
+    width: 44px;
+    height: 44px;
+    background-color: #2563eb;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+}
+
+.brand-title-group h2 {
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.brand-title-group p {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin: 0;
+}
+
+.login-hero-content {
+    margin: 3rem 0;
+    max-width: 520px;
+}
+
+.hero-headline {
+    font-size: 2.25rem;
+    font-weight: 800;
+    line-height: 1.25;
+    margin-bottom: 1rem;
+    letter-spacing: -0.025em;
+    color: #ffffff;
+}
+
+.hero-subhead {
+    font-size: 0.95rem;
+    color: #94a3b8;
+    line-height: 1.6;
+    margin-bottom: 2.5rem;
+}
+
+/* Feature Cards Grid ở cột trái */
+.feature-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1rem 1.25rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    backdrop-filter: blur(10px);
+    transition: all 0.25s ease;
+}
+
+.feature-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+.feature-icon-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.icon-blue { background-color: rgba(37, 99, 235, 0.2); color: #3b82f6; }
+.icon-green { background-color: rgba(16, 185, 129, 0.2); color: #10b981; }
+.icon-purple { background-color: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+
+.feature-text h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0 0 0.15rem 0;
+    color: #ffffff;
+}
+
+.feature-text p {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin: 0;
+}
+
+/* Cột Phải - Card Đăng nhập */
+.login-right-panel {
+    flex: 1;
+    background-color: var(--hrm-background);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem;
+    position: relative;
+}
+
+.login-card {
+    background-color: #ffffff;
+    width: 100%;
+    max-width: 460px;
+    border-radius: 20px;
+    box-shadow: var(--hrm-shadow);
+    padding: 3rem 2.5rem;
+    border: 1px solid var(--hrm-border);
+}
+
+.login-card-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.lock-badge-icon {
+    width: 56px;
+    height: 56px;
+    background-color: #eff6ff;
+    color: var(--hrm-primary);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+}
+
+.login-card-header h3 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--hrm-text);
+    margin-bottom: 0.35rem;
+}
+
+.login-card-header p {
+    font-size: 0.9rem;
+    color: var(--hrm-muted);
+}
+
+/* Input group có icon bên trong */
+.input-icon-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon-left {
+    position: absolute;
+    left: 1rem;
+    color: #94a3b8;
+    font-size: 1.1rem;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.form-control-with-icon {
+    padding-left: 2.8rem !important;
+    padding-right: 2.8rem !important;
+    height: 48px;
+    border-radius: 10px;
+    font-size: 0.925rem;
+    border: 1px solid var(--hrm-border);
+    transition: all 0.2s ease;
+}
+
+.form-control-with-icon:focus {
+    border-color: var(--hrm-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.btn-toggle-password {
+    position: absolute;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    transition: color 0.2s ease;
+    z-index: 10;
+}
+
+.btn-toggle-password:hover {
+    color: var(--hrm-text);
+}
+
+/* Checkbox & Forgot password row */
+.login-options-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 1.25rem 0 1.75rem;
+    font-size: 0.875rem;
+}
+
+.forgot-password-link {
+    color: var(--hrm-primary);
+    text-decoration: none;
+    font-weight: 600;
+    cursor: default;
+}
+
+/* Nút Submit Đăng nhập */
+.btn-login-submit {
+    width: 100%;
+    height: 48px;
+    background-color: var(--hrm-primary);
+    color: #ffffff;
+    font-size: 0.975rem;
+    font-weight: 700;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-login-submit:hover {
+    background-color: var(--hrm-primary-dark);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+
+.btn-login-submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Divider & Roles info */
+.divider-text {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #cbd5e1;
+    margin: 1.5rem 0;
+    font-size: 0.8rem;
+}
+
+.divider-text::before,
+.divider-text::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--hrm-border);
+}
+
+.divider-text span {
+    padding: 0 0.75rem;
+    color: var(--hrm-muted);
+}
+
+.supported-roles-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--hrm-muted);
+    background-color: #f1f5f9;
+    padding: 0.625rem 1rem;
+    border-radius: 8px;
+}
+
+.login-footer-copy {
+    margin-top: 2rem;
+    font-size: 0.8rem;
+    color: var(--hrm-muted);
+}
+
+/* ==========================================================================
+   MÀN HÌNH ĐỔI MẬT KHẨU (IMAGE 2)
+   ========================================================================== */
+
+.page-breadcrumb {
+    font-size: 0.85rem;
+    color: var(--hrm-muted);
+    margin-bottom: 0.25rem;
+}
+
+.page-breadcrumb span {
+    color: var(--hrm-text);
+    font-weight: 500;
+}
+
+.change-password-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+/* Main Form Card */
+.password-form-card {
+    background-color: #ffffff;
+    border-radius: var(--hrm-radius);
+    border: 1px solid var(--hrm-border);
+    padding: 2.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.form-card-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.password-card-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--hrm-text);
+    margin-top: 0.5rem;
+}
+
+/* Realtime Password Requirements Checklist Box */
+.checklist-box {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.checklist-title {
+    font-weight: 600;
+    color: var(--hrm-text);
+    margin-bottom: 0.5rem;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--hrm-muted);
+    margin-bottom: 0.35rem;
+    transition: color 0.2s ease;
+}
+
+.checklist-item:last-child {
+    margin-bottom: 0;
+}
+
+.checklist-item i {
+    font-size: 1rem;
+    color: #94a3b8;
+}
+
+.checklist-item.valid {
+    color: #059669;
+    font-weight: 500;
+}
+
+.checklist-item.valid i {
+    color: #10b981;
+}
+
+/* Action Buttons */
+.form-actions-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+/* Side Panels */
+.side-panel-card {
+    background-color: #ffffff;
+    border-radius: var(--hrm-radius);
+    border: 1px solid var(--hrm-border);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--hrm-text);
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.panel-header i {
+    color: var(--hrm-primary);
+    font-size: 1.2rem;
+}
+
+.tip-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    margin-bottom: 1.25rem;
+}
+
+.tip-item:last-child {
+    margin-bottom: 0;
+}
+
+.tip-icon-badge {
+    width: 36px;
+    height: 36px;
+    background-color: #eff6ff;
+    color: var(--hrm-primary);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.tip-content h5 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--hrm-text);
+    margin: 0 0 0.15rem 0;
+}
+
+.tip-content p {
+    font-size: 0.8rem;
+    color: var(--hrm-muted);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.last-updated-box {
+    background-color: #f8fafc;
+    border: 1px solid var(--hrm-border);
+    border-radius: 8px;
+    padding: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    font-size: 0.825rem;
+}
+
+.info-status-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.info-status-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.875rem;
+}
+
+.info-status-item:last-child {
+    border-bottom: none;
+}
+
+.info-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.info-left i {
+    font-size: 1.2rem;
+    color: var(--hrm-primary);
+}
+
+.info-text h6 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.info-text p {
+    font-size: 0.775rem;
+    color: var(--hrm-muted);
+    margin: 0;
+}
+
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+
+@media (max-width: 992px) {
+    .login-split-container {
+        flex-direction: column;
+    }
+    
+    .login-left-panel {
+        padding: 2.5rem 2rem;
+    }
+
+    .hero-headline {
+        font-size: 1.75rem;
+    }
+
+    .change-password-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .login-left-panel {
+        display: none;
+    }
+
+    .login-right-panel {
+        padding: 1.25rem;
+    }
+
+    .login-card {
+        padding: 2rem 1.5rem;
+    }
+}

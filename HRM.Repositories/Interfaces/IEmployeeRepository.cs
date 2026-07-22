@@ -1,4 +1,4 @@
-﻿using HRM.Models.Entities;
+using HRM.Models.Entities;
 
 namespace HRM.Repositories.Interfaces
 {
@@ -37,5 +37,7 @@ namespace HRM.Repositories.Interfaces
         Task AddAssignmentAsync(EmployeeAssignment assignment);
 
         void UpdateAssignment(EmployeeAssignment assignment);
+
+        Task<List<EmployeeAssignment>> GetAssignmentHistoryAsync(int employeeId);
     }
 }

@@ -1,4 +1,4 @@
-﻿using HRM.DataAccess.Contexts;
+using HRM.DataAccess.Contexts;
 using HRM.Models.Entities;
 using HRM.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -133,6 +133,18 @@ namespace HRM.Repositories.Implementations
         public void UpdateAssignment(EmployeeAssignment assignment)
         {
             _context.EmployeeAssignments.Update(assignment);
+        }
+
+        public async Task<List<EmployeeAssignment>> GetAssignmentHistoryAsync(int employeeId)
+        {
+            return await _context.EmployeeAssignments
+                .Include(ea => ea.Employee)
+                .Include(ea => ea.Department)
+                .Include(ea => ea.Position)
+                .Where(ea => ea.EmployeeId == employeeId)
+                .OrderByDescending(ea => ea.StartDate)
+                .ThenByDescending(ea => ea.AssignmentId)
+                .ToListAsync();
         }
     }
 }

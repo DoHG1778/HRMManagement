@@ -1,0 +1,219 @@
+@page
+@model HRM.Razor.Pages.Profile.IndexModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Hồ sơ cá nhân";
+
+    var profile = Model.Data?.Profile;
+    var currentStatus = profile?.EmploymentStatus ?? "ACTIVE";
+
+    var statusBadgeClass = currentStatus switch
+    {
+        "ACTIVE" => "badge-status-active",
+        "ON_LEAVE" => "badge-status-onleave",
+        "RESIGNED" => "badge-status-resigned",
+        "TERMINATED" => "badge-status-terminated",
+        _ => "badge-status-active"
+    };
+
+    var statusText = currentStatus switch
+    {
+        "ACTIVE" => "Đang làm việc",
+        "ON_LEAVE" => "Đang nghỉ",
+        "RESIGNED" => "Đã nghỉ việc",
+        "TERMINATED" => "Đã chấm dứt",
+        _ => currentStatus
+    };
+}
+
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
+
+<div class="page-breadcrumb">
+    Thông tin cá nhân &gt; <span>Hồ sơ cá nhân</span>
+</div>
+
+@if (Model.Data == null || !Model.Data.HasLinkedEmployee || profile == null)
+{
+    <div class="card p-4 text-center" style="max-width: 640px; margin: 3rem auto;">
+        <div style="width: 64px; height: 64px; border-radius: 50%; background-color: #fef2f2; color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.25rem;">
+            <i class="bi bi-person-exclamation"></i>
+        </div>
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: #0f172a;" class="mb-2">Tài khoản chưa được liên kết hồ sơ nhân viên</h3>
+        <p class="text-muted mb-4" style="font-size: 0.9rem; line-height: 1.6;">
+            Tài khoản người dùng <strong>@User.Identity?.Name</strong> hiện chưa liên kết với bất kỳ hồ sơ nhân viên nào trong hệ thống quản trị HRM.
+        </p>
+        <div>
+            <a asp-page="/Index" class="btn btn-primary">
+                <i class="bi bi-house-door me-1"></i> Quay về Trang chủ
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Profile Summary Header -->
+    <div class="profile-summary-header">
+        <div class="d-flex align-items-center gap-3">
+            <div class="profile-avatar-box">
+                @if (!string.IsNullOrEmpty(profile.AvatarUrl))
+                {
+                    <img src="@profile.AvatarUrl" alt="@profile.FullName" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />
+                }
+                else
+                {
+                    @(string.IsNullOrEmpty(profile.FullName) ? "U" : profile.FullName.Substring(0, 1).ToUpper())
+                }
+            </div>
+            <div>
+                <h2 class="mb-1" style="font-size: 1.35rem; font-weight: 700; color: #0f172a;">@profile.FullName</h2>
+                <div class="d-flex align-items-center gap-3 text-muted" style="font-size: 0.85rem;">
+                    <span>Mã NV: <strong>@profile.EmployeeCode</strong></span>
+                    <span>&bull;</span>
+                    <span>Phòng ban: <strong>@(profile.DepartmentName ?? "Chưa phân công")</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <span class="badge-status @statusBadgeClass" style="font-size: 0.9rem; padding: 0.4rem 1rem;">
+                <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i> @statusText
+            </span>
+        </div>
+    </div>
+
+    <div class="employee-grid-container">
+        <!-- Cột Trái: Form Cập nhật Thông tin cá nhân được phép -->
+        <div class="card" style="padding: 2rem;">
+            <form method="post" class="auth-form">
+                @Html.AntiForgeryToken()
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        <div asp-validation-summary="All" style="margin: 0; padding: 0; list-style: none;"></div>
+                    </div>
+                }
+
+                <div class="form-section-title">
+                    <i class="bi bi-pencil-square"></i> Chỉnh sửa thông tin cá nhân
+                </div>
+
+                <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 1.25rem;">
+                    Bạn chỉ có quyền cập nhật Số điện thoại, Địa chỉ và Ảnh đại diện. Các thông tin công việc khác do phòng Nhân sự quản lý.
+                </p>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Input.Phone" class="form-label"></label>
+                    <div class="input-group">
+                        <input asp-for="Input.Phone" class="form-control" placeholder="Nhập số điện thoại liên hệ" />
+                    </div>
+                    <span asp-validation-for="Input.Phone" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Input.Address" class="form-label"></label>
+                    <input asp-for="Input.Address" class="form-control" placeholder="Địa chỉ thường trú / tạm trú hiện tại" />
+                    <span asp-validation-for="Input.Address" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Input.AvatarUrl" class="form-label"></label>
+                    <input asp-for="Input.AvatarUrl" class="form-control" placeholder="https://..." />
+                    <span asp-validation-for="Input.AvatarUrl" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-end gap-2" style="margin-top: 1.5rem; border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                    <button type="submit" class="btn btn-primary" style="min-width: 160px;">
+                        <i class="bi bi-floppy-fill me-1"></i> Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Cột Phải: Thông tin chính thức (Chỉ đọc - Read-only) -->
+        <div>
+            <div class="side-panel-card">
+                <div class="panel-header">
+                    <i class="bi bi-card-checklist"></i>
+                    <span>Thông tin chính thức</span>
+                </div>
+
+                <div class="info-status-list">
+                    <div class="info-status-item">
+                        <div class="info-left">
+                            <i class="bi bi-upc-scan"></i>
+                            <div class="info-text">
+                                <h6>Mã nhân viên</h6>
+                                <p>@profile.EmployeeCode</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-status-item">
+                        <div class="info-left">
+                            <i class="bi bi-envelope"></i>
+                            <div class="info-text">
+                                <h6>Email công ty</h6>
+                                <p>@profile.Email</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-status-item">
+                        <div class="info-left">
+                            <i class="bi bi-gender-ambiguous"></i>
+                            <div class="info-text">
+                                <h6>Giới tính</h6>
+                                <p>@profile.Gender</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-status-item">
+                        <div class="info-left">
+                            <i class="bi bi-calendar-event"></i>
+                            <div class="info-text">
+                                <h6>Ngày sinh</h6>
+                                <p>@(profile.DateOfBirth.HasValue ? profile.DateOfBirth.Value.ToString("dd/MM/yyyy") : "-")</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-status-item">
+                        <div class="info-left">
+                            <i class="bi bi-award"></i>
+                            <div class="info-text">
+                                <h6>Chức vụ</h6>
+                                <p>@(profile.PositionName ?? "Chưa phân công")</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-status-item">
+                        <div class="info-left">
+                            <i class="bi bi-person-badge"></i>
+                            <div class="info-text">
+                                <h6>Quản lý trực tiếp</h6>
+                                <p>@(profile.ManagerName ?? "Không có")</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-status-item">
+                        <div class="info-left">
+                            <i class="bi bi-calendar-check"></i>
+                            <div class="info-text">
+                                <h6>Ngày vào làm</h6>
+                                <p>@profile.HireDate.ToString("dd/MM/yyyy")</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

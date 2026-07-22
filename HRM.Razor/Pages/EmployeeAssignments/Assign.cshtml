@@ -1,0 +1,195 @@
+@page "{employeeId:int?}"
+@model HRM.Razor.Pages.EmployeeAssignments.AssignModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Gán nhân viên vào phòng ban / chức vụ";
+}
+
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/employee-assignment.css" asp-append-version="true" />
+
+<div class="page-breadcrumb">
+    Nhân sự &gt; Phân công nhân viên &gt; <span>Gán nhân viên vào phòng ban / chức vụ</span>
+</div>
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title mb-1">Gán nhân viên vào phòng ban / chức vụ</h1>
+        <p class="page-subtitle mb-0">Phân công nhân viên vào phòng ban và chức vụ chính thức</p>
+    </div>
+
+    <a asp-page="/Employees/Index" class="btn btn-outline">
+        <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
+    </a>
+</div>
+
+<div class="assignment-container">
+    <!-- Left Column: Form Assignment -->
+    <div>
+        <div class="card" style="padding: 1.75rem;">
+            <form method="post" id="assignForm">
+                @Html.AntiForgeryToken()
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger mb-4" role="alert">
+                        <div asp-validation-summary="All" style="margin: 0; padding: 0; list-style: none;"></div>
+                    </div>
+                }
+
+                @if (Model.SelectedEmployeeHasAssignment)
+                {
+                    <div class="alert alert-warning mb-4" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Lưu ý:</strong> Nhân viên <strong>@Model.SelectedEmployee?.FullName</strong> đã có phân công hiện tại tại phòng ban <strong>@Model.SelectedEmployee?.DepartmentName</strong>.
+                        <div class="mt-2">
+                            <a asp-page="/EmployeeAssignments/Transfer" asp-route-employeeId="@Model.SelectedEmployee?.EmployeeId" class="btn btn-sm btn-primary">
+                                <i class="bi bi-arrow-left-right me-1"></i> Chuyển sang Điều chuyển nhân viên
+                            </a>
+                        </div>
+                    </div>
+                }
+
+                <div class="form-section-title mb-3">
+                    <i class="bi bi-person-plus-fill"></i> Thông tin phân công
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Input.EmployeeId" class="form-label required-label"></label>
+                    <select asp-for="Input.EmployeeId" asp-items="Model.EmployeeOptions" class="form-control" id="employeeSelect" onchange="this.form.submit()"></select>
+                    <span asp-validation-for="Input.EmployeeId" class="text-danger"></span>
+                </div>
+
+                @if (Model.SelectedEmployee != null)
+                {
+                    <div class="selected-employee-card mb-3">
+                        <div style="width: 44px; height: 44px; border-radius: 50%; background-color: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-weight: 700;">
+                            @(Model.SelectedEmployee.FullName.Substring(0, 1).ToUpper())
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; color: #0f172a;">@Model.SelectedEmployee.EmployeeCode - @Model.SelectedEmployee.FullName</div>
+                            <div class="text-muted" style="font-size: 0.8rem;">
+                                Ngày vào làm: <strong>@Model.SelectedEmployee.HireDate.ToString("dd/MM/yyyy")</strong> | Email: @Model.SelectedEmployee.Email
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div class="row g-3 mb-3" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label asp-for="Input.DepartmentId" class="form-label required-label"></label>
+                        <select asp-for="Input.DepartmentId" asp-items="Model.DepartmentOptions" class="form-control"></select>
+                        <span asp-validation-for="Input.DepartmentId" class="text-danger"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="Input.PositionId" class="form-label required-label"></label>
+                        <select asp-for="Input.PositionId" asp-items="Model.PositionOptions" class="form-control"></select>
+                        <span asp-validation-for="Input.PositionId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label asp-for="Input.StartDate" class="form-label required-label"></label>
+                        <input asp-for="Input.StartDate" type="date" class="form-control" />
+                        <span asp-validation-for="Input.StartDate" class="text-danger"></span>
+                    </div>
+
+                    <div>
+                        <label class="form-label text-muted">Ngày kết thúc (tùy chọn)</label>
+                        <input type="text" class="form-control" value="Chưa xác định (Current)" disabled style="background-color: #f1f5f9; color: #64748b;" />
+                        <small class="text-muted">Phân công mới có EndDate = null</small>
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Input.Note" class="form-label"></label>
+                    <textarea asp-for="Input.Note" class="form-control" rows="3" placeholder="Nhập ghi chú hoặc lý do gán công việc (nếu có)..."></textarea>
+                    <span asp-validation-for="Input.Note" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-end gap-2" style="margin-top: 1.5rem; border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                    <a asp-page="/Employees/Index" class="btn btn-outline" style="min-width: 100px;">Hủy</a>
+                    <button type="submit" class="btn btn-primary" style="min-width: 150px;" @(Model.SelectedEmployeeHasAssignment ? "disabled" : "")>
+                        <i class="bi bi-check-circle-fill me-1"></i> Gán nhân viên
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right Column: Context & Rules -->
+    <div>
+        <!-- Selected Employee Info Card -->
+        <div class="card mb-4" style="padding: 1.25rem;">
+            <div class="form-section-title mb-3" style="font-size: 0.95rem;">
+                <i class="bi bi-person-vcard"></i> Thông tin hiện tại của nhân viên
+            </div>
+            @if (Model.SelectedEmployee != null)
+            {
+                <div class="d-flex flex-column gap-2" style="font-size: 0.85rem;">
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Phòng ban hiện tại:</span>
+                        <span class="badge" style="background-color: #e0f2fe; color: #0369a1;">@(Model.SelectedEmployee.DepartmentName ?? "Chưa phân công")</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Chức vụ hiện tại:</span>
+                        <span class="badge" style="background-color: #f1f5f9; color: #334155;">@(Model.SelectedEmployee.PositionName ?? "Chưa phân công")</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Quản lý trực tiếp:</span>
+                        <strong>@(Model.SelectedEmployee.ManagerName ?? "Chưa có")</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Ngày vào làm:</span>
+                        <strong>@Model.SelectedEmployee.HireDate.ToString("dd/MM/yyyy")</strong>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="text-muted text-center py-3" style="font-size: 0.85rem;">
+                    Vui lòng chọn nhân viên để xem thông tin phân công hiện tại.
+                </div>
+            }
+        </div>
+
+        <!-- Rule Checklist Card (Matching Mockup 1) -->
+        <div class="card mb-4" style="padding: 1.25rem;">
+            <div class="form-section-title mb-3" style="font-size: 0.95rem;">
+                <i class="bi bi-shield-check"></i> Quy tắc phân công
+            </div>
+            <div class="rule-checklist-item">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Nhân viên đang hoạt động (ACTIVE)</span>
+            </div>
+            <div class="rule-checklist-item">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Phòng ban đang hoạt động</span>
+            </div>
+            <div class="rule-checklist-item">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Chức vụ đang hoạt động</span>
+            </div>
+            <div class="rule-checklist-item">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Nhân viên chưa có phân công hiện tại</span>
+            </div>
+            <div class="rule-checklist-item">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Ngày bắt đầu không nhỏ hơn ngày vào làm</span>
+            </div>
+        </div>
+
+        <!-- Warning Alert Panel -->
+        <div class="alert alert-info" style="font-size: 0.85rem; border-radius: 12px;">
+            <i class="bi bi-info-circle-fill me-1"></i>
+            <strong>Lưu ý:</strong> Nhân viên chỉ được gán vào một phòng ban và một chức vụ hiện tại tại một thời điểm. Nếu nhân viên đã có phân công, vui lòng sử dụng chức năng <strong>Điều chuyển nhân viên</strong>.
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,120 @@
+/* Employee Assignment & Transfer Module Styles */
+
+.assignment-container {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 1.5rem;
+}
+
+@media (max-width: 992px) {
+    .assignment-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+.selected-employee-card {
+    background-color: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.rule-checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+    color: #334155;
+    margin-bottom: 0.65rem;
+}
+
+.rule-checklist-item i {
+    color: #16a34a;
+    font-size: 1rem;
+    margin-top: 2px;
+}
+
+.rule-checklist-item.invalid i {
+    color: #dc2626;
+}
+
+.assignment-timeline {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-top: 1rem;
+}
+
+.assignment-timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background-color: #e2e8f0;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 1.25rem;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -1.5rem;
+    top: 4px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: #cbd5e1;
+    border: 3px solid #ffffff;
+    box-shadow: 0 0 0 1px #e2e8f0;
+}
+
+.timeline-item.current .timeline-marker {
+    background-color: #16a34a;
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
+}
+
+.timeline-content {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+}
+
+.timeline-item.current .timeline-content {
+    border-color: #bbf7d0;
+    background-color: #f0fdf4;
+}
+
+.org-chart-preview {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.org-node {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid #cbd5e1;
+    background-color: #ffffff;
+}
+
+.org-node.active-node {
+    background-color: #dcfce7;
+    border-color: #86efac;
+    color: #166534;
+}

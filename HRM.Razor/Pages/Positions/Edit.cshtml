@@ -1,0 +1,81 @@
+@page "{id:int}"
+@model HRM.Razor.Pages.Positions.EditModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = $"Chỉnh sửa - {Model.Input.PositionName}";
+}
+
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
+
+<div class="page-breadcrumb">
+    Nhân sự &gt; Chức vụ &gt; <span>Chỉnh sửa chức vụ</span>
+</div>
+
+<div class="page-title-block">
+    <h1 class="page-title">Chỉnh sửa chức vụ</h1>
+    <p class="page-subtitle">Cập nhật tên và mô tả chức vụ @Model.Input.PositionName.</p>
+</div>
+
+<div class="employee-grid-container">
+    <div class="card" style="padding: 2rem;">
+        <form method="post" class="auth-form">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Input.PositionId" />
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger" role="alert">
+                    <div asp-validation-summary="All" style="margin: 0; padding: 0; list-style: none;"></div>
+                </div>
+            }
+
+            <div class="form-section-title">
+                <i class="bi bi-pencil-square"></i> Thông tin chức vụ
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Input.PositionName" class="form-label"></label>
+                <input asp-for="Input.PositionName" class="form-control" placeholder="VD: Trưởng phòng kinh doanh" />
+                <span asp-validation-for="Input.PositionName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Input.Description" class="form-label"></label>
+                <textarea asp-for="Input.Description" class="form-control" rows="3" placeholder="Mô tả quyền hạn, trách nhiệm chính của chức vụ..."></textarea>
+                <span asp-validation-for="Input.Description" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <div class="form-check">
+                    <input asp-for="Input.IsActive" class="form-check-input" type="checkbox" id="PosIsActiveCheck" />
+                    <label class="form-check-label" for="PosIsActiveCheck">
+                        Chức vụ đang trong trạng thái hoạt động
+                    </label>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-end gap-2" style="margin-top: 2rem; border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                <a asp-page="/Positions/Index" class="btn btn-outline" style="min-width: 110px;">Hủy</a>
+                <button type="submit" class="btn btn-primary" style="min-width: 160px;">
+                    <i class="bi bi-floppy-fill me-1"></i> Lưu thay đổi
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div>
+        <div class="side-panel-card">
+            <div class="panel-header">
+                <i class="bi bi-shield-check"></i>
+                <span>Bảo lưu lịch sử</span>
+            </div>
+            <p style="font-size: 0.85rem; color: #64748b; line-height: 1.6; margin: 0;">
+                Ngừng hoạt động chức vụ sẽ không làm mất dữ liệu phân công lịch sử của các nhân viên đã từng giữ chức vụ này.
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
