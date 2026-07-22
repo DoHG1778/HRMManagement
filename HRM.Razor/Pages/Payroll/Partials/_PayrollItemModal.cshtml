@@ -1,0 +1,45 @@
+<div class="modal fade" id="payrollItemModal" tabindex="-1" aria-labelledby="payrollItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: none; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
+            <div class="modal-header" style="background-color: #eff6ff; border-bottom: 1px solid #dbeafe; padding: 1.25rem 1.5rem;">
+                <h5 class="modal-header-title d-flex align-items-center gap-2" id="payrollItemModalLabel" style="font-size: 1.1rem; font-weight: 700; color: #1e40af; margin: 0;">
+                    <i class="bi bi-plus-circle"></i> Thêm khoản thu nhập / khấu trừ
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <form id="payrollItemForm">
+                    <input type="hidden" id="itemEditIndex" value="-1" />
+                    
+                    <div class="form-group mb-3">
+                        <label for="itemTypeSelect" class="form-label required-label">Loại khoản</label>
+                        <select id="itemTypeSelect" class="form-control" required>
+                            <option value="ALLOWANCE">Phụ cấp (ALLOWANCE)</option>
+                            <option value="BONUS">Thưởng (BONUS)</option>
+                            <option value="DEDUCTION">Khấu trừ (DEDUCTION)</option>
+                            <option value="OTHER">Khoản khác (OTHER)</option>
+                        </select>
+                        <small class="text-muted">Các khoản OVERTIME tự động từ hệ thống không cho phép thêm thủ công.</small>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="itemDescriptionInput" class="form-label required-label">Mô tả / Diễn giải</label>
+                        <input type="text" id="itemDescriptionInput" class="form-control" placeholder="VD: Thưởng dự án tháng 7, Phụ cấp xăng xe..." required maxLength="200" />
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="itemAmountInput" class="form-label required-label">Số tiền (VNĐ)</label>
+                        <input type="number" id="itemAmountInput" class="form-control" placeholder="VD: 500000" required min="1" step="1000" />
+                        <small class="text-muted">Lưu ý: Nhập số tiền dương (> 0). Khoản khấu trừ sẽ tự động được trừ khi tính Lương thực nhận.</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 1rem 1.5rem;">
+                <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="savePayrollItemBtn">
+                    <i class="bi bi-check-circle-fill me-1"></i> Lưu khoản chi tiết
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
