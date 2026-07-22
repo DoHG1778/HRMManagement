@@ -1,0 +1,256 @@
+﻿@page
+@model HRM.Razor.Pages.Notifications.SendModel
+
+@{
+    ViewData["Title"] = "Gửi thông báo";
+}
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>
+                <i class="bi bi-send"></i>
+                Gửi thông báo
+            </h2>
+
+            <p class="text-muted mb-0">
+                Gửi thông báo đến người dùng trong hệ thống
+            </p>
+        </div>
+
+        <a asp-page="/Notifications/Index"
+               class="btn btn-secondary">
+
+            <i class="bi bi-arrow-left"></i>
+            Danh sách thông báo
+        </a>
+    </div>
+
+    <div asp-validation-summary="ModelOnly"
+         class="alert alert-danger">
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <form method="post">
+
+                <!-- TITLE -->
+                <div class="mb-3">
+                    <label asp-for="Notification.Title"
+                           class="form-label">
+                        Tiêu đề
+                    </label>
+
+                    <input asp-for="Notification.Title"
+                           class="form-control"
+                           placeholder="Nhập tiêu đề thông báo..." />
+
+                    <span asp-validation-for="Notification.Title"
+                          class="text-danger">
+                    </span>
+                </div>
+
+                <!-- CONTENT -->
+                <div class="mb-3">
+                    <label asp-for="Notification.Content"
+                           class="form-label">
+                        Nội dung
+                    </label>
+
+                    <textarea asp-for="Notification.Content"
+                              class="form-control"
+                              rows="5"
+                              placeholder="Nhập nội dung thông báo..."></textarea>
+
+                    <span asp-validation-for="Notification.Content"
+                          class="text-danger">
+                    </span>
+                </div>
+
+                <!-- TYPE -->
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Notification.NotificationType"
+                               class="form-label">
+                            Loại thông báo
+                        </label>
+
+                        <select asp-for="Notification.NotificationType"
+                                class="form-select">
+
+                            <option value="GENERAL">
+                                General
+                            </option>
+
+                            <option value="KPI">
+                                KPI
+                            </option>
+
+                            <option value="LEAVE">
+                                Leave
+                            </option>
+
+                            <option value="OVERTIME">
+                                Overtime
+                            </option>
+
+                            <option value="PAYROLL">
+                                Payroll
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Notification.TargetType"
+                               class="form-label">
+                            Đối tượng nhận
+                        </label>
+
+                        <select asp-for="Notification.TargetType"
+                                class="form-select">
+
+                            <option value="USER">
+                                User
+                            </option>
+
+                            <option value="EMPLOYEE">
+                                Employee
+                            </option>
+
+                            <option value="DEPARTMENT">
+                                Department
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+                <!-- USERS -->
+                <div class="mb-4">
+
+                    <label class="form-label fw-bold">
+                        Chọn người nhận
+                    </label>
+
+                    <div class="border rounded p-3"
+                         style="max-height: 300px; overflow-y: auto;">
+
+                        @if (Model.Users.Any())
+                        {
+                            @foreach (var user in Model.Users)
+                            {
+                                <div class="form-check mb-2">
+
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           name="Notification.UserIds"
+                                           value="@user.UserId"
+                                           id="user_@user.UserId" />
+
+                                    <label class="form-check-label"
+                                           for="user_@user.UserId">
+
+                                        <strong>
+                                            @user.Username
+                                        </strong>
+
+                                        @if (!string.IsNullOrWhiteSpace(user.Email))
+                                        {
+                                            <small class="text-muted">
+                                                (@user.Email)
+                                            </small>
+                                        }
+
+                                    </label>
+
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted mb-0">
+                                Không có User nào để chọn.
+                            </p>
+                        }
+
+                    </div>
+
+                    <small class="text-muted">
+                        Có thể chọn nhiều người nhận.
+                    </small>
+
+                </div>
+
+                <!-- EMPLOYEE ID -->
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Employee ID
+                    </label>
+
+                    <input name="Notification.EmployeeIds"
+                           class="form-control"
+                           placeholder="Chưa sử dụng ở phiên bản hiện tại" />
+
+                    <small class="text-muted">
+                        Tạm thời sử dụng User để gửi thông báo.
+                    </small>
+
+                </div>
+
+                <!-- DEPARTMENT ID -->
+                <div class="mb-3">
+
+                    <label asp-for="Notification.DepartmentId"
+                           class="form-label">
+                        Department ID
+                    </label>
+
+                    <input asp-for="Notification.DepartmentId"
+                           class="form-control"
+                           type="number"
+                           placeholder="Chưa sử dụng ở phiên bản hiện tại" />
+
+                </div>
+
+                <!-- BUTTON -->
+                <div class="d-flex justify-content-end gap-2">
+
+                    <a asp-page="/Notifications/Index"
+                           class="btn btn-secondary">
+
+                        Hủy
+
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-primary">
+
+                        <i class="bi bi-send"></i>
+                        Gửi thông báo
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

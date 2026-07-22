@@ -3,6 +3,7 @@ using HRM.Razor.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using HRM.Razor.Models;
 
 namespace HRM.Razor.Pages.Employees
 {
@@ -16,7 +17,7 @@ namespace HRM.Razor.Pages.Employees
             _employeeApiClient = employeeApiClient;
         }
 
-        public PagedResultModel<EmployeeItemModel> Employees { get; set; } = new();
+        public HRM.Razor.Models.PagedResultModel<EmployeeItemModel> Employees { get; set; } = new();
 
         [BindProperty(SupportsGet = true)]
         public string? Keyword { get; set; }
