@@ -5,13 +5,15 @@ namespace HRM.Razor.Services.Interfaces
 {
     public interface IEmployeeApiClient
     {
-        Task<ApiResponse<PagedResultModel<EmployeeItemModel>>> GetEmployeesAsync(
-            string? keyword = null,
-            int? departmentId = null,
-            int? positionId = null,
-            string? status = null,
-            int pageNumber = 1,
-            int pageSize = 10);
+        Task<ApiResponse<
+            HRM.Razor.Models.PagedResultModel<EmployeeItemModel>>>
+            GetEmployeesAsync(
+                string? keyword = null,
+                int? departmentId = null,
+                int? positionId = null,
+                string? status = null,
+                int pageNumber = 1,
+                int pageSize = 10);
 
         Task<ApiResponse<EmployeeDetailModel>> GetEmployeeDetailAsync(int employeeId);
 

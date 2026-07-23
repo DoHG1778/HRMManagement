@@ -14,28 +14,50 @@ namespace HRM.Razor.Services.ApiClients
             _apiClient = apiClient;
         }
 
-        public async Task<ApiResponse<PagedResultModel<PayrollItemModel>>> GetPayrollsAsync(
-            int? month = null,
-            int? year = null,
-            int? departmentId = null,
-            int? employeeId = null,
-            string? status = null,
-            int pageNumber = 1,
-            int pageSize = 10)
+        public async Task<
+    ApiResponse<
+        HRM.Razor.Models.PagedResultModel<PayrollItemModel>
+    >
+>
+GetPayrollsAsync(
+    int? month = null,
+    int? year = null,
+    int? departmentId = null,
+    int? employeeId = null,
+    string? status = null,
+    int pageNumber = 1,
+    int pageSize = 10)
         {
             var queryParams = new List<string>();
-            if (month.HasValue && month.Value > 0) queryParams.Add($"payrollMonth={month.Value}");
-            if (year.HasValue && year.Value > 0) queryParams.Add($"payrollYear={year.Value}");
-            if (departmentId.HasValue && departmentId.Value > 0) queryParams.Add($"departmentId={departmentId.Value}");
-            if (employeeId.HasValue && employeeId.Value > 0) queryParams.Add($"employeeId={employeeId.Value}");
-            if (!string.IsNullOrWhiteSpace(status)) queryParams.Add($"status={Uri.EscapeDataString(status.Trim())}");
+
+            if (month.HasValue && month.Value > 0)
+                queryParams.Add($"payrollMonth={month.Value}");
+
+            if (year.HasValue && year.Value > 0)
+                queryParams.Add($"payrollYear={year.Value}");
+
+            if (departmentId.HasValue && departmentId.Value > 0)
+                queryParams.Add($"departmentId={departmentId.Value}");
+
+            if (employeeId.HasValue && employeeId.Value > 0)
+                queryParams.Add($"employeeId={employeeId.Value}");
+
+            if (!string.IsNullOrWhiteSpace(status))
+                queryParams.Add(
+                    $"status={Uri.EscapeDataString(status.Trim())}");
+
             queryParams.Add($"pageNumber={pageNumber}");
             queryParams.Add($"pageSize={pageSize}");
 
             var queryString = string.Join("&", queryParams);
-            var endpoint = string.IsNullOrEmpty(queryString) ? "api/payrolls" : $"api/payrolls?{queryString}";
 
-            return await _apiClient.GetAsync<PagedResultModel<PayrollItemModel>>(endpoint);
+            var endpoint = string.IsNullOrEmpty(queryString)
+                ? "api/payrolls"
+                : $"api/payrolls?{queryString}";
+
+            return await _apiClient.GetAsync<
+                HRM.Razor.Models.PagedResultModel<PayrollItemModel>
+            >(endpoint);
         }
 
         public async Task<ApiResponse<PayrollItemModel>> GetPayrollByIdAsync(int payrollId)

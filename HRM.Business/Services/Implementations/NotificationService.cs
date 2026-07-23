@@ -178,8 +178,8 @@ namespace HRM.Business.Services.Implementations
         }
 
         public async Task<ApiResponse<NotificationResponseDto>> SendNotificationAsync(
-    CurrentUser currentUser,
-    SendNotificationRequestDto request)
+                CurrentUser currentUser,
+                SendNotificationRequestDto request)
         {
             if (!currentUser.IsAuthenticated)
             {
@@ -187,6 +187,70 @@ namespace HRM.Business.Services.Implementations
                     .Unauthorized();
             }
 
+            if (request == null)
+            {
+                return ApiResponse<NotificationResponseDto>
+                    .Fail("Notification request cannot be null.");
+            }
+
+            var userIds = new HashSet<int>();
+
+
+            if (request.UserIds != null)
+            {
+                foreach (var userId in request.UserIds)
+                {
+                    if (userId > 0)
+                    {
+                        userIds.Add(userId);
+                    }
+                }
+            }
+
+            if (request.EmployeeIds != null &&
+                request.EmployeeIds.Count > 0)
+            {
+                foreach (var employeeId in request.EmployeeIds)
+                {
+                    if (employeeId <= 0)
+                    {
+                        continue;
+                    }
+
+                    var employee =
+                        await _unitOfWork.Employees
+                            .GetByIdAsync(employeeId);
+
+                    if (employee?.UserId.HasValue == true &&
+                        employee.UserId.Value > 0)
+                    {
+                        userIds.Add(employee.UserId.Value);
+                    }
+                }
+            }
+
+            if (request.DepartmentId.HasValue)
+            {
+                var employees =
+                    await _unitOfWork.Employees
+                        .GetEmployeesByDepartmentIdAsync(
+                            request.DepartmentId.Value);
+
+                foreach (var employee in employees)
+                {
+                    if (employee.UserId.HasValue &&
+                        employee.UserId.Value > 0)
+                    {
+                        userIds.Add(employee.UserId.Value);
+                    }
+                }
+            }
+
+            if (userIds.Count == 0)
+            {
+                return ApiResponse<NotificationResponseDto>
+                    .Fail("No recipients found.");
+            }
 
             var notification = new Notification
             {
@@ -197,15 +261,12 @@ namespace HRM.Business.Services.Implementations
                 CreatedAt = DateTime.Now
             };
 
-
             await _unitOfWork.Notifications
                 .AddAsync(notification);
 
-
             await _unitOfWork.SaveChangesAsync();
 
-
-            var recipients = request.UserIds
+            var recipients = userIds
                 .Select(userId => new NotificationRecipient
                 {
                     NotificationId = notification.NotificationId,
@@ -215,13 +276,10 @@ namespace HRM.Business.Services.Implementations
                 })
                 .ToList();
 
-
             await _unitOfWork.Notifications
                 .AddRecipientsAsync(recipients);
 
-
             await _unitOfWork.SaveChangesAsync();
-
 
             var result = new NotificationResponseDto
             {
@@ -232,7 +290,6 @@ namespace HRM.Business.Services.Implementations
                 CreatedByUserId = notification.CreatedByUserId,
                 CreatedAt = notification.CreatedAt
             };
-
 
             return ApiResponse<NotificationResponseDto>
                 .Ok(result);

@@ -13,7 +13,7 @@ namespace HRM.Razor.Services.ApiClients
             _apiClient = apiClient;
         }
 
-        public async Task<ApiResponse<PagedResultModel<EmployeeItemModel>>> GetEmployeesAsync(
+        public async Task<ApiResponse<HRM.Razor.Models.PagedResultModel<EmployeeItemModel>>> GetEmployeesAsync(
             string? keyword = null,
             int? departmentId = null,
             int? positionId = null,
@@ -40,7 +40,9 @@ namespace HRM.Razor.Services.ApiClients
                 queryParams.Add($"employmentStatus={Uri.EscapeDataString(status.Trim())}");
 
             var endpoint = $"api/employees?{string.Join("&", queryParams)}";
-            return await _apiClient.GetAsync<PagedResultModel<EmployeeItemModel>>(endpoint);
+            return await _apiClient.GetAsync<
+                HRM.Razor.Models.PagedResultModel<EmployeeItemModel>
+            >(endpoint);
         }
 
         public async Task<ApiResponse<EmployeeDetailModel>> GetEmployeeDetailAsync(int employeeId)

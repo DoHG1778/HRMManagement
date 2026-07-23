@@ -59,6 +59,9 @@ builder.Services.AddScoped<IPayrollApiClient, PayrollApiClient>();
 builder.Services.AddScoped<IAttendanceAdjustmentApiClient, AttendanceAdjustmentApiClient>();
 builder.Services.AddScoped<ILeaveApiClient, LeaveApiClient>();
 builder.Services.AddScoped<IOvertimeApiClient, OvertimeApiClient>();
+builder.Services.AddScoped<INotificationApiClient, NotificationApiClient>();
+builder.Services.AddScoped<IUserApiClient, UserApiClient>();
+builder.Services.AddScoped<IKpiApiClient, KpiApiClient>();
 
 var app = builder.Build();
 

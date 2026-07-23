@@ -6,7 +6,7 @@ namespace HRM.Razor.Services.Interfaces
 {
     public interface IPayrollApiClient
     {
-        Task<ApiResponse<PagedResultModel<PayrollItemModel>>> GetPayrollsAsync(
+        Task<ApiResponse<HRM.Razor.Models.PagedResultModel<PayrollItemModel>>> GetPayrollsAsync(
             int? month = null,
             int? year = null,
             int? departmentId = null,

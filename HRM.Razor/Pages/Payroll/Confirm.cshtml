@@ -3,6 +3,7 @@
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Chốt bảng lương";
+    ViewData["ActivePage"] = "PayrollConfirm";
 }
 
 <link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
@@ -36,7 +37,7 @@
 
 <!-- Period Summary Header Card (Matching Mockup UC33) -->
 <div class="card mb-4" style="padding: 1.5rem;">
-    <div class="row g-4 align-items-center" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+    <div class="payroll-confirm-summary">
         <div class="d-flex align-items-center gap-3">
             <div style="width: 44px; height: 44px; border-radius: 12px; background-color: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
                 <i class="bi bi-calendar3"></i>
@@ -78,7 +79,7 @@
 
 <!-- Filter Bar -->
 <div class="card mb-4" style="padding: 1.25rem;">
-    <form method="get" class="d-flex flex-wrap align-items-center gap-3">
+    <form method="get" class="payroll-filter-row">
         <div style="width: 120px;">
             <select asp-for="Month" class="form-control">
                 @for (int m = 1; m <= 12; m++)
@@ -197,7 +198,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" style="padding: 1.5rem;">
-                <div class="alert alert-warning mb-3" style="font-size: 0.88rem;">
+                <div class="alert alert-warning mb-3 payroll-warning">
                     <strong>Cảnh báo quan trọng:</strong> Sau khi chốt, toàn bộ bảng lương của kỳ <strong>Tháng @Model.Month/@Model.Year</strong> sẽ chuyển sang trạng thái <strong>CONFIRMED</strong> và <strong>KHÔNG THỂ KHÔI PHỤC HOẶC CHỈNH SỬA THỦ CÔNG</strong>. Thông báo phiếu lương cũng sẽ tự động được gửi tới từng nhân viên.
                 </div>
 

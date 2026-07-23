@@ -35,7 +35,7 @@ namespace HRM.Razor.Pages.Payroll
 
         public async Task<IActionResult> OnGetAsync(int? month, int? year, int? departmentId)
         {
-            ViewData["ActivePage"] = "Payroll";
+            ViewData["ActivePage"] = "PayrollCalculate";
 
             if (month.HasValue && month.Value >= 1 && month.Value <= 12)
             {
@@ -58,7 +58,7 @@ namespace HRM.Razor.Pages.Payroll
 
         public async Task<IActionResult> OnPostAsync()
         {
-            ViewData["ActivePage"] = "Payroll";
+            ViewData["ActivePage"] = "PayrollCalculate";
 
             if (!ModelState.IsValid)
             {

@@ -3,6 +3,7 @@
 @{
     Layout = "_Layout";
     ViewData["Title"] = $"Chi tiết bảng lương - {Model.Payroll.EmployeeName}";
+    ViewData["ActivePage"] = "PayrollIndex";
 
     var statusBadgeClass = Model.Payroll.Status switch
     {
@@ -181,14 +182,14 @@
     <script>
         var isDraft = @(Model.IsDraft.ToString().ToLower());
         var baseSalary = @Model.Payroll.BaseSalary;
-        
+
         // Initial items list from backend
         var currentItems = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Payroll.PayrollDetails ?? new List<HRM.Razor.Models.ViewModels.Payroll.PayrollDetailItemModel>()));
 
         function renderDetailsUI() {
             var incomeContainer = document.getElementById('incomeItemsContainer');
             var deductionContainer = document.getElementById('deductionItemsContainer');
-            
+
             incomeContainer.innerHTML = '';
             deductionContainer.innerHTML = '';
 
@@ -236,7 +237,7 @@
 
             document.getElementById('grossTotalDisplay').innerText = totalGross.toLocaleString('vi-VN') + ' ₫';
             document.getElementById('deductionTotalDisplay').innerText = totalDeduction.toLocaleString('vi-VN') + ' ₫';
-            
+
             document.getElementById('summaryGross').innerText = totalGross.toLocaleString('vi-VN') + ' ₫';
             document.getElementById('summaryDeduction').innerText = '- ' + totalDeduction.toLocaleString('vi-VN') + ' ₫';
             document.getElementById('summaryNet').innerText = totalNet.toLocaleString('vi-VN') + ' ₫';
