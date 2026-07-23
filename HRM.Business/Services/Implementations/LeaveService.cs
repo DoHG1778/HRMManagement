@@ -66,9 +66,10 @@ namespace HRM.Business.Services.Implementations
                 b.Year == currentYear);
 
             int usedDays = balance?.UsedDays ?? 0;
-            if (usedDays + totalDays > leaveType.MaxDaysPerYear)
+            int allowedDays = balance?.TotalDays ?? leaveType.MaxDaysPerYear;
+            if (usedDays + totalDays > allowedDays)
                 return ApiResponse<LeaveRequestResponseDto>.Fail(
-                    $"Insufficient leave balance. You have {leaveType.MaxDaysPerYear - usedDays} days remaining for {leaveType.LeaveTypeName}.");
+                    $"Insufficient leave balance. You have {allowedDays - usedDays} days remaining for {leaveType.LeaveTypeName}.");
 
             var entity = new LeaveRequest
             {
@@ -139,9 +140,10 @@ namespace HRM.Business.Services.Implementations
                 b.Year == currentYear);
 
             int usedDays = balance?.UsedDays ?? 0;
-            if (usedDays + totalDays > leaveType.MaxDaysPerYear)
+            int allowedDays = balance?.TotalDays ?? leaveType.MaxDaysPerYear;
+            if (usedDays + totalDays > allowedDays)
                 return ApiResponse<LeaveRequestResponseDto>.Fail(
-                    $"Insufficient leave balance. You have {leaveType.MaxDaysPerYear - usedDays} days remaining for {leaveType.LeaveTypeName}.");
+                    $"Insufficient leave balance. You have {allowedDays - usedDays} days remaining for {leaveType.LeaveTypeName}.");
 
             existing.LeaveTypeId = request.LeaveTypeId;
             existing.StartDate = request.StartDate;
@@ -299,6 +301,8 @@ namespace HRM.Business.Services.Implementations
                     if (balance != null)
                     {
                         balance.UsedDays += existing.TotalDays;
+                        if (balance.UsedDays > balance.TotalDays)
+                            balance.UsedDays = balance.TotalDays;
                         balance.UpdatedAt = DateTime.Now;
                         _leaveBalanceRepo.Update(balance);
                     }
@@ -428,6 +432,9 @@ namespace HRM.Business.Services.Implementations
                 b.EmployeeId == request.EmployeeId &&
                 b.LeaveTypeId == request.LeaveTypeId &&
                 b.Year == request.Year);
+
+            if (request.UsedDays > request.TotalDays)
+                return ApiResponse<LeaveBalanceResponseDto>.Fail("Used days cannot exceed total days.");
 
             if (balance == null)
             {
