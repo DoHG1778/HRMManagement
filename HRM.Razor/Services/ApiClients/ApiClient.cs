@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
-using HRM.Razor.Models;
+using HRM.Business.Common;
 using HRM.Razor.Services.Interfaces;
 
 namespace HRM.Razor.Services.ApiClients
@@ -28,12 +28,7 @@ namespace HRM.Razor.Services.ApiClients
             }
             catch (Exception ex)
             {
-                return new ApiResponse<T>
-                {
-                    Success = false,
-                    Message = $"Lỗi kết nối API: {ex.Message}",
-                    StatusCode = 500
-                };
+                return ApiResponse<T>.Fail($"Lỗi kết nối API: {ex.Message}", 500);
             }
         }
 
@@ -46,12 +41,7 @@ namespace HRM.Razor.Services.ApiClients
             }
             catch (Exception ex)
             {
-                return new ApiResponse<T>
-                {
-                    Success = false,
-                    Message = $"Lỗi kết nối API: {ex.Message}",
-                    StatusCode = 500
-                };
+                return ApiResponse<T>.Fail($"Lỗi kết nối API: {ex.Message}", 500);
             }
         }
 
@@ -64,12 +54,7 @@ namespace HRM.Razor.Services.ApiClients
             }
             catch (Exception ex)
             {
-                return new ApiResponse<T>
-                {
-                    Success = false,
-                    Message = $"Lỗi kết nối API: {ex.Message}",
-                    StatusCode = 500
-                };
+                return ApiResponse<T>.Fail($"Lỗi kết nối API: {ex.Message}", 500);
             }
         }
 
@@ -82,12 +67,7 @@ namespace HRM.Razor.Services.ApiClients
             }
             catch (Exception ex)
             {
-                return new ApiResponse<T>
-                {
-                    Success = false,
-                    Message = $"Lỗi kết nối API: {ex.Message}",
-                    StatusCode = 500
-                };
+                return ApiResponse<T>.Fail($"Lỗi kết nối API: {ex.Message}", 500);
             }
         }
 
@@ -111,7 +91,6 @@ namespace HRM.Razor.Services.ApiClients
                 }
                 catch
                 {
-                    // Trường hợp content không đúng format ApiResponse<T>
                 }
             }
 

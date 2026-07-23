@@ -1,0 +1,74 @@
+@page
+@model HRM.Razor.Pages.Leave.BalancesModel
+@{
+    ViewData["Title"] = "Số dư phép";
+    Layout = "_Layout";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title"><i class="bi bi-calendar-check me-2"></i>Số dư phép</h5>
+    </div>
+    <div class="card-body">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+        }
+
+        <form method="get" class="filter-bar">
+            <div class="filter-group">
+                <label>Mã nhân viên</label>
+                <input type="number" name="employeeId" class="form-control" placeholder="Employee ID" value="@Model.CurrentEmployeeId" />
+            </div>
+            <div class="filter-group">
+                <label>Năm</label>
+                <input type="number" name="year" class="form-control" placeholder="YYYY" value="@Model.CurrentYear" min="2020" max="2100" />
+            </div>
+            <button type="submit" class="btn btn-outline">
+                <i class="bi bi-funnel me-1"></i> Xem
+            </button>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Loại phép</th>
+                        <th>Năm</th>
+                        <th>Tổng ngày</th>
+                        <th>Đã dùng</th>
+                        <th>Còn lại</th>
+                        <th style="width: 100px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Balances)
+                    {
+                        <tr>
+                            <td>@item.LeaveTypeName</td>
+                            <td>@item.Year</td>
+                            <td>@item.TotalDays</td>
+                            <td>@item.UsedDays</td>
+                            <td>
+                                <span class="badge bg-@(item.RemainingDays > 0 ? "success" : "danger")">@item.RemainingDays</span>
+                            </td>
+                            <td>
+                                <a asp-page="SetBalance" asp-route-employeeId="@Model.CurrentEmployeeId" asp-route-leaveTypeId="@item.LeaveTypeId" asp-route-year="@Model.CurrentYear" class="btn btn-sm btn-outline" title="Chỉnh sửa">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Balances.Any())
+                    {
+                        <tr><td colspan="6" class="text-center" style="padding: 2rem; color: var(--color-text-muted);">Không tìm thấy số dư phép.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

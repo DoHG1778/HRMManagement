@@ -1,0 +1,63 @@
+@page
+@model HRM.Razor.Pages.Leave.SetBalancePageModel
+@{
+    ViewData["Title"] = "Thiết lập số dư phép";
+    Layout = "_Layout";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title"><i class="bi bi-calendar-check me-2"></i>Thiết lập số dư phép</h5>
+        <a asp-page="Balances" asp-route-employeeId="@Model.Input.EmployeeId" asp-route-year="@Model.Input.Year" class="btn btn-outline">
+            <i class="bi bi-arrow-left me-1"></i> Quay lại
+        </a>
+    </div>
+    <div class="card-body">
+        <form asp-page="SetBalance" method="post" class="form-row">
+            @Html.AntiForgeryToken()
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Mã nhân viên</label>
+                    <input asp-for="Input.EmployeeId" type="number" class="form-control" readonly />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Năm</label>
+                    <input asp-for="Input.Year" type="number" class="form-control" readonly />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Loại phép</label>
+                <select asp-for="Input.LeaveTypeId" class="form-select">
+                    @foreach (var lt in Model.LeaveTypes)
+                    {
+                        <option value="@lt.LeaveTypeId" selected="@(lt.LeaveTypeId == Model.Input.LeaveTypeId)">@lt.LeaveTypeName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Tổng số ngày</label>
+                    <input asp-for="Input.TotalDays" type="number" class="form-control" required min="0" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Đã sử dụng</label>
+                    <input asp-for="Input.UsedDays" type="number" class="form-control" required min="0" />
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i> Lưu
+                </button>
+                <a asp-page="Balances" asp-route-employeeId="@Model.Input.EmployeeId" asp-route-year="@Model.Input.Year" class="btn btn-outline">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

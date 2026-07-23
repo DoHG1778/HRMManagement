@@ -228,51 +228,58 @@ namespace HRM.Business.Services.Implementations
             int overtimeRequestId,
             ApproveOvertimeRequestDto request)
         {
-            var existing = await _unitOfWork.OvertimeRequests.Query()
-                .Include(o => o.Employee)
-                .FirstOrDefaultAsync(o => o.Otid == overtimeRequestId);
-
-            if (existing == null)
-                return ApiResponse<OvertimeRequestResponseDto>.NotFound("Overtime request not found.");
-            if (existing.Status != "PENDING")
-                return ApiResponse<OvertimeRequestResponseDto>.Fail("Only PENDING requests can be approved or rejected.");
-
-            if (currentUser.EmployeeId.HasValue && currentUser.EmployeeId.Value == existing.EmployeeId)
+            try
             {
-                return ApiResponse<OvertimeRequestResponseDto>.Forbidden("You cannot approve or reject your own overtime request.");
-            }
+                var existing = await _unitOfWork.OvertimeRequests.Query()
+                    .Include(o => o.Employee)
+                    .FirstOrDefaultAsync(o => o.Otid == overtimeRequestId);
 
-            bool isAuthorized = currentUser.IsAdmin();
-            if (!isAuthorized && currentUser.EmployeeId.HasValue)
+                if (existing == null)
+                    return ApiResponse<OvertimeRequestResponseDto>.NotFound("Overtime request not found.");
+                if (existing.Status != "PENDING")
+                    return ApiResponse<OvertimeRequestResponseDto>.Fail("Only PENDING requests can be approved or rejected.");
+
+                if (currentUser.EmployeeId.HasValue && currentUser.EmployeeId.Value == existing.EmployeeId)
+                {
+                    return ApiResponse<OvertimeRequestResponseDto>.Forbidden("You cannot approve or reject your own overtime request.");
+                }
+
+                bool isAuthorized = currentUser.IsAdmin();
+                if (!isAuthorized && currentUser.EmployeeId.HasValue)
+                {
+                    isAuthorized = await _unitOfWork.OvertimeRequests.IsOvertimeRequestUnderManagerAsync(overtimeRequestId, currentUser.EmployeeId.Value);
+                }
+
+                if (!isAuthorized)
+                {
+                    return ApiResponse<OvertimeRequestResponseDto>.Forbidden("You are not authorized to approve/reject this request.");
+                }
+
+                if (request.IsApproved)
+                {
+                    existing.Status = "APPROVED";
+                    existing.ApprovedBy = currentUser.EmployeeId;
+                    existing.ApprovedAt = DateTime.Now;
+                }
+                else
+                {
+                    existing.Status = "REJECTED";
+                    existing.RejectionReason = request.RejectionReason;
+                    existing.ApprovedBy = currentUser.EmployeeId;
+                    existing.ApprovedAt = DateTime.Now;
+                }
+
+                existing.UpdatedAt = DateTime.Now;
+                _unitOfWork.OvertimeRequests.Update(existing);
+                await _unitOfWork.SaveChangesAsync();
+
+                return ApiResponse<OvertimeRequestResponseDto>.Ok(MapOvertimeToDto(existing),
+                    request.IsApproved ? "Overtime request approved." : "Overtime request rejected.");
+            }
+            catch (Exception ex)
             {
-                isAuthorized = await _unitOfWork.OvertimeRequests.IsOvertimeRequestUnderManagerAsync(overtimeRequestId, currentUser.EmployeeId.Value);
+                return ApiResponse<OvertimeRequestResponseDto>.Fail($"Error approving/rejecting overtime request: {ex.InnerException?.Message ?? ex.Message}", 500);
             }
-
-            if (!isAuthorized)
-            {
-                return ApiResponse<OvertimeRequestResponseDto>.Forbidden("You are not authorized to approve/reject this request.");
-            }
-
-            if (request.IsApproved)
-            {
-                existing.Status = "APPROVED";
-                existing.ApprovedBy = currentUser.EmployeeId;
-                existing.ApprovedAt = DateTime.Now;
-            }
-            else
-            {
-                existing.Status = "REJECTED";
-                existing.RejectionReason = request.RejectionReason;
-                existing.ApprovedBy = currentUser.EmployeeId;
-                existing.ApprovedAt = DateTime.Now;
-            }
-
-            existing.UpdatedAt = DateTime.Now;
-            _unitOfWork.OvertimeRequests.Update(existing);
-            await _unitOfWork.SaveChangesAsync();
-
-            return ApiResponse<OvertimeRequestResponseDto>.Ok(MapOvertimeToDto(existing),
-                request.IsApproved ? "Overtime request approved." : "Overtime request rejected.");
         }
 
         public async Task<ApiResponse<List<OvertimeRequestResponseDto>>> GetApprovedOvertimeForPayrollAsync(

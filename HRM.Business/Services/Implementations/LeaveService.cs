@@ -269,52 +269,59 @@ namespace HRM.Business.Services.Implementations
             if (!currentUser.EmployeeId.HasValue)
                 return ApiResponse<LeaveRequestResponseDto>.Fail("Employee not found.");
 
-            var existing = await _unitOfWork.LeaveRequests.Query()
-                .Include(l => l.LeaveType)
-                .Include(l => l.Employee)
-                .FirstOrDefaultAsync(l => l.LeaveRequestId == leaveRequestId);
-
-            if (existing == null)
-                return ApiResponse<LeaveRequestResponseDto>.NotFound("Leave request not found.");
-            if (existing.Status != "PENDING")
-                return ApiResponse<LeaveRequestResponseDto>.Fail("Only PENDING requests can be approved or rejected.");
-
-            var underManager = await _unitOfWork.LeaveRequests.IsLeaveRequestUnderManagerAsync(leaveRequestId, currentUser.EmployeeId.Value);
-            if (!underManager && currentUser.EmployeeId != existing.EmployeeId)
-                return ApiResponse<LeaveRequestResponseDto>.Forbidden("You are not authorized to approve/reject this request.");
-
-            if (request.IsApproved)
+            try
             {
-                existing.Status = "APPROVED";
-                existing.ApprovedBy = currentUser.EmployeeId;
-                existing.ApprovedAt = DateTime.Now;
+                var existing = await _unitOfWork.LeaveRequests.Query()
+                    .Include(l => l.LeaveType)
+                    .Include(l => l.Employee)
+                    .FirstOrDefaultAsync(l => l.LeaveRequestId == leaveRequestId);
 
-                var balance = await _leaveBalanceRepo.FirstOrDefaultAsync(b =>
-                    b.EmployeeId == existing.EmployeeId &&
-                    b.LeaveTypeId == existing.LeaveTypeId &&
-                    b.Year == existing.StartDate.Year);
+                if (existing == null)
+                    return ApiResponse<LeaveRequestResponseDto>.NotFound("Leave request not found.");
+                if (existing.Status != "PENDING")
+                    return ApiResponse<LeaveRequestResponseDto>.Fail("Only PENDING requests can be approved or rejected.");
 
-                if (balance != null)
+                var underManager = await _unitOfWork.LeaveRequests.IsLeaveRequestUnderManagerAsync(leaveRequestId, currentUser.EmployeeId.Value);
+                if (!underManager && currentUser.EmployeeId != existing.EmployeeId)
+                    return ApiResponse<LeaveRequestResponseDto>.Forbidden("You are not authorized to approve/reject this request.");
+
+                if (request.IsApproved)
                 {
-                    balance.UsedDays += existing.TotalDays;
-                    balance.UpdatedAt = DateTime.Now;
-                    _leaveBalanceRepo.Update(balance);
+                    existing.Status = "APPROVED";
+                    existing.ApprovedBy = currentUser.EmployeeId;
+                    existing.ApprovedAt = DateTime.Now;
+
+                    var balance = await _leaveBalanceRepo.FirstOrDefaultAsync(b =>
+                        b.EmployeeId == existing.EmployeeId &&
+                        b.LeaveTypeId == existing.LeaveTypeId &&
+                        b.Year == existing.StartDate.Year);
+
+                    if (balance != null)
+                    {
+                        balance.UsedDays += existing.TotalDays;
+                        balance.UpdatedAt = DateTime.Now;
+                        _leaveBalanceRepo.Update(balance);
+                    }
                 }
+                else
+                {
+                    existing.Status = "REJECTED";
+                    existing.RejectionReason = request.RejectionReason;
+                    existing.ApprovedBy = currentUser.EmployeeId;
+                    existing.ApprovedAt = DateTime.Now;
+                }
+
+                existing.UpdatedAt = DateTime.Now;
+                _unitOfWork.LeaveRequests.Update(existing);
+                await _unitOfWork.SaveChangesAsync();
+
+                return ApiResponse<LeaveRequestResponseDto>.Ok(MapLeaveRequestToDto(existing),
+                    request.IsApproved ? "Leave request approved." : "Leave request rejected.");
             }
-            else
+            catch (Exception ex)
             {
-                existing.Status = "REJECTED";
-                existing.RejectionReason = request.RejectionReason;
-                existing.ApprovedBy = currentUser.EmployeeId;
-                existing.ApprovedAt = DateTime.Now;
+                return ApiResponse<LeaveRequestResponseDto>.Fail($"Error approving/rejecting leave request: {ex.InnerException?.Message ?? ex.Message}", 500);
             }
-
-            existing.UpdatedAt = DateTime.Now;
-            _unitOfWork.LeaveRequests.Update(existing);
-            await _unitOfWork.SaveChangesAsync();
-
-            return ApiResponse<LeaveRequestResponseDto>.Ok(MapLeaveRequestToDto(existing),
-                request.IsApproved ? "Leave request approved." : "Leave request rejected.");
         }
 
         public async Task<ApiResponse<List<LeaveTypeResponseDto>>> GetLeaveTypesAsync(bool? isActive = null)

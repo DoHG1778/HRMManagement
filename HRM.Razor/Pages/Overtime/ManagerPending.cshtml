@@ -1,0 +1,87 @@
+@page
+@model HRM.Razor.Pages.Overtime.ManagerPendingModel
+@{
+    ViewData["Title"] = "Duyệt yêu cầu tăng ca";
+    Layout = "_Layout";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title"><i class="bi bi-check2-square me-2"></i>Duyệt yêu cầu tăng ca</h5>
+    </div>
+    <div class="card-body">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+        }
+
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nhân viên</th>
+                        <th>Ngày</th>
+                        <th>Bắt đầu</th>
+                        <th>Kết thúc</th>
+                        <th>Số giờ</th>
+                        <th>Lý do</th>
+                        <th style="width: 200px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.OvertimeRequests)
+                    {
+                        <tr>
+                            <td>@item.Otid</td>
+                            <td>@item.EmployeeName (@item.EmployeeCode)</td>
+                            <td>@item.Otdate.ToString("dd/MM/yyyy")</td>
+                            <td>@item.StartTime.ToString("HH:mm")</td>
+                            <td>@item.EndTime.ToString("HH:mm")</td>
+                            <td>@item.TotalHours</td>
+                            <td>@item.Reason</td>
+                            <td>
+                                <form asp-page-handler="Approve" method="post" style="display:inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@item.Otid" />
+                                    <input type="hidden" name="isApproved" value="true" />
+                                    <button type="submit" class="btn btn-sm btn-success" title="Duyệt">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                </form>
+                                <button type="button" class="btn btn-sm btn-danger" onclick="showRejectForm(@item.Otid)" title="Từ chối">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+
+                                <form asp-page-handler="Approve" method="post" id="rejectForm-@item.Otid" style="display:none; margin-top:8px;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@item.Otid" />
+                                    <input type="hidden" name="isApproved" value="false" />
+                                    <div class="input-group">
+                                        <input type="text" name="rejectionReason" class="form-control form-control-sm" placeholder="Lý do từ chối" required />
+                                        <button type="submit" class="btn btn-sm btn-danger">Xác nhận</button>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.OvertimeRequests.Any())
+                    {
+                        <tr><td colspan="8" class="text-center" style="padding: 2rem; color: var(--color-text-muted);">Không có yêu cầu tăng ca nào chờ duyệt.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showRejectForm(id) {
+        var form = document.getElementById('rejectForm-' + id);
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+</script>

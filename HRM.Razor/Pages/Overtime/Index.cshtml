@@ -1,0 +1,106 @@
+@page
+@model HRM.Razor.Pages.Overtime.IndexModel
+@{
+    ViewData["Title"] = "My Overtime Requests";
+    Layout = "_Layout";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title"><i class="bi bi-alarm me-2"></i>Yêu cầu tăng ca</h5>
+        <a asp-page="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Đăng ký tăng ca
+        </a>
+    </div>
+    <div class="card-body">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+        }
+
+        <form method="get" class="filter-bar">
+            <div class="filter-group">
+                <label>Trạng thái</label>
+                <select name="status" class="form-select">
+                    <option value="">Tất cả</option>
+                    <option value="PENDING" selected="@(Model.CurrentStatus == "PENDING")">Chờ duyệt</option>
+                    <option value="APPROVED" selected="@(Model.CurrentStatus == "APPROVED")">Đã duyệt</option>
+                    <option value="REJECTED" selected="@(Model.CurrentStatus == "REJECTED")">Từ chối</option>
+                    <option value="CANCELLED" selected="@(Model.CurrentStatus == "CANCELLED")">Đã hủy</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Tháng</label>
+                <input type="number" name="month" class="form-control" placeholder="MM" value="@Model.CurrentMonth" min="1" max="12" />
+            </div>
+            <div class="filter-group">
+                <label>Năm</label>
+                <input type="number" name="year" class="form-control" placeholder="YYYY" value="@Model.CurrentYear" min="2020" max="2100" />
+            </div>
+            <button type="submit" class="btn btn-outline">
+                <i class="bi bi-funnel me-1"></i> Lọc
+            </button>
+            <a asp-page="Index" class="btn btn-outline">
+                <i class="bi bi-arrow-counterclockwise me-1"></i> Đặt lại
+            </a>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Ngày</th>
+                        <th>Bắt đầu</th>
+                        <th>Kết thúc</th>
+                        <th>Số giờ</th>
+                        <th>Lý do</th>
+                        <th>Trạng thái</th>
+                        <th style="width: 150px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.OvertimeRequests)
+                    {
+                        <tr>
+                            <td>@item.Otid</td>
+                            <td>@item.Otdate.ToString("dd/MM/yyyy")</td>
+                            <td>@item.StartTime.ToString("HH:mm")</td>
+                            <td>@item.EndTime.ToString("HH:mm")</td>
+                            <td>@item.TotalHours</td>
+                            <td>@item.Reason</td>
+                            <td>
+                                <span class="badge bg-@(item.Status == "PENDING" ? "warning" : item.Status == "APPROVED" ? "success" : item.Status == "REJECTED" ? "danger" : "secondary")">
+                                    @(item.Status == "PENDING" ? "Chờ duyệt" : item.Status == "APPROVED" ? "Đã duyệt" : item.Status == "REJECTED" ? "Từ chối" : "Đã hủy")
+                                </span>
+                            </td>
+                            <td>
+                                @if (item.Status == "PENDING")
+                                {
+                                    <a asp-page="Edit" asp-route-id="@item.Otid" class="btn btn-sm btn-outline" title="Sửa">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form asp-page-handler="Cancel" method="post" style="display:inline" onsubmit="return confirm('Hủy yêu cầu này?')">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@item.Otid" />
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Hủy">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.OvertimeRequests.Any())
+                    {
+                        <tr><td colspan="8" class="text-center" style="padding: 2rem; color: var(--color-text-muted);">Không tìm thấy yêu cầu tăng ca nào.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -193,3 +193,95 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* Card Body - inner padding for card content */
+.card-body {
+    padding: 0.25rem 0 0 0;
+}
+
+.card-body > .form-row {
+    max-width: 600px;
+}
+
+/* Table spacing */
+.table thead th {
+    padding: 0.875rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+    background-color: #f8fafc;
+    border-bottom: 2px solid var(--color-border);
+    white-space: nowrap;
+}
+
+.table tbody td {
+    padding: 0.875rem 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.table tbody tr:hover {
+    background-color: #f1f5f9;
+}
+
+/* Filter Bar */
+.filter-bar {
+    background-color: #f8fafc;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.filter-bar .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.filter-bar .filter-group label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.filter-bar .filter-group .form-control,
+.filter-bar .filter-group .form-select {
+    min-width: 140px;
+}
+
+/* Section spacing inside card-body */
+.card-body > .alert {
+    margin-bottom: 1.25rem;
+}
+
+.card-body > .table-responsive {
+    margin-top: 0.5rem;
+}
+
+.card-body > form.filter-bar + .table-responsive {
+    margin-top: 0;
+}
+
+/* Form spacing */
+.card-body .form-label {
+    margin-bottom: 0.375rem;
+}
+
+.card-body .form-group {
+    margin-bottom: 1.25rem;
+}
+
+/* Empty state row */
+.table td.text-center[style*="padding: 2rem"] {
+    color: var(--color-text-muted) !important;
+    font-style: italic;
+}

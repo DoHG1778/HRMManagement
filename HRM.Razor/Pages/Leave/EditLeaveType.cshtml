@@ -1,0 +1,54 @@
+@page "{id:int}"
+@model HRM.Razor.Pages.Leave.EditLeaveTypePageModel
+@{
+    ViewData["Title"] = "Sửa loại phép";
+    Layout = "_Layout";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title"><i class="bi bi-tags me-2"></i>Sửa loại phép</h5>
+        <a asp-page="LeaveTypes" class="btn btn-outline">
+            <i class="bi bi-arrow-left me-1"></i> Quay lại
+        </a>
+    </div>
+    <div class="card-body">
+        <form asp-page="EditLeaveType" method="post" class="form-row">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label asp-for="Input.LeaveTypeName" class="form-label">Tên loại phép</label>
+                <input asp-for="Input.LeaveTypeName" class="form-control" />
+                <span asp-validation-for="Input.LeaveTypeName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Số ngày tối đa / năm</label>
+                <input asp-for="Input.MaxDaysPerYear" type="number" class="form-control" min="0" />
+                <span asp-validation-for="Input.MaxDaysPerYear" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Input.Description" class="form-label"></label>
+                <textarea asp-for="Input.Description" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="form-group form-check" style="margin-top: 0.5rem;">
+                <input name="Input.IsActive" type="hidden" value="false" />
+                <input type="checkbox" name="Input.IsActive" value="true" class="form-check-input" @(Model.Input.IsActive == true ? "checked" : "") />
+                <label class="form-check-label">Đang áp dụng</label>
+            </div>
+
+            <div class="d-flex gap-2" style="margin-top: 1rem;">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i> Lưu
+                </button>
+                <a asp-page="LeaveTypes" class="btn btn-outline">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

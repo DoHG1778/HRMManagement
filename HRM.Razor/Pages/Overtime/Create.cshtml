@@ -1,0 +1,109 @@
+@page
+@model HRM.Razor.Pages.Overtime.CreateModel
+@{
+    ViewData["Title"] = "Đăng ký tăng ca";
+    Layout = "_Layout";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title"><i class="bi bi-alarm me-2"></i>Đăng ký tăng ca</h5>
+        <a asp-page="Index" class="btn btn-outline">
+            <i class="bi bi-arrow-left me-1"></i> Quay lại
+        </a>
+    </div>
+    <div class="card-body">
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <p style="margin-bottom: 0;">@error.ErrorMessage</p>
+                }
+            </div>
+        }
+
+        <form asp-page="Create" method="post" onsubmit="return validateAndCalculate()" class="form-row">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label class="form-label">Ngày tăng ca</label>
+                <input asp-for="Input.Otdate" type="date" class="form-control" required />
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Thời gian bắt đầu</label>
+                    <input asp-for="Input.StartTime" type="datetime-local" class="form-control" required />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Thời gian kết thúc</label>
+                    <input asp-for="Input.EndTime" type="datetime-local" class="form-control" required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Tổng số giờ</label>
+                <input name="totalHours" id="TotalHours" type="number" class="form-control" readonly step="0.01" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Lý do</label>
+                <textarea asp-for="Input.Reason" class="form-control" rows="3" required></textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i> Gửi
+                </button>
+                <a asp-page="Index" class="btn btn-outline">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function validateAndCalculate() {
+            var otdate = document.getElementById('Input_Otdate');
+            var startTime = document.getElementById('Input_StartTime');
+            var endTime = document.getElementById('Input_EndTime');
+            var totalHours = document.getElementById('TotalHours');
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (otdate.value) {
+                var otDate = new Date(otdate.value);
+                if (otDate < today) {
+                    alert('Ngày tăng ca không được ở quá khứ.');
+                    return false;
+                }
+            }
+
+            if (startTime.value) {
+                var start = new Date(startTime.value);
+                if (start < new Date()) {
+                    alert('Thời gian bắt đầu không được ở quá khứ.');
+                    return false;
+                }
+            }
+
+            if (startTime.value && endTime.value) {
+                var start = new Date(startTime.value);
+                var end = new Date(endTime.value);
+                if (end <= start) {
+                    alert('Thời gian kết thúc phải lớn hơn thời gian bắt đầu.');
+                    return false;
+                }
+                var hours = (end - start) / (1000 * 60 * 60);
+                totalHours.value = hours.toFixed(2);
+                if (hours > 3) {
+                    alert('Tăng ca không được quá 3 giờ.');
+                    return false;
+                }
+            }
+            return true;
+        }
+    </script>
+}

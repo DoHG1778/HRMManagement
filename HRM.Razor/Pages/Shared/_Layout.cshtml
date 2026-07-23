@@ -19,29 +19,41 @@
                 <i class="bi bi-people-fill me-2" style="color: #3b82f6;"></i> HRM<span>Quản trị nhân sự</span>
             </div>
             
+            @{ 
+                bool isAuthenticated = User.Identity?.IsAuthenticated == true;
+                bool isManager = isAuthenticated && (User.IsInRole("Admin") || User.IsInRole("HR") || User.IsInRole("HR Staff") || User.IsInRole("Manager") || User.IsInRole("Department Manager") || User.IsInRole("System Administrator"));
+                bool isHRAdmin = isAuthenticated && (User.IsInRole("Admin") || User.IsInRole("HR") || User.IsInRole("HR Staff") || User.IsInRole("System Administrator"));
+                bool isPayroll = isAuthenticated && (User.IsInRole("Admin") || User.IsInRole("Payroll") || User.IsInRole("Payroll Officer"));
+            }
             <nav class="sidebar-nav">
                 <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Dashboard" ? "active" : "")" asp-page="/Index">
                     <i class="bi bi-house-door me-2"></i>
                     <span>Tổng quan</span>
                 </a>
 
-                <div class="nav-section-title">NHÂN SỰ</div>
-                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Employees" ? "active" : "")" asp-page="/Employees/Index">
-                    <i class="bi bi-person-lines-fill me-2"></i>
-                    <span>Hồ sơ nhân viên</span>
-                </a>
-                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Departments" ? "active" : "")" asp-page="/Departments/Index">
-                    <i class="bi bi-building me-2"></i>
-                    <span>Phòng ban</span>
-                </a>
-                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Positions" ? "active" : "")" asp-page="/Positions/Index">
-                    <i class="bi bi-award me-2"></i>
-                    <span>Chức vụ</span>
-                </a>
-                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "EmployeeAssignments" ? "active" : "")" asp-page="/EmployeeAssignments/Assign">
-                    <i class="bi bi-arrow-left-right me-2"></i>
-                    <span>Phân công & Điều chuyển</span>
-                </a>
+                @if (isManager)
+                {
+                    <div class="nav-section-title">NHÂN SỰ</div>
+                    <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Employees" ? "active" : "")" asp-page="/Employees/Index">
+                        <i class="bi bi-person-lines-fill me-2"></i>
+                        <span>Hồ sơ nhân viên</span>
+                    </a>
+                    @if (isHRAdmin)
+                    {
+                        <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Departments" ? "active" : "")" asp-page="/Departments/Index">
+                            <i class="bi bi-building me-2"></i>
+                            <span>Phòng ban</span>
+                        </a>
+                        <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Positions" ? "active" : "")" asp-page="/Positions/Index">
+                            <i class="bi bi-award me-2"></i>
+                            <span>Chức vụ</span>
+                        </a>
+                        <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "EmployeeAssignments" ? "active" : "")" asp-page="/EmployeeAssignments/Assign">
+                            <i class="bi bi-arrow-left-right me-2"></i>
+                            <span>Phân công & Điều chuyển</span>
+                        </a>
+                    }
+                }
 
                 <div class="nav-section-title">CHẤM CÔNG</div>
                 <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Attendance" ? "active" : "")" asp-page="/Index">
@@ -52,56 +64,80 @@
                     <i class="bi bi-sliders me-2"></i>
                     <span>Điều chỉnh chấm công</span>
                 </a>
-                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "AttendanceAdjustmentApproval" ? "active" : "")" asp-page="/AttendanceAdjustments/Approvals">
-                    <i class="bi bi-check2-square me-2"></i>
-                    <span>Duyệt điều chỉnh</span>
-                </a>
+                @if (isManager)
+                {
+                    <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "AttendanceAdjustmentApproval" ? "active" : "")" asp-page="/AttendanceAdjustments/Approvals">
+                        <i class="bi bi-check2-square me-2"></i>
+                        <span>Duyệt điều chỉnh</span>
+                    </a>
+                }
 
                 <div class="nav-section-title">NGHỈ PHÉP</div>
-                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Leave" ? "active" : "")" asp-page="/Index">
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "MyLeaveRequests" ? "active" : "")" asp-page="/Leave/Index">
                     <i class="bi bi-calendar-event me-2"></i>
-                    <span>Nghỉ phép</span>
+                    <span>Yêu cầu nghỉ phép</span>
                 </a>
-                <a class="nav-item" asp-page="/Index">
-                    <i class="bi bi-calendar-check me-2"></i>
-                    <span>Số dư phép</span>
-                </a>
+                @if (isManager)
+                {
+                    <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "ManagerLeaveRequests" ? "active" : "")" asp-page="/Leave/ManagerPending">
+                        <i class="bi bi-check2-square me-2"></i>
+                        <span>Duyệt yêu cầu</span>
+                    </a>
+                    <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "LeaveTypes" ? "active" : "")" asp-page="/Leave/LeaveTypes">
+                        <i class="bi bi-tags me-2"></i>
+                        <span>Loại phép</span>
+                    </a>
+                    <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "LeaveBalances" ? "active" : "")" asp-page="/Leave/Balances">
+                        <i class="bi bi-calendar-check me-2"></i>
+                        <span>Số dư phép</span>
+                    </a>
+                }
 
                 <div class="nav-section-title">TĂNG CA</div>
-                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Overtime" ? "active" : "")" asp-page="/Index">
+                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "MyOvertimeRequests" ? "active" : "")" asp-page="/Overtime/Index">
                     <i class="bi bi-alarm me-2"></i>
-                    <span>Tăng ca</span>
+                    <span>Yêu cầu tăng ca</span>
                 </a>
+                @if (isManager)
+                {
+                    <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "ManagerOvertimeRequests" ? "active" : "")" asp-page="/Overtime/ManagerPending">
+                        <i class="bi bi-check2-square me-2"></i>
+                        <span>Duyệt tăng ca</span>
+                    </a>
+                }
 
                 <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "KPI" ? "active" : "")" asp-page="/Index" style="margin-top: 0.75rem;">
                     <i class="bi bi-speedometer2 me-2"></i>
                     <span>KPI cá nhân</span>
                 </a>
 
-                <div class="nav-section-title">TIỀN LƯƠNG</div>
-                <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Payroll" ? "active" : "")" asp-page="/Payroll/Index">
-                    <i class="bi bi-cash-stack me-2"></i>
-                    <span>Danh sách bảng lương</span>
-                </a>
-                <a class="nav-item" asp-page="/Payroll/Generate">
-                    <i class="bi bi-plus-circle me-2"></i>
-                    <span>Tạo bảng lương tháng</span>
-                </a>
-                <a class="nav-item" asp-page="/Payroll/Calculate">
-                    <i class="bi bi-calculator me-2"></i>
-                    <span>Tính lương theo kỳ</span>
-                </a>
-                <a class="nav-item" asp-page="/Payroll/Confirm">
-                    <i class="bi bi-lock me-2"></i>
-                    <span>Chốt bảng lương</span>
-                </a>
+                @if (isPayroll)
+                {
+                    <div class="nav-section-title">TIỀN LƯƠNG</div>
+                    <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "Payroll" ? "active" : "")" asp-page="/Payroll/Index">
+                        <i class="bi bi-cash-stack me-2"></i>
+                        <span>Danh sách bảng lương</span>
+                    </a>
+                    <a class="nav-item" asp-page="/Payroll/Generate">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        <span>Tạo bảng lương tháng</span>
+                    </a>
+                    <a class="nav-item" asp-page="/Payroll/Calculate">
+                        <i class="bi bi-calculator me-2"></i>
+                        <span>Tính lương theo kỳ</span>
+                    </a>
+                    <a class="nav-item" asp-page="/Payroll/Confirm">
+                        <i class="bi bi-lock me-2"></i>
+                        <span>Chốt bảng lương</span>
+                    </a>
+                    <a class="nav-item" asp-page="/Payroll/Reports">
+                        <i class="bi bi-bar-chart-line me-2"></i>
+                        <span>Báo cáo lương</span>
+                    </a>
+                }
                 <a class="nav-item @(ViewData["ActivePage"]?.ToString() == "MyPayslip" ? "active" : "")" asp-page="/Payslips/Index">
                     <i class="bi bi-receipt me-2"></i>
                     <span>Phiếu lương cá nhân</span>
-                </a>
-                <a class="nav-item" asp-page="/Payroll/Reports">
-                    <i class="bi bi-bar-chart-line me-2"></i>
-                    <span>Báo cáo lương</span>
                 </a>
 
                 <div class="nav-section-title">THÔNG TIN CÁ NHÂN</div>

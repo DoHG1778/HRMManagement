@@ -1,4 +1,4 @@
-using HRM.Razor.Models;
+using HRM.Business.Common;
 using HRM.Razor.Models.ViewModels.AttendanceAdjustments;
 
 namespace HRM.Razor.Services.Interfaces

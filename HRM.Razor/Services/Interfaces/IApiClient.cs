@@ -1,4 +1,4 @@
-using HRM.Razor.Models;
+using HRM.Business.Common;
 
 namespace HRM.Razor.Services.Interfaces
 {

@@ -1,0 +1,105 @@
+@page
+@model HRM.Razor.Pages.Leave.CreateModel
+@{
+    ViewData["Title"] = "Tạo yêu cầu nghỉ phép";
+    Layout = "_Layout";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title"><i class="bi bi-calendar-event me-2"></i>Tạo yêu cầu nghỉ phép</h5>
+        <a asp-page="Index" class="btn btn-outline">
+            <i class="bi bi-arrow-left me-1"></i> Quay lại
+        </a>
+    </div>
+    <div class="card-body">
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <p style="margin-bottom: 0;">@error.ErrorMessage</p>
+                }
+            </div>
+        }
+
+        <form asp-page="Create" method="post" onsubmit="return validateAndCalculate()" class="form-row">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label class="form-label">Loại phép</label>
+                <select asp-for="Input.LeaveTypeId" class="form-select" required>
+                    <option value="">-- Chọn loại phép --</option>
+                    @foreach (var lt in Model.LeaveTypes)
+                    {
+                        <option value="@lt.LeaveTypeId" data-max="@lt.MaxDaysPerYear">
+                            @lt.LeaveTypeName (tối đa @lt.MaxDaysPerYear ngày/năm)
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Từ ngày</label>
+                    <input asp-for="Input.StartDate" type="date" class="form-control" required />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Đến ngày</label>
+                    <input asp-for="Input.EndDate" type="date" class="form-control" required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Số ngày</label>
+                <input name="totalDays" id="TotalDays" type="number" class="form-control" readonly />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Lý do</label>
+                <textarea asp-for="Input.Reason" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i> Gửi
+                </button>
+                <a asp-page="Index" class="btn btn-outline">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function validateAndCalculate() {
+            var start = document.getElementById('Input_StartDate');
+            var end = document.getElementById('Input_EndDate');
+            var totalDays = document.getElementById('TotalDays');
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            var startDate = new Date(start.value);
+            var endDate = new Date(end.value);
+
+            if (start.value && startDate < today) {
+                alert('Ngày bắt đầu không được ở quá khứ.');
+                return false;
+            }
+            if (end.value && endDate < today) {
+                alert('Ngày kết thúc không được ở quá khứ.');
+                return false;
+            }
+            if (start.value && end.value && endDate < startDate) {
+                alert('Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.');
+                return false;
+            }
+            if (start.value && end.value) {
+                var diff = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                totalDays.value = diff;
+            }
+            return true;
+        }
+    </script>
+}
